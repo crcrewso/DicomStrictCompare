@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DicomStrictCompare.Properties
+namespace DSC.Properties
 {
 
 
