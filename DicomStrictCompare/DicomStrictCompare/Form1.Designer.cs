@@ -39,6 +39,10 @@
             this.btnExecute = new System.Windows.Forms.Button();
             this.btnSourceDir = new System.Windows.Forms.Button();
             this.btnTargetDir = new System.Windows.Forms.Button();
+            this.lblSourceFilesFoundText = new System.Windows.Forms.Label();
+            this.lblTargetFilesFoundText = new System.Windows.Forms.Label();
+            this.lblSourceFilesFound = new System.Windows.Forms.Label();
+            this.lblTargetFilesFound = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblIntro
@@ -108,6 +112,7 @@
             this.btnExecute.TabIndex = 9;
             this.btnExecute.Text = "Run";
             this.btnExecute.UseVisualStyleBackColor = true;
+            this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
             // 
             // btnSourceDir
             // 
@@ -129,11 +134,51 @@
             this.btnTargetDir.UseVisualStyleBackColor = true;
             this.btnTargetDir.Click += new System.EventHandler(this.btnTargetDir_Click);
             // 
+            // lblSourceFilesFoundText
+            // 
+            this.lblSourceFilesFoundText.AutoSize = true;
+            this.lblSourceFilesFoundText.Location = new System.Drawing.Point(445, 183);
+            this.lblSourceFilesFoundText.Name = "lblSourceFilesFoundText";
+            this.lblSourceFilesFoundText.Size = new System.Drawing.Size(89, 13);
+            this.lblSourceFilesFoundText.TabIndex = 12;
+            this.lblSourceFilesFoundText.Text = "Dose Files Found";
+            // 
+            // lblTargetFilesFoundText
+            // 
+            this.lblTargetFilesFoundText.AutoSize = true;
+            this.lblTargetFilesFoundText.Location = new System.Drawing.Point(445, 213);
+            this.lblTargetFilesFoundText.Name = "lblTargetFilesFoundText";
+            this.lblTargetFilesFoundText.Size = new System.Drawing.Size(86, 13);
+            this.lblTargetFilesFoundText.TabIndex = 13;
+            this.lblTargetFilesFoundText.Text = "Dose Files found";
+            // 
+            // lblSourceFilesFound
+            // 
+            this.lblSourceFilesFound.AutoSize = true;
+            this.lblSourceFilesFound.Location = new System.Drawing.Point(537, 183);
+            this.lblSourceFilesFound.Name = "lblSourceFilesFound";
+            this.lblSourceFilesFound.Size = new System.Drawing.Size(14, 13);
+            this.lblSourceFilesFound.TabIndex = 14;
+            this.lblSourceFilesFound.Text = "#";
+            // 
+            // lblTargetFilesFound
+            // 
+            this.lblTargetFilesFound.AutoSize = true;
+            this.lblTargetFilesFound.Location = new System.Drawing.Point(537, 213);
+            this.lblTargetFilesFound.Name = "lblTargetFilesFound";
+            this.lblTargetFilesFound.Size = new System.Drawing.Size(14, 13);
+            this.lblTargetFilesFound.TabIndex = 15;
+            this.lblTargetFilesFound.Text = "#";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(578, 564);
+            this.Controls.Add(this.lblTargetFilesFound);
+            this.Controls.Add(this.lblSourceFilesFound);
+            this.Controls.Add(this.lblTargetFilesFoundText);
+            this.Controls.Add(this.lblSourceFilesFoundText);
             this.Controls.Add(this.btnTargetDir);
             this.Controls.Add(this.btnSourceDir);
             this.Controls.Add(this.btnExecute);
@@ -164,6 +209,10 @@
         private System.Windows.Forms.Button btnExecute;
         private System.Windows.Forms.Button btnSourceDir;
         private System.Windows.Forms.Button btnTargetDir;
+        private System.Windows.Forms.Label lblSourceFilesFoundText;
+        private System.Windows.Forms.Label lblTargetFilesFoundText;
+        private System.Windows.Forms.Label lblSourceFilesFound;
+        private System.Windows.Forms.Label lblTargetFilesFound;
     }
 }
 

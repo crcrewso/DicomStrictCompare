@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DicomStrictCompare;
 
 namespace DSC
 {
@@ -19,12 +20,16 @@ namespace DSC
         public string TargetDirectory { get; private set; }
 
 
+        private DscDataHandler dataHandler;
 
+
+        /// <inheritdoc />
         public Form1()
         {
             InitializeComponent();
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
+            dataHandler = new DscDataHandler();
         }
 
         /// <summary>
@@ -115,7 +120,9 @@ namespace DSC
                     SourceDirectory = fbd.SelectedPath;
                     tbxSource.Text = SourceDirectory;
                 }
+                lblSourceFilesFound.Text = dataHandler.CreateSourcelist(SourceDirectory).ToString();
             }
+
         }
 
         private void btnTargetDir_Click(object sender, EventArgs e)
@@ -130,7 +137,19 @@ namespace DSC
                     TargetDirectory = fbd.SelectedPath;
                     tbxTarget.Text = SourceDirectory;
                 }
+                lblTargetFilesFound.Text = dataHandler.CreateTargetList(TargetDirectory).ToString();
             }
+        }
+
+        /// <summary>
+        /// TODO add error checking here!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnExecute_Click(object sender, EventArgs e)
+        {
+            dataHandler.run();
+            System.Windows.Forms.MessageBox.Show("Finished");
         }
     }
 }
