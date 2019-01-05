@@ -31,7 +31,7 @@ namespace DicomStrictCompare
 
         public static string[] LoadListRDDcmList(string folder)
         {
-            return Directory.GetFiles(folder, "RD*.dcm", SearchOption.AllDirectories);
+            return Directory.GetFiles(folder, "*.dcm", SearchOption.AllDirectories);
         }
 
         public void run()
