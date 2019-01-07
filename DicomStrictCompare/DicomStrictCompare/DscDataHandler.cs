@@ -23,7 +23,9 @@ namespace DicomStrictCompare
         public List<DoseFile> TargetDosesList { get; private set; }
         public List<MatchedDosePair> DosePairsList { get; private set; }
 
-
+        public double EpsilonTol { get; set; }
+        public double TightTol { get; set; }
+        public double MainTol { get; set; }
 
 
 
@@ -92,7 +94,7 @@ namespace DicomStrictCompare
                 {
                     if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
                     {
-                       DosePairsList.Add(new MatchedDosePair(sourceDose, dose, ));
+                       DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.EpsilonTol, this.TightTol, this.MainTol));
                     }
                 }
             }
@@ -122,15 +124,15 @@ namespace DicomStrictCompare
         /// <summary>
         /// Machine Tol for smallest difference between two doses
         /// </summary>
-        public float EpsilonTol { get; }
+        public double EpsilonTol { get; }
         /// <summary>
         /// User controlled tight tolerance
         /// </summary>
-        public float TightTol { get; }
+        public double TightTol { get; }
         /// <summary>
         /// User controlled Main tolerance
         /// </summary>
-        public float MainTol { get; }
+        public double MainTol { get; }
 
 
         private DoseFile _source;
@@ -142,7 +144,7 @@ namespace DicomStrictCompare
         }
 
 
-        public MatchedDosePair(DoseFile source, DoseFile target, float epsilonTol, float tightTol, float mainTol)
+        public MatchedDosePair(DoseFile source, DoseFile target, double epsilonTol, double tightTol, double mainTol)
         {
             _source = source;
             _target = target;
@@ -178,7 +180,7 @@ namespace DicomStrictCompare
         /// <param name="target"></param>
         /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
         /// <returns></returns>
-        private int Evaluate(ref List<double> source, ref List<double> target, float tol)
+        private int Evaluate(ref List<double> source, ref List<double> target, double tol)
         {
             int failed = 0;
             for (int i = 0; i < target.Count; i++)

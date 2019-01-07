@@ -14,8 +14,8 @@ namespace DSC
 {
     public partial class Form1 : Form
     {
-        public float TightTol { get; private set; } = 1;
-        public float MainTol { get; private set; } = 2;
+        public double TightTol { get; private set; } = 1;
+        public double MainTol { get; private set; } = 2;
         public string SourceDirectory { get; private set; }
         public string TargetDirectory { get; private set; }
 
