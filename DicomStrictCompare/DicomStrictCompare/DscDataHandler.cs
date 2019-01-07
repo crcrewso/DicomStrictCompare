@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,11 +28,12 @@ namespace DicomStrictCompare
         public double TightTol { get; set; }
         public double MainTol { get; set; }
 
-
+        public string ResultMessage { get; private set; }
 
         public DscDataHandler()
         {
             DosePairsList = new List<MatchedDosePair>();
+            ResultMessage = "";
         }
 
 
@@ -88,19 +90,36 @@ namespace DicomStrictCompare
             SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
 
-            foreach (var dose in TargetDosesList)
+
+            // match each pair for analysis
+            Parallel.ForEach(TargetDosesList, (dose) =>
             {
                 foreach (var sourceDose in SourceDosesList)
                 {
                     if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
                     {
-                       DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.EpsilonTol, this.TightTol, this.MainTol));
+                        Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
+                        DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.EpsilonTol, this.TightTol,
+                            this.MainTol));
                     }
                 }
+            });
+
+            //Do not try to Parallel.ForEach this, it will break, it will run out of memory
+            foreach (var pair in DosePairsList)
+            {
+                pair.Evaluate();
+                ResultMessage += pair.ResultString + '\n';
+                Debug.WriteLine(pair.ResultString);
+
             }
 
 
+
+            
         }
+
+        
 
     }
 
@@ -133,6 +152,13 @@ namespace DicomStrictCompare
         /// User controlled Main tolerance
         /// </summary>
         public double MainTol { get; }
+
+        /// <summary>
+        /// Name of the pair evaluated
+        /// </summary>
+        public string Name => _source.FileName + '\t' + _target.FileName;
+
+        public string ResultString => Name + '\t' + TotalCount + '\t' + TotalFailedEpsilonTol;
 
 
         private DoseFile _source;

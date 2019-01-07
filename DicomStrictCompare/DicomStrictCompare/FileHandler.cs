@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,6 +35,7 @@ namespace DicomStrictCompare
                 var temp = new DoseFile(file);
                 if (temp.IsDoseFile)
                 {
+                    Debug.WriteLine("Found Dose File " + temp.FileName);
                     doseFiles.Add(temp);
                 }
             }
@@ -101,7 +103,7 @@ namespace DicomStrictCompare
             PatientId = dcm1.FindFirst(TagHelper.PatientID).ToString();
             BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
             SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).ToString();
-            if (dcm1.FindFirst(TagHelper.Modality).ToString() == "RTDOSE")
+            if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
                 IsDoseFile = true;
             }

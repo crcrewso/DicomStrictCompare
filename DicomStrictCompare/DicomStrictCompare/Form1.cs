@@ -14,8 +14,8 @@ namespace DSC
 {
     public partial class Form1 : Form
     {
-        public double TightTol { get; private set; } = 1;
-        public double MainTol { get; private set; } = 2;
+        public float TightTol { get; private set; } = 1;
+        public float MainTol { get; private set; } = 2;
         public string SourceDirectory { get; private set; }
         public string TargetDirectory { get; private set; }
 
@@ -70,13 +70,13 @@ namespace DSC
             try
             {
                 MainTol = float.Parse(tbxMainTol.Text);
-                MainTol = Math.Abs(TightTol);
+                MainTol = Math.Abs(MainTol);
                 if (TightTol > MainTol)
                 {
-                    TightTol = MainTol;
-                    tbxTightTol.Text = MainTol.ToString();
+                    MainTol = TightTol;
+                    tbxMainTol.Text = MainTol.ToString();
                 }
-                tbxMainTol.Text = TightTol.ToString();
+                tbxMainTol.Text = MainTol.ToString();
             }
             catch (ArgumentNullException)
             {
@@ -149,7 +149,7 @@ namespace DSC
         private void btnExecute_Click(object sender, EventArgs e)
         {
             _dataHandler.Run();
-            System.Windows.Forms.MessageBox.Show("Finished");
+            System.Windows.Forms.MessageBox.Show("Ive finished" + _dataHandler.ResultMessage);
         }
     }
 }
