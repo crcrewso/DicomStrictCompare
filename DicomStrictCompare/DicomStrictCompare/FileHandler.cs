@@ -102,11 +102,22 @@ namespace DicomStrictCompare
             Name = dcm1.FindFirst(TagHelper.SeriesDescription).ToString();
             PatientId = dcm1.FindFirst(TagHelper.PatientID).ToString();
             BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
-            SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).ToString();
+            SopInstanceId = SopInstanceIdClean(dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID ).ToString());
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
                 IsDoseFile = true;
             }
+        }
+
+        /// <summary>
+        /// Cleans the Reference SOP Instance Id as read in the dose file, of the date string at the end of the string. 
+        /// </summary>
+        /// <param name="sopInstanceId">The sop instance identifier.</param>
+        /// <returns></returns>
+         private string SopInstanceIdClean(string sopInstanceId)
+        {
+            int lastDecimal = sopInstanceId.LastIndexOf('.'); //index of decimal 
+            return sopInstanceId.Substring(0, lastDecimal - 1); //substring before the decimal
         }
 
         /// <summary>
