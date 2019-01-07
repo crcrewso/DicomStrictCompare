@@ -20,7 +20,7 @@ namespace DSC
         public string TargetDirectory { get; private set; }
 
 
-        private DscDataHandler dataHandler;
+        private DscDataHandler _dataHandler;
 
 
         /// <inheritdoc />
@@ -29,7 +29,7 @@ namespace DSC
             InitializeComponent();
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
-            dataHandler = new DscDataHandler();
+            _dataHandler = new DscDataHandler();
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace DSC
                     SourceDirectory = fbd.SelectedPath;
                     tbxSource.Text = SourceDirectory;
                 }
-                lblSourceFilesFound.Text = dataHandler.CreateSourcelist(SourceDirectory).ToString();
+                lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
             }
 
         }
@@ -137,7 +137,7 @@ namespace DSC
                     TargetDirectory = fbd.SelectedPath;
                     tbxTarget.Text = SourceDirectory;
                 }
-                lblTargetFilesFound.Text = dataHandler.CreateTargetList(TargetDirectory).ToString();
+                lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
             }
         }
 
@@ -148,7 +148,7 @@ namespace DSC
         /// <param name="e"></param>
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            dataHandler.run();
+            _dataHandler.Run();
             System.Windows.Forms.MessageBox.Show("Finished");
         }
     }
