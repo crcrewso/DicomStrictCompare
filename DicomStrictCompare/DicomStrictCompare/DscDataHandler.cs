@@ -89,7 +89,7 @@ namespace DicomStrictCompare
 
             SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
-
+            ResultMessage = "";
 
             // match each pair for analysis
             Parallel.ForEach(TargetDosesList, (dose) =>
@@ -158,15 +158,21 @@ namespace DicomStrictCompare
         /// </summary>
         public string Name => _source.FileName + '\t' + _target.FileName;
 
-        public string ResultString => Name + '\t' + TotalCount + '\t' + TotalFailedEpsilonTol;
+        public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalFailedEpsilonTol + '\t' + PercentFailedEpsilonTol.ToString("0.00") +'\t' + PercentFailedTightTol.ToString("0.00") + '\t' + PercentFailedMainTol.ToString("0.00");
 
 
         private DoseFile _source;
         private DoseFile _target;
 
+        /// <summary>
+        /// Calculates the percent of voxels that failed based on the total 
+        /// </summary>
+        /// <param name="total">The total number of voxels compared</param>
+        /// <param name="failed">The number of voxels that failed</param>
+        /// <returns></returns>
         private static double PercentCalculator(int total, int failed)
         {
-            return (((double)total - (double)failed) / (double)total) * 100.0;
+            return (double)failed / (double)total * 100.0;
         }
 
 
@@ -192,6 +198,7 @@ namespace DicomStrictCompare
             { throw new DataMisalignedException("The Array Sizes don't match"); }
             if (_source.X != _target.X || _source.Y != _target.Y || _source.Z != _target.Z)
             { throw new DataMisalignedException("The Array Dimensions don't match"); }
+            TotalCount = targetDose.Count;
             TotalFailedEpsilonTol = Evaluate(ref sourceDose, ref targetDose, EpsilonTol);
             TotalFailedTightTol = Evaluate(ref sourceDose, ref targetDose, TightTol);
             TotalFailedMainTol = Evaluate(ref sourceDose, ref targetDose, MainTol);
