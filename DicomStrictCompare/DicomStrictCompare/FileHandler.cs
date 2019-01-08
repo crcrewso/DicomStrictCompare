@@ -101,11 +101,12 @@ namespace DicomStrictCompare
             FileName = fileName;
             Name = dcm1.FindFirst(TagHelper.SeriesDescription).ToString();
             PatientId = dcm1.FindFirst(TagHelper.PatientID).ToString();
-            BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
+
             SopInstanceId = SopInstanceIdClean(dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID ).ToString());
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
                 IsDoseFile = true;
+                BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
             }
         }
 
@@ -142,5 +143,28 @@ namespace DicomStrictCompare
                 throw new InvalidOperationException("Cannot call for dose on a Dicom file that is not a dose file");
             }
         }
+
+        /// <summary>
+        /// Returns the Dose Matrix object for advanced evaluation
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Cannot call for dose on a Dicom file that is not a dose file</exception>
+        public DoseMatrix DoseMatrix()
+        {
+            if (IsDoseFile)
+            {
+                var dcm1 = DICOMObject.Read(FileName);
+                DoseMatrix dcmMatrix = new DoseMatrix(dcm1);
+                X = dcmMatrix.DimensionX;
+                Y = dcmMatrix.DimensionY;
+                Z = dcmMatrix.DimensionZ;
+                return dcmMatrix;
+            }
+            else
+            {
+                throw new InvalidOperationException("Cannot call for dose on a Dicom file that is not a dose file");
+            }
+        }
+
     }
 }
