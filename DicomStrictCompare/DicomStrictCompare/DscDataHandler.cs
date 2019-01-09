@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EvilDICOM.RT;
 
 namespace DicomStrictCompare
 {
@@ -106,14 +107,26 @@ namespace DicomStrictCompare
             });
 
             //Do not try to Parallel.ForEach this, it will break, it will run out of memory
-            foreach (var pair in DosePairsList)
+            if (DosePairsList.Count > 0)
             {
-                pair.Evaluate();
-                ResultMessage += pair.ResultString + '\n';
-                Debug.WriteLine(pair.ResultString);
+                foreach (var pair in DosePairsList)
+                {
+                    try
+                    {
+                        pair.Evaluate();
+                        ResultMessage += pair.ResultString + '\n';
+                        Debug.WriteLine(pair.ResultString);
+                    }
+                    // Will catch array misalignment problems
+                    catch (DataMisalignedException)
+                    {
+                        ResultMessage += pair.Name + " was not evaluated";
+                        
+                    }
 
+
+                }
             }
-
 
 
             
@@ -130,12 +143,13 @@ namespace DicomStrictCompare
     class MatchedDosePair
     {
         public int TotalCount { get; private set; }
+        public int TotalCompared { get; private set; } = 0;
         public int TotalFailedEpsilonTol { get; private set; }
-        public double PercentFailedEpsilonTol => PercentCalculator(TotalCount, TotalFailedEpsilonTol);
+        //public double PercentFailedEpsilonTol => PercentCalculator(TotalCompared, TotalFailedEpsilonTol);
         public int TotalFailedTightTol { get; private set; }
-        public double PercentFailedTightTol => PercentCalculator(TotalCount, TotalFailedTightTol);
+        public double PercentFailedTightTol => PercentCalculator(TotalCompared, TotalFailedTightTol);
         public int TotalFailedMainTol { get; private set; }
-        public double PercentFailedMainTol => PercentCalculator(TotalCount, TotalFailedEpsilonTol);
+        public double PercentFailedMainTol => PercentCalculator(TotalCompared, TotalFailedEpsilonTol);
         /// <summary>
         /// The matched pair has been evaluated to measure results
         /// </summary>
@@ -158,7 +172,7 @@ namespace DicomStrictCompare
         /// </summary>
         public string Name => _source.FileName + '\t' + _target.FileName;
 
-        public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalFailedEpsilonTol + '\t' + PercentFailedEpsilonTol.ToString("0.00") +'\t' + PercentFailedTightTol.ToString("0.00") + '\t' + PercentFailedMainTol.ToString("0.00");
+        public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalCompared.ToString() + '\t' + TotalFailedEpsilonTol + '\t' + TotalFailedTightTol +'\t' + TotalFailedMainTol + '\t' + PercentFailedMainTol.ToString("0.00");
 
 
         private DoseFile _source;
@@ -194,12 +208,13 @@ namespace DicomStrictCompare
         {
             var sourceDose = _source.DoseValues();
             var targetDose = _target.DoseValues();
-            if (sourceDose.Count != targetDose.Count)
-            { throw new DataMisalignedException("The Array Sizes don't match"); }
+            TotalCount = targetDose.Count;
+            //var sourceDose = _source.DoseMatrix();
+            //var targetDose = _target.DoseMatrix();
+            //TotalCount = targetDose.DoseValues.Count;
             if (_source.X != _target.X || _source.Y != _target.Y || _source.Z != _target.Z)
             { throw new DataMisalignedException("The Array Dimensions don't match"); }
-            TotalCount = targetDose.Count;
-            TotalFailedEpsilonTol = Evaluate(ref sourceDose, ref targetDose, EpsilonTol);
+            Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName); 
             TotalFailedTightTol = Evaluate(ref sourceDose, ref targetDose, TightTol);
             TotalFailedMainTol = Evaluate(ref sourceDose, ref targetDose, MainTol);
             IsEvaluated = true;
@@ -216,16 +231,73 @@ namespace DicomStrictCompare
         private int Evaluate(ref List<double> source, ref List<double> target, double tol)
         {
             int failed = 0;
+            TotalCompared = 0;
+            double MaxSource = source.Max();
+            double MaxTarget = target.Max();
+            double MinDoseEvaluated = MaxSource * EpsilonTol;
             for (int i = 0; i < target.Count; i++)
             {
-                var temp = Math.Abs(source[i] - target[i]);
-                temp = temp / source[i];
-                temp = temp * 100;
-                if (temp > tol)
-                    failed++;
+                var sourcei = source[i];
+                var targeti = target[i];
+                if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
+                {
+                    TotalCompared++;
+                    var temp = Math.Abs(sourcei - targeti);
+                    temp = temp / sourcei;
+                    temp = temp * 100;
+                    if (temp > tol)
+                        failed++;
+                }
+
             }
+            Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
             return failed;
 
+        }
+
+        private int Evaluate(ref DoseMatrix source, ref DoseMatrix target, double tol)
+        {
+            TotalCompared = 0;
+            int failed = 0;
+            double MaxSource = source.MaxPointDose.Dose;
+            double MinDoseEvaluated = MaxSource * EpsilonTol;
+            int debugCounter = 0;
+            for (var i = target.X0; i <= target.XMax; i += target.XRes)
+            {
+                if (debugCounter % 10 == 0)
+                {
+                    Debug.Write(" " + debugCounter);
+                }
+                debugCounter++;
+                for (var j = target.Y0; j <= target.YMax; j += target.YRes)
+                {
+                    for (var k = target.Z0; k <= target.ZMax; k += target.ZRes)
+                    {
+                        var targeti = target.GetPointDose(i, j, k);
+                        if (targeti.Dose < MinDoseEvaluated) { continue; }
+                        try
+                        {
+                            var sourcei = source.GetPointDose(targeti.X, targeti.Y, targeti.Z);
+                            if (sourcei.Dose > MinDoseEvaluated && targeti.Dose > MinDoseEvaluated)
+                            {   
+                                TotalCompared++;
+                                var temp = Math.Abs(sourcei.Dose - targeti.Dose);
+                                temp = temp / sourcei.Dose;
+                                temp = temp * 100;
+                                if (temp > tol)
+                                    failed++;
+                            }
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                        }
+                        
+                    }
+                }
+            }
+            Debug.WriteLine("");
+            Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
+            return failed; 
         }
 
     }
