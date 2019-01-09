@@ -148,8 +148,11 @@ namespace DSC
         /// <param name="e"></param>
         private void btnExecute_Click(object sender, EventArgs e)
         {
+            _dataHandler.EpsilonTol = 0.01;
+            _dataHandler.MainTol = MainTol;
+            _dataHandler.TightTol = TightTol;
             _dataHandler.Run();
-            System.Windows.Forms.MessageBox.Show("Ive finished" + _dataHandler.ResultMessage);
+            System.Windows.Forms.MessageBox.Show("Ive finished\n" + _dataHandler.ResultMessage);
         }
     }
 }
