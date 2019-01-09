@@ -106,7 +106,17 @@ namespace DicomStrictCompare
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
                 IsDoseFile = true;
-                BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
+
+                try
+                {
+                    BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
+
+                }
+                catch (NullReferenceException)
+                {
+
+                    BeamNumber = "0";
+                }
             }
         }
 
