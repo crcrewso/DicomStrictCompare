@@ -148,9 +148,9 @@ namespace DSC
         /// <param name="e"></param>
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            _dataHandler.EpsilonTol = 0.01;
-            _dataHandler.MainTol = MainTol;
-            _dataHandler.TightTol = TightTol;
+            _dataHandler.EpsilonTol = 0.0001; // minimum dose is 0.01% of peak
+            _dataHandler.MainTol = MainTol/100.0;
+            _dataHandler.TightTol = TightTol/100.0;
             _dataHandler.Run();
             System.Windows.Forms.MessageBox.Show("Ive finished\n" + _dataHandler.ResultMessage);
         }

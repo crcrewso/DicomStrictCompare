@@ -244,7 +244,6 @@ namespace DicomStrictCompare
                     TotalCompared++;
                     var temp = Math.Abs(sourcei - targeti);
                     temp = temp / sourcei;
-                    temp = temp * 100;
                     if (temp > tol)
                         failed++;
                 }
@@ -283,7 +282,6 @@ namespace DicomStrictCompare
                                 TotalCompared++;
                                 var temp = Math.Abs(sourcei.Dose - targeti.Dose);
                                 temp = temp / sourcei.Dose;
-                                temp = temp * 100;
                                 if (temp > tol)
                                     failed++;
                             }
