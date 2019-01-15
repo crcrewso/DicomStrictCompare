@@ -70,23 +70,6 @@ namespace DicomStrictCompare
 
     public class CudaMathematics : IMathematics
     {
-
-        public static void Kernel(double[] result, double[] source, double[] target, double tolerance, double epsilon)
-        {
-            var start = blockIdx.x * blockDim.x + threadIdx.x;
-            var stride = gridDim.x * blockDim.x;
-            for (var i = start; i < result.Length; i += stride)
-            {
-                result[i] = (target[i] - source[i]) / source[i];
-                result[i] = (result[i] > 0) ? result[i] : -1 * result[i];
-                result[i] = (source[i] > epsilon) ? result[i] : 0;
-                result[i] = (target[i] > epsilon) ? result[i] : 0;
-                result[i] = (result[i] > tolerance) ? 1 : 0;
-
-            }
-        }
-
-
         public int Compare(ref List<double> source, ref List<double> target, double tolerance, double epsilon)
         {
             double MaxSource = source.Max();
@@ -94,17 +77,38 @@ namespace DicomStrictCompare
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             double MinDoseEvaluated = MaxSource * tolerance;
+            var differenceDoubles = new double[sourceDoubles.Length];
+            var absDifferenceDoubles = new double[sourceDoubles.Length];
+            var isGTlerance = new double[sourceDoubles.Length];
 
-            var gpu = Gpu.Default;
-            var lp = new LaunchParam(16, 256);
-            var result = new double[sourceDoubles.Length];
-            var filteredSource = new double[sourceDoubles.Length];
-            var filteredTarget = new double[targetDoubles.Length];
+            // filter doses below threshold
+            Parallel.For(0, sourceDoubles.Length, i => sourceDoubles[i] = (sourceDoubles[i] > epsilon) ? sourceDoubles[i] : 0);
+            Parallel.For(0, targetDoubles.Length, i => targetDoubles[i] = (targetDoubles[i] > epsilon) ? targetDoubles[i] : 0);
 
-            gpu.Launch(Kernel, lp, result, sourceDoubles, targetDoubles, tolerance, epsilon);
 
-            double failed = gpu.Sum(result);
-            return (int)failed;
+            // find relative difference 
+            Parallel.For(0, differenceDoubles.Length, i => differenceDoubles[i] = ((sourceDoubles[i] - targetDoubles[i])/sourceDoubles[i]) );
+
+            // absolute value of previous table 
+            Parallel.For(0, absDifferenceDoubles.Length,
+                i => absDifferenceDoubles[i] = (differenceDoubles[i] < 0) ? -1*differenceDoubles[i] : differenceDoubles[i]);
+
+            //determine if relative difference is greater than tolerance 
+            // stores 1 as GT tolerance is true
+            Parallel.For(0, isGTlerance.Length,
+                i => isGTlerance[i] = (absDifferenceDoubles[i] > tolerance) ? 1 : 0);
+
+
+            int failed = 0;
+            foreach (var value in isGTlerance)
+            {
+                if (value > 0)
+                {
+                    failed++;
+                }
+            }
+
+            return failed;
         }
     }
 

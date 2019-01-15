@@ -48,6 +48,9 @@
     <Reference Include="EvilDICOM, Version=2.0.3.0, Culture=neutral, PublicKeyToken=236d7078f2290bcd, processorArchitecture=MSIL">
       <HintPath>..\packages\EvilDICOM.2.0.3\lib\net45\EvilDICOM.dll</HintPath>
     </Reference>
+    <Reference Include="FSharp.Core, Version=4.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">

@@ -12,27 +12,38 @@ using Alea.Parallel;
 namespace DicomStrictCompare.Tests
 {
     [TestClass()]
-    public class CudaMathematicsTests
+    public class CudaMathematicsTests : CudaMathematics
     {
         [TestMethod()]
-        public void CompareTest()
+        public void CompareTestAllSame()
         {
-
+            var source = new List<double>{ 1.0, 1.0, 1.0, 1.0 };
+            var target = new List<double> { 1.0, 1.0, 1.0, 1.0 };
+            var cudaMath = new CudaMathematics();
+            var result = cudaMath.Compare(ref source, ref target, 0.01, 0.001);
+            Assert.AreEqual(0, result);
         }
 
         [TestMethod()]
-        public void KernelTest()
+        public void CompareTestAllFailed()
         {
-            double[] source = new double[] { 1.0, 1.0, 1.0, 1.0 };
-            double[] target = new double[] { 1.0, 1.0, 1.0, 1.0 };
-            double[] result = new double[4];
-            double tolerance = 0.01;
-            double epsilon = 0.001;
-            var gpu = Gpu.Default;
-            var lp = new LaunchParam(16, 256);
-
-            gpu.Launch(CudaMathematics.Kernel,lp,result, source, target, tolerance, epsilon);
-            Assert.AreEqual(0, result[0]);
+            var source = new List<double> { 1.0, 1.0, 1.0, 1.0 };
+            var target = new List<double> { 2.0, 2.0, 2.0, 2.0 };
+            var cudaMath = new CudaMathematics();
+            var result = cudaMath.Compare(ref source, ref target, 0.01, 0.001);
+            Assert.AreEqual(4, result);
         }
+
+
+        [TestMethod()]
+        public void CompareTestAllFailedAtBoundary()
+        {
+            var source = new List<double> { 1.0, 1.0, 1.0, 1.0 };
+            var target = new List<double> { 1.1, 1.1, 1.1, 1.1 };
+            var cudaMath = new CudaMathematics();
+            var result = cudaMath.Compare(ref source, ref target, 0.1, 0.01);
+            Assert.AreEqual(4, result);
+        }
+
     }
 }
