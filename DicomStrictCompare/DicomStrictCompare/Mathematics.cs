@@ -1,11 +1,8 @@
-﻿using System;
+﻿using Alea;
+using Alea.Parallel;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Alea;
-using Alea.CSharp;
-using Alea.Parallel;
 
 namespace DicomStrictCompare
 {
@@ -79,7 +76,7 @@ namespace DicomStrictCompare
             double MinDoseEvaluated = MaxSource * tolerance;
             var differenceDoubles = new double[sourceDoubles.Length];
             var absDifferenceDoubles = new double[sourceDoubles.Length];
-            var isGTlerance = new double[sourceDoubles.Length];
+            var isGTtol = new int[sourceDoubles.Length];
 
             // filter doses below threshold
             Parallel.For(0, sourceDoubles.Length, i => sourceDoubles[i] = (sourceDoubles[i] > epsilon) ? sourceDoubles[i] : 0);
@@ -95,12 +92,11 @@ namespace DicomStrictCompare
 
             //determine if relative difference is greater than tolerance 
             // stores 1 as GT tolerance is true
-            Parallel.For(0, isGTlerance.Length,
-                i => isGTlerance[i] = (absDifferenceDoubles[i] > tolerance) ? 1 : 0);
-
+            Parallel.For(0, isGTtol.Length,
+                i => isGTtol[i] = (absDifferenceDoubles[i] > tolerance) ? 1 : 0);
 
             int failed = 0;
-            foreach (var value in isGTlerance)
+            foreach (var value in isGTtol)
             {
                 if (value > 0)
                 {
