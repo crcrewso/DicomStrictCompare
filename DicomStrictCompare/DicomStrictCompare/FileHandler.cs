@@ -81,7 +81,7 @@ namespace DicomStrictCompare
         /// Compound of other metaData to match against
         /// </summary>
         //public string MatchIdentifier => PatientId + BeamNumber + SopInstanceId;
-        public string MatchIdentifier => PatientId + BeamNumber;
+        public string MatchIdentifier => PatientId + SopInstanceId + BeamNumber;
         /// <summary>
         /// Beam number 
         /// </summary>

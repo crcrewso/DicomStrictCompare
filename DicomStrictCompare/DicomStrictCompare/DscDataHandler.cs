@@ -242,9 +242,9 @@ namespace DicomStrictCompare
                 if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
                 {
                     TotalCompared++;
-                    var temp = Math.Abs(sourcei - targeti);
-                    temp = temp / sourcei;
-                    if (temp > tol)
+                    var sourceLow = (1.0 - tol) * sourcei;
+                    var sourceHigh = (1.0 + tol) * sourcei;
+                    if (targeti < sourceLow || targeti > sourceHigh)
                         failed++;
                 }
 
