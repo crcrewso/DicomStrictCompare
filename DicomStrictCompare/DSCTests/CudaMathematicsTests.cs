@@ -14,6 +14,16 @@ namespace DicomStrictCompare.Tests
     [TestClass()]
     public class CudaMathematicsTests : CudaMathematics
     {
+        /// <summary>
+        /// Systems the can load the gpu and determine the Device Compute Capability.
+        /// </summary>
+        [TestMethod()]
+        public void SystemCanLoadGPU()
+        {
+            Assert.IsTrue(Alea.DeviceArch.Default.Major>=2, "The actual Compute version is " + Alea.DeviceArch.Default.Number);
+        }
+
+
         [TestMethod()]
         public void CompareTestAllSame()
         {
@@ -44,6 +54,7 @@ namespace DicomStrictCompare.Tests
             var result = cudaMath.Compare(ref source, ref target, 0.1, 0.01);
             Assert.AreEqual(4, result);
         }
+
 
     }
 }

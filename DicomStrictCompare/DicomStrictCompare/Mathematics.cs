@@ -20,7 +20,38 @@ namespace DicomStrictCompare
 
         }
 
-        public  int Compare(ref List<double> source, ref List<double> target, double tolerance, double epsilon)
+        public int Compare(ref List<double> source, ref List<double> target, double tolerance, double epsilon)
+        {
+            return LinearCompare(ref source, ref target, tolerance, epsilon);
+        }
+
+        public int ParallelCompare( List<double> source, List<double> target, double tolerance, double epsilon)
+        {
+            int[] failedList = new int[source.Count()];
+            double MaxSource = source.Max();
+            double MaxTarget = target.Max();
+            double MinDoseEvaluated = MaxSource * epsilon;
+            Parallel.For(0, failedList.Count(), i =>
+            {
+                double sourcei = source[i];
+                double targeti = target[i];
+                if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
+                {
+                    var sourceLow = (1.0 - tolerance) * sourcei;
+                    var sourceHigh = (1.0 + tolerance) * sourcei;
+                    if (targeti < sourceLow || targeti > sourceHigh)
+                        failedList[i] = 1;
+                }
+                else
+                {
+                    failedList[i] = 0;
+                }
+            });
+            return failedList.AsParallel().Sum();
+
+        }
+
+        public int LinearCompare(ref List<double> source, ref List<double> target, double tolerance, double epsilon)
         {
             int failed = 0;
             double MaxSource = source.Max();
@@ -32,12 +63,12 @@ namespace DicomStrictCompare
                 var targeti = target[i];
                 if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
                 {
-                    if (!IsWithinTolerance(sourcei, targeti, tolerance))
-                    {
+                    var sourceLow = (1.0 - tolerance) * sourcei;
+                    var sourceHigh = (1.0 + tolerance) * sourcei;
+                    if (targeti < sourceLow || targeti > sourceHigh)
                         failed++;
-                    }
                 }
-
+          
             }
             return failed;
         }

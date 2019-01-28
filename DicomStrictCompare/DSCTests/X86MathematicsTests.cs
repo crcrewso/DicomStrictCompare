@@ -20,7 +20,7 @@ namespace DicomStrictCompare.Tests
 
 
         [TestMethod()]
-        public void CompareTestSameArray()
+        public void CompareTestSameArrayLinear()
         {
             List<double> source = new List<double>();
             List<double> target = new List<double>();
@@ -35,7 +35,70 @@ namespace DicomStrictCompare.Tests
             }
 
             var testing = new X86Mathematics();
-            var retCompare = testing.Compare(ref source, ref target, tolerance, epsilon);
+            var retCompare = testing.LinearCompare(ref source, ref target, tolerance, epsilon);
+            Assert.AreEqual(0, retCompare);
+
+        }
+
+        [TestMethod()]
+        public void CompareTestSameArrayLinearLong()
+        {
+            List<double> source = new List<double>();
+            List<double> target = new List<double>();
+            double tolerance = 0.01;
+            double epsilon = 0.001;
+
+
+            for (int i = 0; i < 100000000; i++)
+            {
+                source.Add(i);
+                target.Add(i);
+            }
+
+            var testing = new X86Mathematics();
+            var retCompare = testing.LinearCompare(ref source, ref target, tolerance, epsilon);
+            Assert.AreEqual(0, retCompare);
+
+        }
+
+        [TestMethod()]
+        public void CompareTestSameParallel()
+        {
+            List<double> source = new List<double>();
+            List<double> target = new List<double>();
+            double tolerance = 0.01;
+            double epsilon = 0.001;
+
+
+            for (int i = 0; i < 10; i++)
+            {
+                source.Add(i);
+                target.Add(i);
+            }
+
+            var testing = new X86Mathematics();
+            var retCompare = testing.ParallelCompare(source, target, tolerance, epsilon);
+            Assert.AreEqual(0, retCompare);
+
+        }
+
+        [TestMethod()]
+        public void CompareTestSameParallelLong()
+        {
+            List<double> source = new List<double>();
+            List<double> target = new List<double>();
+            double tolerance = 0.01;
+            double epsilon = 0.001;
+
+
+            for (int i = 0; i < 100000000; i++)
+            {
+                source.Add(i);
+                target.Add(i);
+            }
+
+            var testing = new X86Mathematics();
+            var retCompare = testing.ParallelCompare(source, target, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
