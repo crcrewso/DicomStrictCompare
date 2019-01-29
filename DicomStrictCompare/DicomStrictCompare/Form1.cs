@@ -16,6 +16,7 @@ namespace DSC
     {
         public float TightTol { get; private set; } = 1;
         public float MainTol { get; private set; } = 2;
+        public float Threshold { get; private set; } = 10;
         public string SourceDirectory { get; private set; }
         public string TargetDirectory { get; private set; }
 
@@ -30,6 +31,7 @@ namespace DSC
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
             _dataHandler = new DscDataHandler();
+            
         }
 
         /// <summary>
@@ -39,6 +41,7 @@ namespace DSC
         /// <param name="e"></param>
         private void tbxTightTol_TextChanged(object sender, EventArgs e)
         {
+            System.Threading.Thread.Sleep(250);
             try
             {
                 TightTol = float.Parse(tbxTightTol.Text);
@@ -153,6 +156,29 @@ namespace DSC
             _dataHandler.TightTol = TightTol/100.0;
             _dataHandler.Run();
             System.Windows.Forms.MessageBox.Show("Ive finished\n" + _dataHandler.ResultMessage);
+        }
+
+        private void threshBox_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Threshold = float.Parse(tbxThreshholdTol.Text);
+                Threshold = Math.Abs(Threshold);
+                tbxThreshholdTol.Text = Threshold.ToString();
+            }
+            catch (ArgumentNullException)
+            {
+                return;
+            }
+            catch (FormatException)
+            {
+                System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
+                return;
+            }
+            catch (OverflowException)
+            {
+                return;
+            }
         }
     }
 }

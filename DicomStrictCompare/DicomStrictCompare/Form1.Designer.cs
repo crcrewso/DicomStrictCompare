@@ -43,6 +43,8 @@
             this.lblTargetFilesFoundText = new System.Windows.Forms.Label();
             this.lblSourceFilesFound = new System.Windows.Forms.Label();
             this.lblTargetFilesFound = new System.Windows.Forms.Label();
+            this.tbxThreshholdTol = new System.Windows.Forms.TextBox();
+            this.lblthreshhold = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblIntro
@@ -56,7 +58,7 @@
             // 
             // tbxSource
             // 
-            this.tbxSource.Location = new System.Drawing.Point(84, 180);
+            this.tbxSource.Location = new System.Drawing.Point(492, 14);
             this.tbxSource.Name = "tbxSource";
             this.tbxSource.Size = new System.Drawing.Size(341, 20);
             this.tbxSource.TabIndex = 3;
@@ -64,7 +66,7 @@
             // 
             // tbxTarget
             // 
-            this.tbxTarget.Location = new System.Drawing.Point(84, 211);
+            this.tbxTarget.Location = new System.Drawing.Point(492, 45);
             this.tbxTarget.Name = "tbxTarget";
             this.tbxTarget.Size = new System.Drawing.Size(341, 20);
             this.tbxTarget.TabIndex = 4;
@@ -73,7 +75,7 @@
             // lblTightTol
             // 
             this.lblTightTol.AutoSize = true;
-            this.lblTightTol.Location = new System.Drawing.Point(0, 317);
+            this.lblTightTol.Location = new System.Drawing.Point(408, 87);
             this.lblTightTol.Name = "lblTightTol";
             this.lblTightTol.Size = new System.Drawing.Size(99, 13);
             this.lblTightTol.TabIndex = 5;
@@ -82,7 +84,7 @@
             // lblMainTol
             // 
             this.lblMainTol.AutoSize = true;
-            this.lblMainTol.Location = new System.Drawing.Point(232, 317);
+            this.lblMainTol.Location = new System.Drawing.Point(572, 87);
             this.lblMainTol.Name = "lblMainTol";
             this.lblMainTol.Size = new System.Drawing.Size(98, 13);
             this.lblMainTol.TabIndex = 6;
@@ -90,7 +92,7 @@
             // 
             // tbxTightTol
             // 
-            this.tbxTightTol.Location = new System.Drawing.Point(105, 314);
+            this.tbxTightTol.Location = new System.Drawing.Point(513, 84);
             this.tbxTightTol.Name = "tbxTightTol";
             this.tbxTightTol.Size = new System.Drawing.Size(53, 20);
             this.tbxTightTol.TabIndex = 7;
@@ -98,7 +100,7 @@
             // 
             // tbxMainTol
             // 
-            this.tbxMainTol.Location = new System.Drawing.Point(336, 314);
+            this.tbxMainTol.Location = new System.Drawing.Point(676, 84);
             this.tbxMainTol.Name = "tbxMainTol";
             this.tbxMainTol.Size = new System.Drawing.Size(53, 20);
             this.tbxMainTol.TabIndex = 8;
@@ -106,7 +108,7 @@
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(3, 407);
+            this.btnExecute.Location = new System.Drawing.Point(884, 82);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
             this.btnExecute.TabIndex = 9;
@@ -116,7 +118,7 @@
             // 
             // btnSourceDir
             // 
-            this.btnSourceDir.Location = new System.Drawing.Point(3, 178);
+            this.btnSourceDir.Location = new System.Drawing.Point(411, 12);
             this.btnSourceDir.Name = "btnSourceDir";
             this.btnSourceDir.Size = new System.Drawing.Size(75, 23);
             this.btnSourceDir.TabIndex = 10;
@@ -126,7 +128,7 @@
             // 
             // btnTargetDir
             // 
-            this.btnTargetDir.Location = new System.Drawing.Point(3, 208);
+            this.btnTargetDir.Location = new System.Drawing.Point(411, 42);
             this.btnTargetDir.Name = "btnTargetDir";
             this.btnTargetDir.Size = new System.Drawing.Size(75, 23);
             this.btnTargetDir.TabIndex = 11;
@@ -137,7 +139,7 @@
             // lblSourceFilesFoundText
             // 
             this.lblSourceFilesFoundText.AutoSize = true;
-            this.lblSourceFilesFoundText.Location = new System.Drawing.Point(445, 183);
+            this.lblSourceFilesFoundText.Location = new System.Drawing.Point(853, 17);
             this.lblSourceFilesFoundText.Name = "lblSourceFilesFoundText";
             this.lblSourceFilesFoundText.Size = new System.Drawing.Size(89, 13);
             this.lblSourceFilesFoundText.TabIndex = 12;
@@ -146,7 +148,7 @@
             // lblTargetFilesFoundText
             // 
             this.lblTargetFilesFoundText.AutoSize = true;
-            this.lblTargetFilesFoundText.Location = new System.Drawing.Point(445, 213);
+            this.lblTargetFilesFoundText.Location = new System.Drawing.Point(853, 47);
             this.lblTargetFilesFoundText.Name = "lblTargetFilesFoundText";
             this.lblTargetFilesFoundText.Size = new System.Drawing.Size(86, 13);
             this.lblTargetFilesFoundText.TabIndex = 13;
@@ -155,7 +157,7 @@
             // lblSourceFilesFound
             // 
             this.lblSourceFilesFound.AutoSize = true;
-            this.lblSourceFilesFound.Location = new System.Drawing.Point(537, 183);
+            this.lblSourceFilesFound.Location = new System.Drawing.Point(945, 17);
             this.lblSourceFilesFound.Name = "lblSourceFilesFound";
             this.lblSourceFilesFound.Size = new System.Drawing.Size(14, 13);
             this.lblSourceFilesFound.TabIndex = 14;
@@ -164,17 +166,36 @@
             // lblTargetFilesFound
             // 
             this.lblTargetFilesFound.AutoSize = true;
-            this.lblTargetFilesFound.Location = new System.Drawing.Point(537, 213);
+            this.lblTargetFilesFound.Location = new System.Drawing.Point(945, 47);
             this.lblTargetFilesFound.Name = "lblTargetFilesFound";
             this.lblTargetFilesFound.Size = new System.Drawing.Size(14, 13);
             this.lblTargetFilesFound.TabIndex = 15;
             this.lblTargetFilesFound.Text = "#";
             // 
+            // tbxThreshholdTol
+            // 
+            this.tbxThreshholdTol.Location = new System.Drawing.Point(818, 84);
+            this.tbxThreshholdTol.Name = "tbxThreshholdTol";
+            this.tbxThreshholdTol.Size = new System.Drawing.Size(53, 20);
+            this.tbxThreshholdTol.TabIndex = 17;
+            this.tbxThreshholdTol.TextChanged += new System.EventHandler(this.threshBox_TextChanged);
+            // 
+            // lblthreshhold
+            // 
+            this.lblthreshhold.AutoSize = true;
+            this.lblthreshhold.Location = new System.Drawing.Point(735, 87);
+            this.lblthreshhold.Name = "lblthreshhold";
+            this.lblthreshhold.Size = new System.Drawing.Size(77, 13);
+            this.lblthreshhold.TabIndex = 16;
+            this.lblthreshhold.Text = "Threshhold (%)";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(578, 564);
+            this.ClientSize = new System.Drawing.Size(1184, 761);
+            this.Controls.Add(this.tbxThreshholdTol);
+            this.Controls.Add(this.lblthreshhold);
             this.Controls.Add(this.lblTargetFilesFound);
             this.Controls.Add(this.lblSourceFilesFound);
             this.Controls.Add(this.lblTargetFilesFoundText);
@@ -190,7 +211,7 @@
             this.Controls.Add(this.tbxSource);
             this.Controls.Add(this.lblIntro);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Dicom Dose Comparison";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -213,6 +234,10 @@
         private System.Windows.Forms.Label lblTargetFilesFoundText;
         private System.Windows.Forms.Label lblSourceFilesFound;
         private System.Windows.Forms.Label lblTargetFilesFound;
+        private System.Windows.Forms.TextBox tbxThreshholdTol;
+        private System.Windows.Forms.Label lblthreshhold;
+
+
     }
 }
 
