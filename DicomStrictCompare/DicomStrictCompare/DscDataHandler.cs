@@ -143,13 +143,15 @@ namespace DicomStrictCompare
     class MatchedDosePair
     {
         public int TotalCount { get; private set; }
-        public int TotalCompared { get; private set; } = 0;
+        public int TotalComparedTightTol { get; private set; } = 0;
+        public int TotalComparedMainTol { get; private set; } = 0;
+
         public int TotalFailedEpsilonTol { get; private set; }
         //public double PercentFailedEpsilonTol => PercentCalculator(TotalCompared, TotalFailedEpsilonTol);
         public int TotalFailedTightTol { get; private set; }
-        public double PercentFailedTightTol => PercentCalculator(TotalCompared, TotalFailedTightTol);
+        public double PercentFailedTightTol => PercentCalculator(TotalComparedTightTol, TotalFailedTightTol);
         public int TotalFailedMainTol { get; private set; }
-        public double PercentFailedMainTol => PercentCalculator(TotalCompared, TotalFailedEpsilonTol);
+        public double PercentFailedMainTol => PercentCalculator(TotalComparedMainTol, TotalFailedEpsilonTol);
         /// <summary>
         /// The matched pair has been evaluated to measure results
         /// </summary>
@@ -172,7 +174,7 @@ namespace DicomStrictCompare
         /// </summary>
         public string Name => _source.FileName + '\t' + _target.FileName;
 
-        public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalCompared.ToString() + '\t' +  TotalFailedTightTol +'\t' + '\t' + PercentFailedTightTol.ToString("0.00") + '\t' + PercentFailedMainTol.ToString("0.00");
+        public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalComparedTightTol.ToString() + '\t' +  TotalFailedTightTol +'\t' + '\t' + PercentFailedTightTol.ToString("0.00") + '\t' + PercentFailedMainTol.ToString("0.00");
 
         public string ResultHeader => "Name'\t'TotalCount'\t'TotalCompared\tTotalFailedTightTol\tPercentFailedTightTol\tPercentFailedMainTol";
 
@@ -216,10 +218,12 @@ namespace DicomStrictCompare
             if (_source.X != _target.X || _source.Y != _target.Y || _source.Z != _target.Z)
             { throw new DataMisalignedException("The Array Dimensions don't match"); }
             Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-            TotalFailedTightTol = EvaluateParallel(sourceDose, targetDose, TightTol);
-            TotalFailedMainTol = EvaluateParallel(sourceDose, targetDose, MainTol);
-            //            TotalFailedTightTol = Evaluate(ref sourceDose, ref targetDose, TightTol);
-            //            TotalFailedMainTol = Evaluate(ref sourceDose, ref targetDose, MainTol);
+            var tightRet = Evaluate(ref sourceDose,ref targetDose, TightTol);
+            TotalFailedTightTol = tightRet.Item1;
+            TotalComparedTightTol = tightRet.Item2;
+            var mainRet = Evaluate(ref sourceDose, ref targetDose, MainTol);
+            TotalFailedMainTol = mainRet.Item1;
+            TotalComparedMainTol = mainRet.Item2;
             IsEvaluated = true;
         }
 
@@ -231,10 +235,10 @@ namespace DicomStrictCompare
         /// <param name="target"></param>
         /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
         /// <returns></returns>
-        private int Evaluate(ref List<double> source, ref List<double> target, double tol)
+        private Tuple<int,int> Evaluate(ref List<double> source, ref List<double> target, double tol)
         {
             int failed = 0;
-            TotalCompared = 0;
+            int TotalCompared = 0;
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * EpsilonTol;
@@ -253,12 +257,12 @@ namespace DicomStrictCompare
 
             }
             Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
-            return failed;
+            Tuple<int, int> ret = new Tuple<int, int>(failed, TotalCompared);
+            return ret;
         }
 
         private int EvaluateParallel( List<double> source, List<double> target, double tol)
         {
-            TotalCompared = 0;
             int[] failedList = new int[source.Count()];
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
@@ -285,7 +289,7 @@ namespace DicomStrictCompare
 
         private int Evaluate(ref DoseMatrix source, ref DoseMatrix target, double tol)
         {
-            TotalCompared = 0;
+            int TotalCompared = 0;
             int failed = 0;
             double MaxSource = source.MaxPointDose.Dose;
             double MinDoseEvaluated = MaxSource * EpsilonTol;
@@ -307,7 +311,7 @@ namespace DicomStrictCompare
                         {
                             var sourcei = source.GetPointDose(targeti.X, targeti.Y, targeti.Z);
                             if (sourcei.Dose > MinDoseEvaluated && targeti.Dose > MinDoseEvaluated)
-                            {   
+                            {
                                 TotalCompared++;
                                 var temp = Math.Abs(sourcei.Dose - targeti.Dose);
                                 temp = temp / sourcei.Dose;
