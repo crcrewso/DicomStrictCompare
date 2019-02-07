@@ -9,6 +9,7 @@ using Alea;
 using Alea.CSharp;
 using Alea.Parallel;
 
+
 namespace DicomStrictCompare.Tests
 {
     [TestClass()]
