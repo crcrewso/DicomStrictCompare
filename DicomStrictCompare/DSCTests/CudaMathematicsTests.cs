@@ -28,20 +28,20 @@ namespace DicomStrictCompare.Tests
         [TestMethod()]
         public void CompareTestAllSame()
         {
-            var source = new List<double>{ 1.0, 1.0, 1.0, 1.0 };
-            var target = new List<double> { 1.0, 1.0, 1.0, 1.0 };
+            var source = new double[]{ 1.0, 1.0, 1.0, 1.0 };
+            var target = new double[] { 1.0, 1.0, 1.0, 1.0 };
             var cudaMath = new CudaMathematics();
-            var result = cudaMath.Compare(ref source, ref target, 0.01, 0.001);
+            var result = cudaMath.Compare( source,  target, 0.01, 0.001);
             Assert.AreEqual(0, result);
         }
 
         [TestMethod()]
         public void CompareTestAllFailed()
         {
-            var source = new List<double> { 1.0, 1.0, 1.0, 1.0 };
-            var target = new List<double> { 2.0, 2.0, 2.0, 2.0 };
+            var source = new double[] { 1.0, 1.0, 1.0, 1.0 };
+            var target = new double[] { 2.0, 2.0, 2.0, 2.0 };
             var cudaMath = new CudaMathematics();
-            var result = cudaMath.Compare(ref source, ref target, 0.01, 0.001);
+            var result = cudaMath.Compare( source,  target, 0.01, 0.001);
             Assert.AreEqual(4, result);
         }
 
@@ -49,13 +49,34 @@ namespace DicomStrictCompare.Tests
         [TestMethod()]
         public void CompareTestAllFailedAtBoundary()
         {
-            var source = new List<double> { 1.0, 1.0, 1.0, 1.0 };
-            var target = new List<double> { 1.1, 1.1, 1.1, 1.1 };
+            var source = new double[]{ 1.0, 1.0, 1.0, 1.0 };
+            var target = new double[]{ 1.1, 1.1, 1.1, 1.1 };
             var cudaMath = new CudaMathematics();
-            var result = cudaMath.Compare(ref source, ref target, 0.1, 0.01);
+            var result = cudaMath.Compare( source,  target, 0.1, 0.01);
             Assert.AreEqual(4, result);
         }
 
+        [TestMethod()]
+        public void CompareTestSameArrayLong()
+        {
+            List<double> source = new List<double>();
+            List<double> target = new List<double>();
+            double tolerance = 0.01;
+            double epsilon = 0.001;
+
+
+            for (int i = 0; i < 100000000; i++)
+            {
+                source.Add(i);
+                target.Add(i);
+            }
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
+            var cudaMath = new CudaMathematics();
+            var retCompare = cudaMath.Compare(sourceDoubles, targetDoubles, tolerance, epsilon);
+            Assert.AreEqual(0, retCompare);
+
+        }
 
     }
 }
