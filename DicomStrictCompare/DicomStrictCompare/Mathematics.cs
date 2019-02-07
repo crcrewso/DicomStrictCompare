@@ -108,33 +108,35 @@ namespace DicomStrictCompare
             var isGTtol = new int[source.Length];
 
             // filter doses below threshold
-            
-            Parallel.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
-            Parallel.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
+
+            Gpu.Default.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
+            Gpu.Default.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
 
 
             // find relative difference 
-            Parallel.For(0, differenceDoubles.Length, i => differenceDoubles[i] = ((source[i] - target[i])/source[i]) );
+            Gpu.Default.For(0, differenceDoubles.Length, i => differenceDoubles[i] = ((source[i] - target[i])/source[i]) );
 
             // absolute value of previous table 
-            Parallel.For(0, absDifferenceDoubles.Length,
+            Gpu.Default.For(0, absDifferenceDoubles.Length,
                 i => absDifferenceDoubles[i] = (differenceDoubles[i] < 0) ? -1*differenceDoubles[i] : differenceDoubles[i]);
 
             //determine if relative difference is greater than tolerance 
             // stores 1 as GT tolerance is true
-            Parallel.For(0, isGTtol.Length,
+            Gpu.Default.For(0, isGTtol.Length,
                 i => isGTtol[i] = (absDifferenceDoubles[i] > tolerance) ? 1 : 0);
 
             
 
             int failed = 0;
-            foreach (var value in isGTtol)
+            failed = Gpu.Default.Sum(isGTtol);
+
+            /*foreach (var value in isGTtol)
             {
                 if (value > 0)
                 {
                     failed++;
                 }
-            }
+            }*/
 
             return failed;
         }
