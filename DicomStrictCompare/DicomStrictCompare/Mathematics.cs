@@ -56,7 +56,7 @@ namespace DicomStrictCompare
             int failed = 0;
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
-            double MinDoseEvaluated = MaxSource * tolerance;
+            double MinDoseEvaluated = MaxSource * epsilon;
             for (int i = 0; i < target.Count; i++)
             {
                 var sourcei = source[i];
@@ -110,9 +110,10 @@ namespace DicomStrictCompare
             var isGTtol = new int[sourceDoubles.Length];
 
             // filter doses below threshold
-            Parallel.For(0, sourceDoubles.Length, i => sourceDoubles[i] = (sourceDoubles[i] > epsilon) ? sourceDoubles[i] : 0);
-            Parallel.For(0, targetDoubles.Length, i => targetDoubles[i] = (targetDoubles[i] > epsilon) ? targetDoubles[i] : 0);
-
+            Parallel.For(0, sourceDoubles.Length, i => sourceDoubles[i] = (sourceDoubles[i] > epsilon) ? sourceDoubles[i] : -1);
+            Parallel.For(0, targetDoubles.Length, i => targetDoubles[i] = (targetDoubles[i] > epsilon) ? targetDoubles[i] : -1);
+            Parallel.For(0, sourceDoubles.Length, i => sourceDoubles[i] = (targetDoubles[i] > epsilon) ? sourceDoubles[i] : -1);
+            Parallel.For(0, targetDoubles.Length, i => targetDoubles[i] = (sourceDoubles[i] > epsilon) ? targetDoubles[i] : -1);
 
             // find relative difference 
             Parallel.For(0, differenceDoubles.Length, i => differenceDoubles[i] = ((sourceDoubles[i] - targetDoubles[i])/sourceDoubles[i]) );

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EvilDICOM.Core;
+using EvilDICOM.Core.Element;
 using EvilDICOM.Core.Helpers;
 using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
@@ -32,14 +33,31 @@ namespace DicomStrictCompare
             List<DoseFile> doseFiles = new List<DoseFile>();
             foreach (var file in listOfFiles)
             {
-                var temp = new DoseFile(file);
+                var temp = new DicomFile(file);
                 if (temp.IsDoseFile)
                 {
-                    Debug.WriteLine("Found Dose File " + temp.FileName);
-                    doseFiles.Add(temp);
+                    var tempDose = new DoseFile(file);
+                    Debug.WriteLine("Found Dose File " + tempDose.FileName);
+                    doseFiles.Add(tempDose);
                 }
             }
             return doseFiles;
+        }
+
+        public static List<PlanFile> PlanFiles(string[] listOfFiles)
+        {
+            List<PlanFile> planFiles = new List<PlanFile>();
+            foreach (var file in listOfFiles)
+            {
+                var temp = new DicomFile(file);
+                if (temp.IsPlanFile)
+                {
+                    var tempPlan = new PlanFile(file);
+                    Debug.WriteLine("Found Plan File " + tempPlan.FileName);
+                    planFiles.Add(tempPlan);
+                }
+            }
+            return planFiles;
         }
 
 
@@ -56,6 +74,7 @@ namespace DicomStrictCompare
         /// full filename including address
         /// </summary>
         public string FileName { get; }
+        public string ShortFileName { get; }
         /// <summary>
         /// bool, true when modality is RTDOSE
         /// </summary>
@@ -71,23 +90,23 @@ namespace DicomStrictCompare
         /// <summary>
         /// Plan Identifier
         /// </summary>
-        public string PlanName { get; }
+        public string PlanID { get; private set; }
         /// <summary>
         /// Field Identifier
         /// </summary>
-        public string FieldName { get; }
+        public string FieldName { get; private set; }
 
         /// <summary>
         /// Compound of other metaData to match against
         /// </summary>
         //public string MatchIdentifier => PatientId + BeamNumber + SopInstanceId;
-        public string MatchIdentifier => PatientId + SopInstanceId + BeamNumber;
+        public string MatchIdentifier => PatientId + PlanID + FieldName;
         /// <summary>
         /// Beam number 
         /// </summary>
         public string BeamNumber { get; }
         /// <summary>
-        /// SOP Instance Identifier, hopefully this is the plan ID
+        /// SOP Instance Identifier of the source plan ID. 
         /// </summary>
         public string SopInstanceId { get;  }
 
@@ -100,17 +119,19 @@ namespace DicomStrictCompare
         {
             var dcm1 = DICOMObject.Read(fileName);
             FileName = fileName;
+            ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
             Name = dcm1.FindFirst(TagHelper.SeriesDescription).ToString();
-            PatientId = dcm1.FindFirst(TagHelper.PatientID).ToString();
+            PatientId = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
 
-            SopInstanceId = SopInstanceIdClean(dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID ).ToString());
+            var tempSopInstanceId = dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID);
+            SopInstanceId = tempSopInstanceId.DData.ToString();
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
                 IsDoseFile = true;
 
                 try
                 {
-                    BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).ToString();
+                    BeamNumber = dcm1.FindFirst(TagHelper.ReferencedBeamNumber).DData.ToString();
 
                 }
                 catch (NullReferenceException)
@@ -121,15 +142,22 @@ namespace DicomStrictCompare
             }
         }
 
-        /// <summary>
-        /// Cleans the Reference SOP Instance Id as read in the dose file, of the date string at the end of the string. 
-        /// </summary>
-        /// <param name="sopInstanceId">The sop instance identifier.</param>
-        /// <returns></returns>
-         private string SopInstanceIdClean(string sopInstanceId)
+        public void SetFieldName(List<PlanFile> planFiles)
         {
-            int lastDecimal = sopInstanceId.LastIndexOf('.'); //index of decimal 
-            return sopInstanceId.Substring(0, lastDecimal - 1); //substring before the decimal
+            foreach (var plan in planFiles)
+            {
+                if (plan.SopInstanceId == SopInstanceId)
+                {
+                    PlanID = plan.PlanID;
+                    foreach (var beam in plan.FieldNumberToNameList)
+                    {
+                        if (beam.Item1 == BeamNumber)
+                        {
+                            FieldName = beam.Item2;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -178,4 +206,69 @@ namespace DicomStrictCompare
         }
 
     }
+
+    class DicomFile
+    {
+        public bool IsPlanFile { get; }
+        public bool IsDoseFile { get; }
+
+        public DicomFile(string fileName)
+        {
+
+            var dcm1 = DICOMObject.Read(fileName);
+            if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
+            {
+                IsDoseFile = true;
+            }
+            else if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTPLAN"))
+            {
+                IsPlanFile = true;
+            }
+            else
+            {
+                return;
+            }
+        }
+    }
+
+    class PlanFile
+    {
+        public List<Tuple<string, string>> FieldNumberToNameList { get; }
+        public string FileName { get; }
+        public string ShortFileName { get; }
+        /// <summary>
+        /// Plan Label is the Dicom Equivalent of the Plan ID in Eclipse
+        /// </summary>
+        public string PlanID { get; }
+        public string SopInstanceId { get; }
+        public string PatientID { get; }
+        public bool IsPlanFile { get; }
+
+        public PlanFile(string fileName)
+        {
+            FieldNumberToNameList = new List<Tuple<string, string>>();
+            FileName = fileName;
+            ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
+            var dcm1 = DICOMObject.Read(fileName);
+            SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).DData.ToString();
+            PatientID = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
+            if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTPLAN"))
+            {
+                IsPlanFile = true;
+                PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();
+                var beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
+                var beamNames = dcm1.FindAll(TagHelper.BeamName );
+                if (beamNames.Count == beamNumbers.Count)
+                {
+                    for (int i = 0; i < beamNames.Count; i++)
+                    {
+                        FieldNumberToNameList.Add(new Tuple<string, string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString()));
+                    }
+                }
+            }
+
+        }
+    }
+
+
 }

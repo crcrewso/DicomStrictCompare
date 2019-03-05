@@ -22,7 +22,9 @@ namespace DicomStrictCompare
         public string[] TargetListStrings { get; private set; }
 
         public List<DoseFile> SourceDosesList { get; private set; }
+        public List<PlanFile> SourcePlanList { get; private set; }
         public List<DoseFile> TargetDosesList { get; private set; }
+        public List<PlanFile> TargetPlanList { get; private set; }
         public List<MatchedDosePair> DosePairsList { get; private set; }
 
         public double EpsilonTol { get; set; }
@@ -89,8 +91,21 @@ namespace DicomStrictCompare
             #endregion
 
             SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
+            SourcePlanList = FileHandler.PlanFiles(SourceListStrings);
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
+            TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
+            DosePairsList = new List<MatchedDosePair>();
             ResultMessage = "";
+
+            foreach (var doseFile in SourceDosesList)
+            {
+                doseFile.SetFieldName(SourcePlanList);
+            }
+
+            foreach (var doseFile in TargetDosesList)
+            {
+                doseFile.SetFieldName(TargetPlanList);
+            }
 
             // match each pair for analysis
             Parallel.ForEach(TargetDosesList, (dose) =>
@@ -118,9 +133,9 @@ namespace DicomStrictCompare
                         Debug.WriteLine(pair.ResultString);
                     }
                     // Will catch array misalignment problems
-                    catch (DataMisalignedException)
+                    catch (Exception)
                     {
-                        ResultMessage += pair.Name + " was not evaluated";
+                        ResultMessage += pair.Name + " was not evaluated \n";
                         
                     }
 
@@ -151,7 +166,7 @@ namespace DicomStrictCompare
         public int TotalFailedTightTol { get; private set; }
         public double PercentFailedTightTol => PercentCalculator(TotalComparedTightTol, TotalFailedTightTol);
         public int TotalFailedMainTol { get; private set; }
-        public double PercentFailedMainTol => PercentCalculator(TotalComparedMainTol, TotalFailedEpsilonTol);
+        public double PercentFailedMainTol => PercentCalculator(TotalComparedMainTol, TotalFailedMainTol);
         /// <summary>
         /// The matched pair has been evaluated to measure results
         /// </summary>
@@ -172,11 +187,11 @@ namespace DicomStrictCompare
         /// <summary>
         /// Name of the pair evaluated
         /// </summary>
-        public string Name => _source.FileName + '\t' + _target.FileName;
+        public string Name => _source.ShortFileName + '\t' + _target.ShortFileName;
 
         public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalComparedTightTol.ToString() + '\t' +  TotalFailedTightTol +'\t' + '\t' + PercentFailedTightTol.ToString("0.00") + '\t' + PercentFailedMainTol.ToString("0.00");
 
-        public string ResultHeader => "Name'\t'TotalCount'\t'TotalCompared\tTotalFailedTightTol\tPercentFailedTightTol\tPercentFailedMainTol";
+        public static string ResultHeader => "Name'\t'TotalCount'\t'TotalCompared\tTotalFailedTightTol\tPercentFailedTightTol\tPercentFailedMainTol";
 
         private DoseFile _source;
         private DoseFile _target;

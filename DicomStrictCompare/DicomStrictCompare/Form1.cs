@@ -151,11 +151,11 @@ namespace DSC
         /// <param name="e"></param>
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            _dataHandler.EpsilonTol = 0.01; // minimum dose is 1% of peak
+            _dataHandler.EpsilonTol = Threshold / 100.0;
             _dataHandler.MainTol = MainTol/100.0;
             _dataHandler.TightTol = TightTol/100.0;
             _dataHandler.Run();
-            System.Windows.Forms.MessageBox.Show("Ive finished\n" + _dataHandler.ResultMessage);
+            System.Windows.Forms.MessageBox.Show("Ive finished\n" + MatchedDosePair.ResultHeader + "\n" + _dataHandler.ResultMessage);
         }
 
         private void threshBox_TextChanged(object sender, EventArgs e)
