@@ -231,7 +231,10 @@ namespace DicomStrictCompare
             //var targetDose = _target.DoseMatrix();
             //TotalCount = targetDose.DoseValues.Count;
             if (_source.X != _target.X || _source.Y != _target.Y || _source.Z != _target.Z)
-            { throw new DataMisalignedException("The Array Dimensions don't match"); }
+            {
+                throw new DataMisalignedException("The Array Dimensions don't match"); 
+                //TODO Replace exception with Dose matrix geometry driven comparison. 
+            }
             Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
             var tightRet = Evaluate(ref sourceDose,ref targetDose, TightTol);
             TotalFailedTightTol = tightRet.Item1;
