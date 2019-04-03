@@ -108,7 +108,7 @@ namespace DicomStrictCompare
             var isGTtol = new int[source.Length];
 
             // filter doses below threshold
-
+            // TODO: should failure be -1?
             Gpu.Default.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
             Gpu.Default.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
 
