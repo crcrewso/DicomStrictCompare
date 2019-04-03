@@ -34,8 +34,10 @@ namespace DicomStrictCompare.Tests
                 target.Add(i);
             }
 
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
-            var retCompare = testing.LinearCompare(ref source, ref target, tolerance, epsilon);
+            var retCompare = testing.LinearCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
@@ -54,9 +56,10 @@ namespace DicomStrictCompare.Tests
                 source.Add(i);
                 target.Add(i);
             }
-
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
-            var retCompare = testing.LinearCompare(ref source, ref target, tolerance, epsilon);
+            var retCompare = testing.LinearCompare( sourceDoubles,  targetDoubles, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
@@ -77,7 +80,9 @@ namespace DicomStrictCompare.Tests
             }
 
             var testing = new X86Mathematics();
-            var retCompare = testing.ParallelCompare(source, target, tolerance, epsilon);
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
+            var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
@@ -98,7 +103,9 @@ namespace DicomStrictCompare.Tests
             }
 
             var testing = new X86Mathematics();
-            var retCompare = testing.ParallelCompare(source, target, tolerance, epsilon);
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
+            var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
@@ -121,7 +128,9 @@ namespace DicomStrictCompare.Tests
             target[0] = 1+ tolerance+ epsilon;
 
             var testing = new X86Mathematics();
-            var retCompare = testing.Compare(ref source, ref target, tolerance, epsilon);
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
+            var retCompare = testing.Compare(sourceDoubles, targetDoubles, tolerance, epsilon);
             Assert.AreEqual(1, retCompare);
 
         }
@@ -144,7 +153,9 @@ namespace DicomStrictCompare.Tests
             target[0] = 1 + tolerance - epsilon;
 
             var testing = new X86Mathematics();
-            var retCompare = testing.Compare(ref source, ref target, tolerance, epsilon);
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
+            var retCompare = testing.Compare(sourceDoubles,  targetDoubles, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
@@ -164,9 +175,10 @@ namespace DicomStrictCompare.Tests
                 source.Add(1);
                 target.Add( 1+epsilon);
             }
-
+            double[] sourceDoubles = source.ToArray();
+            double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
-            var retCompare = testing.Compare(ref source, ref target, tolerance, epsilon);
+            var retCompare = testing.Compare(sourceDoubles,  targetDoubles, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
