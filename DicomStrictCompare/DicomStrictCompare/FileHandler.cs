@@ -108,7 +108,7 @@ namespace DicomStrictCompare
         /// <summary>
         /// SOP Instance Identifier of the source plan ID. 
         /// </summary>
-        public string SopInstanceId { get;  }
+        public string SopInstanceId { get; }
 
         public int X { get; private set; }
         public int Y { get; private set; }
@@ -257,7 +257,7 @@ namespace DicomStrictCompare
                 IsPlanFile = true;
                 PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();
                 var beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
-                var beamNames = dcm1.FindAll(TagHelper.BeamName );
+                var beamNames = dcm1.FindAll(TagHelper.BeamName);
                 if (beamNames.Count == beamNumbers.Count)
                 {
                     for (int i = 0; i < beamNames.Count; i++)
@@ -270,5 +270,15 @@ namespace DicomStrictCompare
         }
     }
 
+    /// <summary>
+    /// Produces the 
+    /// </summary>
+    class SaveFile
+    {
+        public string SaveFileName {get; }
+        public string SaveFileDir {get; }
+
+
+    }
 
 }

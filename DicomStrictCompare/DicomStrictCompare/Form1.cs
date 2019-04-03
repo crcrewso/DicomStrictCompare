@@ -19,10 +19,12 @@ namespace DSC
         public float Threshold { get; private set; } = 10;
         public string SourceDirectory { get; private set; }
         public string TargetDirectory { get; private set; }
-
+        public string SaveDirectory { get; private set; }
+        public string SaveNamePrefix { get; private set; }
 
         private DscDataHandler _dataHandler;
 
+        const int delayTime = 1000;
 
         /// <inheritdoc />
         public Form1()
@@ -39,9 +41,9 @@ namespace DSC
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void tbxTightTol_TextChanged(object sender, EventArgs e)
+        private async void tbxTightTol_TextChanged(object sender, EventArgs e)
         {
-            System.Threading.Thread.Sleep(250);
+            await Task.Delay(delayTime);
             try
             {
                 TightTol = float.Parse(tbxTightTol.Text);
@@ -68,8 +70,9 @@ namespace DSC
             }
         }
 
-        private void tbxMainTol_TextChanged(object sender, EventArgs e)
+        private async void tbxMainTol_TextChanged(object sender, EventArgs e)
         {
+            await Task.Delay(delayTime);
             try
             {
                 MainTol = float.Parse(tbxMainTol.Text);
@@ -122,8 +125,9 @@ namespace DSC
                 {
                     SourceDirectory = fbd.SelectedPath;
                     tbxSource.Text = SourceDirectory;
+                    lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
                 }
-                lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
+
             }
 
         }
@@ -139,8 +143,8 @@ namespace DSC
                 {
                     TargetDirectory = fbd.SelectedPath;
                     tbxTarget.Text = SourceDirectory;
+                    lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
                 }
-                lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
             }
         }
 
@@ -155,11 +159,18 @@ namespace DSC
             _dataHandler.MainTol = MainTol/100.0;
             _dataHandler.TightTol = TightTol/100.0;
             _dataHandler.Run();
-            System.Windows.Forms.MessageBox.Show("Ive finished\n" + MatchedDosePair.ResultHeader + "\n" + _dataHandler.ResultMessage);
+            //System.Windows.Forms.MessageBox.Show("Ive finished\n" + MatchedDosePair.ResultHeader + "\n" + _dataHandler.ResultMessage);
+            if (chkPDDCompare.Checked == true)
+            {
+                ///TODO Insert code to trigger the creation of PDD comparison plots. 
+            }
+            //TODO replace the above system.windows.forms message box with the production of a new tsv file or comma I need to decide.
+
         }
 
-        private void threshBox_TextChanged(object sender, EventArgs e)
+        private async void threshBox_TextChanged(object sender, EventArgs e)
         {
+            await Task.Delay(delayTime);
             try
             {
                 Threshold = float.Parse(tbxThreshholdTol.Text);
@@ -179,6 +190,31 @@ namespace DSC
             {
                 return;
             }
+        }
+
+        private void BtnSaveDir_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                fbd.Description = @"Select Source Dose Folder Location";
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    SaveDirectory = fbd.SelectedPath;
+                    tbxSaveDir.Text = SaveDirectory;
+                }
+                
+            }
+        }
+
+        private async void TbxSaveName_TextChanged(object sender, EventArgs e)
+        {
+            await Task.Delay(300);
+            var temp = tbxSaveName.Text;
+            SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
+            tbxSaveName.Text = SaveNamePrefix;
+
         }
     }
 }

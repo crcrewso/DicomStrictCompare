@@ -45,12 +45,18 @@
             this.lblTargetFilesFound = new System.Windows.Forms.Label();
             this.tbxThreshholdTol = new System.Windows.Forms.TextBox();
             this.lblthreshhold = new System.Windows.Forms.Label();
+            this.btnSaveDir = new System.Windows.Forms.Button();
+            this.tbxSaveDir = new System.Windows.Forms.TextBox();
+            this.tbxSaveName = new System.Windows.Forms.TextBox();
+            this.lblSaveName = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.chkPDDCompare = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // lblIntro
             // 
             this.lblIntro.AutoSize = true;
-            this.lblIntro.Location = new System.Drawing.Point(0, 0);
+            this.lblIntro.Location = new System.Drawing.Point(12, 9);
             this.lblIntro.Name = "lblIntro";
             this.lblIntro.Size = new System.Drawing.Size(389, 156);
             this.lblIntro.TabIndex = 0;
@@ -58,24 +64,24 @@
             // 
             // tbxSource
             // 
-            this.tbxSource.Location = new System.Drawing.Point(492, 14);
+            this.tbxSource.Location = new System.Drawing.Point(93, 171);
             this.tbxSource.Name = "tbxSource";
             this.tbxSource.Size = new System.Drawing.Size(341, 20);
-            this.tbxSource.TabIndex = 3;
+            this.tbxSource.TabIndex = 0;
             this.tbxSource.TextChanged += new System.EventHandler(this.tbxSource_TextChanged);
             // 
             // tbxTarget
             // 
-            this.tbxTarget.Location = new System.Drawing.Point(492, 45);
+            this.tbxTarget.Location = new System.Drawing.Point(93, 202);
             this.tbxTarget.Name = "tbxTarget";
             this.tbxTarget.Size = new System.Drawing.Size(341, 20);
-            this.tbxTarget.TabIndex = 4;
+            this.tbxTarget.TabIndex = 1;
             this.tbxTarget.TextChanged += new System.EventHandler(this.tbxTarget_TextChanged);
             // 
             // lblTightTol
             // 
             this.lblTightTol.AutoSize = true;
-            this.lblTightTol.Location = new System.Drawing.Point(408, 87);
+            this.lblTightTol.Location = new System.Drawing.Point(7, 231);
             this.lblTightTol.Name = "lblTightTol";
             this.lblTightTol.Size = new System.Drawing.Size(99, 13);
             this.lblTightTol.TabIndex = 5;
@@ -84,7 +90,7 @@
             // lblMainTol
             // 
             this.lblMainTol.AutoSize = true;
-            this.lblMainTol.Location = new System.Drawing.Point(572, 87);
+            this.lblMainTol.Location = new System.Drawing.Point(171, 231);
             this.lblMainTol.Name = "lblMainTol";
             this.lblMainTol.Size = new System.Drawing.Size(98, 13);
             this.lblMainTol.TabIndex = 6;
@@ -92,33 +98,33 @@
             // 
             // tbxTightTol
             // 
-            this.tbxTightTol.Location = new System.Drawing.Point(513, 84);
+            this.tbxTightTol.Location = new System.Drawing.Point(112, 228);
             this.tbxTightTol.Name = "tbxTightTol";
             this.tbxTightTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxTightTol.TabIndex = 7;
+            this.tbxTightTol.TabIndex = 2;
             this.tbxTightTol.TextChanged += new System.EventHandler(this.tbxTightTol_TextChanged);
             // 
             // tbxMainTol
             // 
-            this.tbxMainTol.Location = new System.Drawing.Point(676, 84);
+            this.tbxMainTol.Location = new System.Drawing.Point(275, 228);
             this.tbxMainTol.Name = "tbxMainTol";
             this.tbxMainTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxMainTol.TabIndex = 8;
+            this.tbxMainTol.TabIndex = 3;
             this.tbxMainTol.TextChanged += new System.EventHandler(this.tbxMainTol_TextChanged);
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(884, 82);
+            this.btnExecute.Location = new System.Drawing.Point(359, 320);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
-            this.btnExecute.TabIndex = 9;
+            this.btnExecute.TabIndex = 7;
             this.btnExecute.Text = "Run";
             this.btnExecute.UseVisualStyleBackColor = true;
             this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
             // 
             // btnSourceDir
             // 
-            this.btnSourceDir.Location = new System.Drawing.Point(411, 12);
+            this.btnSourceDir.Location = new System.Drawing.Point(12, 169);
             this.btnSourceDir.Name = "btnSourceDir";
             this.btnSourceDir.Size = new System.Drawing.Size(75, 23);
             this.btnSourceDir.TabIndex = 10;
@@ -128,7 +134,7 @@
             // 
             // btnTargetDir
             // 
-            this.btnTargetDir.Location = new System.Drawing.Point(411, 42);
+            this.btnTargetDir.Location = new System.Drawing.Point(12, 199);
             this.btnTargetDir.Name = "btnTargetDir";
             this.btnTargetDir.Size = new System.Drawing.Size(75, 23);
             this.btnTargetDir.TabIndex = 11;
@@ -139,7 +145,7 @@
             // lblSourceFilesFoundText
             // 
             this.lblSourceFilesFoundText.AutoSize = true;
-            this.lblSourceFilesFoundText.Location = new System.Drawing.Point(853, 17);
+            this.lblSourceFilesFoundText.Location = new System.Drawing.Point(454, 174);
             this.lblSourceFilesFoundText.Name = "lblSourceFilesFoundText";
             this.lblSourceFilesFoundText.Size = new System.Drawing.Size(89, 13);
             this.lblSourceFilesFoundText.TabIndex = 12;
@@ -148,7 +154,7 @@
             // lblTargetFilesFoundText
             // 
             this.lblTargetFilesFoundText.AutoSize = true;
-            this.lblTargetFilesFoundText.Location = new System.Drawing.Point(853, 47);
+            this.lblTargetFilesFoundText.Location = new System.Drawing.Point(454, 204);
             this.lblTargetFilesFoundText.Name = "lblTargetFilesFoundText";
             this.lblTargetFilesFoundText.Size = new System.Drawing.Size(86, 13);
             this.lblTargetFilesFoundText.TabIndex = 13;
@@ -157,7 +163,7 @@
             // lblSourceFilesFound
             // 
             this.lblSourceFilesFound.AutoSize = true;
-            this.lblSourceFilesFound.Location = new System.Drawing.Point(945, 17);
+            this.lblSourceFilesFound.Location = new System.Drawing.Point(546, 174);
             this.lblSourceFilesFound.Name = "lblSourceFilesFound";
             this.lblSourceFilesFound.Size = new System.Drawing.Size(14, 13);
             this.lblSourceFilesFound.TabIndex = 14;
@@ -166,7 +172,7 @@
             // lblTargetFilesFound
             // 
             this.lblTargetFilesFound.AutoSize = true;
-            this.lblTargetFilesFound.Location = new System.Drawing.Point(945, 47);
+            this.lblTargetFilesFound.Location = new System.Drawing.Point(546, 204);
             this.lblTargetFilesFound.Name = "lblTargetFilesFound";
             this.lblTargetFilesFound.Size = new System.Drawing.Size(14, 13);
             this.lblTargetFilesFound.TabIndex = 15;
@@ -174,26 +180,86 @@
             // 
             // tbxThreshholdTol
             // 
-            this.tbxThreshholdTol.Location = new System.Drawing.Point(818, 84);
+            this.tbxThreshholdTol.Location = new System.Drawing.Point(417, 228);
             this.tbxThreshholdTol.Name = "tbxThreshholdTol";
             this.tbxThreshholdTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxThreshholdTol.TabIndex = 17;
+            this.tbxThreshholdTol.TabIndex = 4;
             this.tbxThreshholdTol.TextChanged += new System.EventHandler(this.threshBox_TextChanged);
             // 
             // lblthreshhold
             // 
             this.lblthreshhold.AutoSize = true;
-            this.lblthreshhold.Location = new System.Drawing.Point(735, 87);
+            this.lblthreshhold.Location = new System.Drawing.Point(334, 231);
             this.lblthreshhold.Name = "lblthreshhold";
             this.lblthreshhold.Size = new System.Drawing.Size(77, 13);
             this.lblthreshhold.TabIndex = 16;
             this.lblthreshhold.Text = "Threshhold (%)";
             // 
+            // btnSaveDir
+            // 
+            this.btnSaveDir.Location = new System.Drawing.Point(12, 282);
+            this.btnSaveDir.Name = "btnSaveDir";
+            this.btnSaveDir.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveDir.TabIndex = 18;
+            this.btnSaveDir.Text = "Save Location";
+            this.btnSaveDir.UseVisualStyleBackColor = true;
+            this.btnSaveDir.Click += new System.EventHandler(this.BtnSaveDir_Click);
+            // 
+            // tbxSaveDir
+            // 
+            this.tbxSaveDir.Location = new System.Drawing.Point(93, 284);
+            this.tbxSaveDir.Name = "tbxSaveDir";
+            this.tbxSaveDir.Size = new System.Drawing.Size(341, 20);
+            this.tbxSaveDir.TabIndex = 6;
+            // 
+            // tbxSaveName
+            // 
+            this.tbxSaveName.Location = new System.Drawing.Point(93, 258);
+            this.tbxSaveName.Name = "tbxSaveName";
+            this.tbxSaveName.Size = new System.Drawing.Size(341, 20);
+            this.tbxSaveName.TabIndex = 5;
+            this.tbxSaveName.TextChanged += new System.EventHandler(this.TbxSaveName_TextChanged);
+            // 
+            // lblSaveName
+            // 
+            this.lblSaveName.AutoSize = true;
+            this.lblSaveName.Location = new System.Drawing.Point(454, 261);
+            this.lblSaveName.Name = "lblSaveName";
+            this.lblSaveName.Size = new System.Drawing.Size(169, 13);
+            this.lblSaveName.TabIndex = 21;
+            this.lblSaveName.Text = "Save Name of Excel Summary File";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(454, 287);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(139, 13);
+            this.label1.TabIndex = 22;
+            this.label1.Text = "Directory to Save Results to";
+            // 
+            // chkPDDCompare
+            // 
+            this.chkPDDCompare.AutoSize = true;
+            this.chkPDDCompare.Location = new System.Drawing.Point(93, 324);
+            this.chkPDDCompare.Name = "chkPDDCompare";
+            this.chkPDDCompare.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkPDDCompare.Size = new System.Drawing.Size(175, 17);
+            this.chkPDDCompare.TabIndex = 23;
+            this.chkPDDCompare.Text = "Produce PDD comparison Plots";
+            this.chkPDDCompare.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1184, 761);
+            this.ClientSize = new System.Drawing.Size(642, 355);
+            this.Controls.Add(this.chkPDDCompare);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.lblSaveName);
+            this.Controls.Add(this.tbxSaveName);
+            this.Controls.Add(this.tbxSaveDir);
+            this.Controls.Add(this.btnSaveDir);
             this.Controls.Add(this.tbxThreshholdTol);
             this.Controls.Add(this.lblthreshhold);
             this.Controls.Add(this.lblTargetFilesFound);
@@ -236,8 +302,12 @@
         private System.Windows.Forms.Label lblTargetFilesFound;
         private System.Windows.Forms.TextBox tbxThreshholdTol;
         private System.Windows.Forms.Label lblthreshhold;
-
-
+        private System.Windows.Forms.Button btnSaveDir;
+        private System.Windows.Forms.TextBox tbxSaveDir;
+        private System.Windows.Forms.TextBox tbxSaveName;
+        private System.Windows.Forms.Label lblSaveName;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox chkPDDCompare;
     }
 }
 
