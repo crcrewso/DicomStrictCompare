@@ -36,7 +36,7 @@ namespace DicomStrictCompare
         public DscDataHandler()
         {
             DosePairsList = new List<MatchedDosePair>();
-            ResultMessage = "Name'\t'TotalCount'\t'TotalCompared\tTotalFailedTightTol\tPercentFailedTightTol\tPercentFailedMainTol";
+            ResultMessage = "Name,TotalCount,TotalComparedTightTol,TotalFailedTightTol,PercentFailedTightTol,TotalFailedMainTol,PercentFailedMainTol";
         }
 
 
@@ -135,7 +135,7 @@ namespace DicomStrictCompare
                     // Will catch array misalignment problems
                     catch (Exception)
                     {
-                        ResultMessage += pair.Name + " was not evaluated \n";
+                        ResultMessage += pair.Name + ",Was not Evaluated ,";
                         
                     }
 
@@ -189,9 +189,9 @@ namespace DicomStrictCompare
         /// </summary>
         public string Name => _source.ShortFileName + '\t' + _target.ShortFileName;
 
-        public string ResultString => Name + '\t' + TotalCount.ToString() + '\t' + TotalComparedTightTol.ToString() + '\t' +  TotalFailedTightTol +'\t' + '\t' + PercentFailedTightTol.ToString("0.00") + '\t' + PercentFailedMainTol.ToString("0.00");
+        public string ResultString => Name+','+TotalCount.ToString()+','+TotalComparedTightTol.ToString()+','+TotalFailedTightTol+','+PercentFailedTightTol.ToString("0.0000")+','+TotalFailedMainTol.ToString()+','+PercentFailedMainTol.ToString("0.0000");
 
-        public static string ResultHeader => "Name'\t'TotalCount'\t'TotalCompared\tTotalFailedTightTol\tPercentFailedTightTol\tPercentFailedMainTol";
+        public static string ResultHeader => "Name,TotalCount,TotalComparedTightTol,TotalFailedTightTol,PercentFailedTightTol,TotalFailedMainTol,PercentFailedMainTol";
 
         private DoseFile _source;
         private DoseFile _target;
