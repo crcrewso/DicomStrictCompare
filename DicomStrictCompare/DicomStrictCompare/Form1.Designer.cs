@@ -51,6 +51,7 @@
             this.lblSaveName = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.chkPDDCompare = new System.Windows.Forms.CheckBox();
+            this.chkDoseCompare = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // lblIntro
@@ -241,7 +242,7 @@
             // chkPDDCompare
             // 
             this.chkPDDCompare.AutoSize = true;
-            this.chkPDDCompare.Location = new System.Drawing.Point(93, 324);
+            this.chkPDDCompare.Location = new System.Drawing.Point(97, 324);
             this.chkPDDCompare.Name = "chkPDDCompare";
             this.chkPDDCompare.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.chkPDDCompare.Size = new System.Drawing.Size(175, 17);
@@ -249,11 +250,23 @@
             this.chkPDDCompare.Text = "Produce PDD comparison Plots";
             this.chkPDDCompare.UseVisualStyleBackColor = true;
             // 
+            // chkDoseCompare
+            // 
+            this.chkDoseCompare.AutoSize = true;
+            this.chkDoseCompare.Location = new System.Drawing.Point(94, 347);
+            this.chkDoseCompare.Name = "chkDoseCompare";
+            this.chkDoseCompare.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkDoseCompare.Size = new System.Drawing.Size(178, 17);
+            this.chkDoseCompare.TabIndex = 24;
+            this.chkDoseCompare.Text = "Produce Dose Comparison table";
+            this.chkDoseCompare.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(642, 355);
+            this.ClientSize = new System.Drawing.Size(642, 388);
+            this.Controls.Add(this.chkDoseCompare);
             this.Controls.Add(this.chkPDDCompare);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblSaveName);
@@ -308,6 +321,7 @@
         private System.Windows.Forms.Label lblSaveName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox chkPDDCompare;
+        private System.Windows.Forms.CheckBox chkDoseCompare;
     }
 }
 

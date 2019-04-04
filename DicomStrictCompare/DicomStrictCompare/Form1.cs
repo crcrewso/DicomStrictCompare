@@ -33,7 +33,7 @@ namespace DSC
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
             _dataHandler = new DscDataHandler();
-            
+
         }
 
         /// <summary>
@@ -147,7 +147,7 @@ namespace DSC
                 }
             }
         }
-
+    
         /// <summary>
         /// TODO add error checking here!
         /// </summary>
@@ -155,18 +155,28 @@ namespace DSC
         /// <param name="e"></param>
         private void btnExecute_Click(object sender, EventArgs e)
         {
-            _dataHandler.EpsilonTol = Threshold / 100.0;
-            _dataHandler.MainTol = MainTol/100.0;
-            _dataHandler.TightTol = TightTol/100.0;
-            _dataHandler.Run();
-            //System.Windows.Forms.MessageBox.Show("Ive finished\n" + MatchedDosePair.ResultHeader + "\n" + _dataHandler.ResultMessage);
-            if (chkPDDCompare.Checked == true)
+            try
             {
-                ///TODO Insert code to trigger the creation of PDD comparison plots. 
-            }
-            //TODO replace the above system.windows.forms message box with the production of a new tsv file or comma I need to decide.
+                if (chkDoseCompare.Checked == true)
+                {
+                    _dataHandler.EpsilonTol = Threshold / 100.0;
+                    _dataHandler.MainTol = MainTol / 100.0;
+                    _dataHandler.TightTol = TightTol / 100.0;
+                    _dataHandler.Run();
+                }                                        
+                if (chkPDDCompare.Checked == true)
+                {
+                    //TODO replace the above system.windows.forms message box with the production of a new tsv file or comma I need to decide.
+                }
+                System.Windows.Forms.MessageBox.Show("Finished");
 
+            }
+            catch (Exception)
+            {
+                System.Windows.Forms.MessageBox.Show("Check your inputs please");
+            }
         }
+    
 
         private async void threshBox_TextChanged(object sender, EventArgs e)
         {
