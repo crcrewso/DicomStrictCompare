@@ -36,7 +36,6 @@ namespace DicomStrictCompare
         public DscDataHandler()
         {
             DosePairsList = new List<MatchedDosePair>();
-            ResultMessage = "Name,TotalCount,TotalComparedTightTol,TotalFailedTightTol,PercentFailedTightTol,TotalFailedMainTol,PercentFailedMainTol";
         }
 
 
@@ -95,7 +94,10 @@ namespace DicomStrictCompare
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
             TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
             DosePairsList = new List<MatchedDosePair>();
-            ResultMessage = "";
+            ResultMessage = "Tight Tolerance, " + (100*TightTol).ToString();
+            ResultMessage += "\nMain Tolerance, " + (100*MainTol).ToString();
+            ResultMessage += "\nThreshold, " + (100*EpsilonTol).ToString() + "\n";
+            ResultMessage += MatchedDosePair.ResultHeader;
 
             foreach (var doseFile in SourceDosesList)
             {
@@ -131,11 +133,12 @@ namespace DicomStrictCompare
                         pair.Evaluate();
                         ResultMessage += pair.ResultString + '\n';
                         Debug.WriteLine(pair.ResultString);
+                        
                     }
                     // Will catch array misalignment problems
                     catch (Exception)
                     {
-                        ResultMessage += pair.Name + ",Was not Evaluated ,";
+                        ResultMessage += pair.Name + ",Was not Evaluated ,\n";
                         
                     }
 
@@ -187,12 +190,13 @@ namespace DicomStrictCompare
         /// <summary>
         /// Name of the pair evaluated
         /// </summary>
-        public string Name => _source.ShortFileName + '\t' + _target.ShortFileName;
+        public string Name => _source.ShortFileName + ',' + _target.ShortFileName;
 
         public string ResultString => Name+','+TotalCount.ToString()+','+TotalComparedTightTol.ToString()+','+TotalFailedTightTol+','+PercentFailedTightTol.ToString("0.0000")+','+TotalFailedMainTol.ToString()+','+PercentFailedMainTol.ToString("0.0000");
 
-        public static string ResultHeader => "Name,TotalCount,TotalComparedTightTol,TotalFailedTightTol,PercentFailedTightTol,TotalFailedMainTol,PercentFailedMainTol";
+        public static string ResultHeader => "Source Name,Target Name,TotalCount,TotalComparedTightTol,TotalFailedTightTol,PercentFailedTightTol,TotalFailedMainTol,PercentFailedMainTol\n";
 
+        
         private DoseFile _source;
         private DoseFile _target;
 

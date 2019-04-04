@@ -275,8 +275,44 @@ namespace DicomStrictCompare
     /// </summary>
     class SaveFile
     {
-        public string SaveFileName {get; }
-        public string SaveFileDir {get; }
+        public string SaveFileName { get; } = null;
+        public string SaveFileDir { get; } = null;
+
+        public SaveFile(string FileName, string FileDirectory)
+        {
+            if (Directory.Exists(FileDirectory))
+            {
+                SaveFileDir = FileDirectory;
+            }
+
+            if (!String.IsNullOrEmpty(SaveFileDir))
+            {
+                SaveFileName = FileDirectory + '/' + FileName + ".csv";
+            }
+        }
+
+        /// <summary>
+        /// Adds the provided csv Message to the existing file. 
+        /// </summary>
+        /// <param name="csvMessage">Comma separated value message to be saved </param>
+        /// <returns>true iff the save was successful</returns>
+        public void Save(string csvMessage)
+        {
+
+            if (String.IsNullOrEmpty(SaveFileName) || String.IsNullOrEmpty(SaveFileDir))
+            {
+                throw new FileLoadException("No Valid Location to open");
+            }
+            if (String.IsNullOrEmpty(csvMessage))
+            {
+                throw new ArgumentNullException("I have no data to save");
+            }
+            StreamWriter outfile = new StreamWriter(SaveFileName);
+            outfile.Write(csvMessage);
+            outfile.Close();
+
+
+        }
 
 
     }

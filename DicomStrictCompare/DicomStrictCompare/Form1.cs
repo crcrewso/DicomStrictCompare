@@ -32,6 +32,7 @@ namespace DSC
             InitializeComponent();
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
+            tbxThreshholdTol.Text = Threshold.ToString();
             _dataHandler = new DscDataHandler();
 
         }
@@ -99,14 +100,24 @@ namespace DSC
             }
         }
 
-        private void tbxSource_TextChanged(object sender, EventArgs e)
+        private async void tbxSource_TextChanged(object sender, EventArgs e)
         {
+            await Task.Delay(10 * delayTime);
+            SourceDirectory = tbxSource.Text;
+            if (!Directory.Exists(SourceDirectory))
+                SourceDirectory = null;
             tbxSource.Text = SourceDirectory;
+            lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
         }
 
-        private void tbxTarget_TextChanged(object sender, EventArgs e)
+        private async void tbxTarget_TextChanged(object sender, EventArgs e)
         {
+            await Task.Delay(10 * delayTime);
+            TargetDirectory = tbxTarget.Text;
+            if (!Directory.Exists(TargetDirectory))
+                TargetDirectory = null;
             tbxTarget.Text = TargetDirectory;
+            lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -147,7 +158,7 @@ namespace DSC
                 }
             }
         }
-    
+
         /// <summary>
         /// TODO add error checking here!
         /// </summary>
@@ -159,11 +170,18 @@ namespace DSC
             {
                 if (chkDoseCompare.Checked == true)
                 {
+                    doseProgressBar.Minimum = 0;
+                    doseProgressBar.Maximum = Int32.Parse(lblSourceFilesFound.Text);
+                    doseProgressBar.Step = 0;
+                    doseProgressBar.Value = 0;
                     _dataHandler.EpsilonTol = Threshold / 100.0;
                     _dataHandler.MainTol = MainTol / 100.0;
                     _dataHandler.TightTol = TightTol / 100.0;
                     _dataHandler.Run();
-                }                                        
+                    doseProgressBar.Value = doseProgressBar.Maximum;
+                    SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
+                    saveFile.Save(_dataHandler.ResultMessage);
+                }
                 if (chkPDDCompare.Checked == true)
                 {
                     //TODO replace the above system.windows.forms message box with the production of a new tsv file or comma I need to decide.
@@ -175,8 +193,9 @@ namespace DSC
             {
                 System.Windows.Forms.MessageBox.Show("Check your inputs please");
             }
+
         }
-    
+
 
         private async void threshBox_TextChanged(object sender, EventArgs e)
         {
@@ -214,7 +233,7 @@ namespace DSC
                     SaveDirectory = fbd.SelectedPath;
                     tbxSaveDir.Text = SaveDirectory;
                 }
-                
+
             }
         }
 
@@ -224,6 +243,17 @@ namespace DSC
             var temp = tbxSaveName.Text;
             SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxSaveName.Text = SaveNamePrefix;
+
+        }
+
+        private async void TbxSaveDir_TextChanged(object sender, EventArgs e)
+        {
+            await Task.Delay(2 * delayTime);
+            SaveDirectory = tbxSaveDir.Text;
+            if (!Directory.Exists(SaveDirectory))
+                SaveDirectory = null;
+            tbxSaveDir.Text = SaveDirectory;
+
 
         }
     }

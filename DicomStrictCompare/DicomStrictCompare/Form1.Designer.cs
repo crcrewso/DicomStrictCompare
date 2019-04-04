@@ -52,6 +52,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.chkPDDCompare = new System.Windows.Forms.CheckBox();
             this.chkDoseCompare = new System.Windows.Forms.CheckBox();
+            this.doseProgressBar = new System.Windows.Forms.ProgressBar();
+            this.pddProgressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // lblIntro
@@ -212,6 +214,7 @@
             this.tbxSaveDir.Name = "tbxSaveDir";
             this.tbxSaveDir.Size = new System.Drawing.Size(341, 20);
             this.tbxSaveDir.TabIndex = 6;
+            this.tbxSaveDir.TextChanged += new System.EventHandler(this.TbxSaveDir_TextChanged);
             // 
             // tbxSaveName
             // 
@@ -261,11 +264,27 @@
             this.chkDoseCompare.Text = "Produce Dose Comparison table";
             this.chkDoseCompare.UseVisualStyleBackColor = true;
             // 
+            // doseProgressBar
+            // 
+            this.doseProgressBar.Location = new System.Drawing.Point(10, 384);
+            this.doseProgressBar.Name = "doseProgressBar";
+            this.doseProgressBar.Size = new System.Drawing.Size(613, 23);
+            this.doseProgressBar.TabIndex = 25;
+            // 
+            // pddProgressBar
+            // 
+            this.pddProgressBar.Location = new System.Drawing.Point(10, 413);
+            this.pddProgressBar.Name = "pddProgressBar";
+            this.pddProgressBar.Size = new System.Drawing.Size(613, 23);
+            this.pddProgressBar.TabIndex = 26;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(642, 388);
+            this.ClientSize = new System.Drawing.Size(642, 514);
+            this.Controls.Add(this.pddProgressBar);
+            this.Controls.Add(this.doseProgressBar);
             this.Controls.Add(this.chkDoseCompare);
             this.Controls.Add(this.chkPDDCompare);
             this.Controls.Add(this.label1);
@@ -322,6 +341,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox chkPDDCompare;
         private System.Windows.Forms.CheckBox chkDoseCompare;
+        private System.Windows.Forms.ProgressBar doseProgressBar;
+        private System.Windows.Forms.ProgressBar pddProgressBar;
     }
 }
 
