@@ -119,7 +119,10 @@ namespace DicomStrictCompare
         {
             var dcm1 = DICOMObject.Read(fileName);
             FileName = fileName;
-            ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
+            var slashindex = FileName.LastIndexOf(@"\");
+            slashindex = FileName.Substring(0, slashindex - 1).LastIndexOf(@"\");
+            slashindex = FileName.Substring(0, slashindex - 1).LastIndexOf(@"\");
+            ShortFileName = FileName.Substring(slashindex + 1);
             Name = dcm1.FindFirst(TagHelper.SeriesDescription).ToString();
             PatientId = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
 

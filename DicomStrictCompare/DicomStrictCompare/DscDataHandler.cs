@@ -194,7 +194,7 @@ namespace DicomStrictCompare
 
         public string ResultString => Name+','+TotalCount.ToString()+','+TotalComparedTightTol.ToString()+','+TotalFailedTightTol+','+PercentFailedTightTol.ToString("0.0000")+','+TotalFailedMainTol.ToString()+','+PercentFailedMainTol.ToString("0.0000");
 
-        public static string ResultHeader => "Source Name,Target Name,TotalCount,TotalComparedTightTol,TotalFailedTightTol,PercentFailedTightTol,TotalFailedMainTol,PercentFailedMainTol\n";
+        public static string ResultHeader => "Source Name,Target Name,Voxels,Voxels above Threshold,Failed Tight,Percent, Failed Main,Percent\n";
 
         
         private DoseFile _source;
