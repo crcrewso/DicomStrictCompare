@@ -153,7 +153,7 @@ namespace DSC
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
                     TargetDirectory = fbd.SelectedPath;
-                    tbxTarget.Text = SourceDirectory;
+                    tbxTarget.Text = TargetDirectory;
                     lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
                 }
             }
@@ -174,7 +174,7 @@ namespace DSC
                     doseProgressBar.Maximum = Int32.Parse(lblSourceFilesFound.Text);
                     doseProgressBar.Step = 0;
                     doseProgressBar.Value = 0;
-                    _dataHandler.EpsilonTol = Threshold / 100.0;
+                    _dataHandler.ThresholdTol = Threshold / 100.0;
                     _dataHandler.MainTol = MainTol / 100.0;
                     _dataHandler.TightTol = TightTol / 100.0;
                     _dataHandler.Run();

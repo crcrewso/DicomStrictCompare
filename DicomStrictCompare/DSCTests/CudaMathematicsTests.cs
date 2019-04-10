@@ -59,21 +59,20 @@ namespace DicomStrictCompare.Tests
         [TestMethod()]
         public void CompareTestSameArrayLong()
         {
-            List<double> source = new List<double>();
-            List<double> target = new List<double>();
+            int maxSize = 1000000;
+            double[] source = new double[maxSize];
+            double[] target = new double[maxSize];
             double tolerance = 0.01;
             double epsilon = 0.001;
 
 
-            for (int i = 0; i < 100000000; i++)
+            for (int i = 0; i < maxSize; i++)
             {
-                source.Add(i);
-                target.Add(i);
+                source[i] = maxSize + i;
+                target[i] = maxSize + i;
             }
-            double[] sourceDoubles = source.ToArray();
-            double[] targetDoubles = target.ToArray();
             var cudaMath = new CudaMathematics();
-            var retCompare = cudaMath.Compare(sourceDoubles, targetDoubles, tolerance, epsilon);
+            var retCompare = cudaMath.Compare(source, target, tolerance, epsilon);
             Assert.AreEqual(0, retCompare);
 
         }
