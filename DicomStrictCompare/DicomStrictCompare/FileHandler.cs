@@ -108,7 +108,7 @@ namespace DicomStrictCompare
         /// <summary>
         /// SOP Instance Identifier of the source plan ID. 
         /// </summary>
-        public string SopInstanceId { get;  }
+        public string SopInstanceId { get; }
 
         public int X { get; private set; }
         public int Y { get; private set; }
@@ -257,7 +257,7 @@ namespace DicomStrictCompare
                 IsPlanFile = true;
                 PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();
                 var beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
-                var beamNames = dcm1.FindAll(TagHelper.BeamName );
+                var beamNames = dcm1.FindAll(TagHelper.BeamName);
                 if (beamNames.Count == beamNumbers.Count)
                 {
                     for (int i = 0; i < beamNames.Count; i++)
@@ -270,5 +270,51 @@ namespace DicomStrictCompare
         }
     }
 
+    /// <summary>
+    /// Produces the 
+    /// </summary>
+    class SaveFile
+    {
+        public string SaveFileName { get; } = null;
+        public string SaveFileDir { get; } = null;
+
+        public SaveFile(string FileName, string FileDirectory)
+        {
+            if (Directory.Exists(FileDirectory))
+            {
+                SaveFileDir = FileDirectory;
+            }
+
+            if (!String.IsNullOrEmpty(SaveFileDir))
+            {
+                SaveFileName = FileDirectory + '/' + FileName + ".csv";
+            }
+        }
+
+        /// <summary>
+        /// Adds the provided csv Message to the existing file. 
+        /// </summary>
+        /// <param name="csvMessage">Comma separated value message to be saved </param>
+        /// <returns>true iff the save was successful</returns>
+        public void Save(string csvMessage)
+        {
+
+            if (String.IsNullOrEmpty(SaveFileName) || String.IsNullOrEmpty(SaveFileDir))
+            {
+                throw new FileLoadException("No Valid Location to open");
+            }
+            if (String.IsNullOrEmpty(csvMessage))
+            {
+                throw new ArgumentNullException("I have no data to save");
+            }
+            StreamWriter outfile = new StreamWriter(SaveFileName);
+            outfile.Write(csvMessage);
+            outfile.Close();
+
+
+        }
+
+
+    }
 
 }
