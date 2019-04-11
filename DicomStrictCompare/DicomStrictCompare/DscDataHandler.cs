@@ -129,7 +129,7 @@ namespace DicomStrictCompare
             }
 
             // match each pair for analysis
-            Parallel.ForEach(TargetDosesList, (dose) =>
+            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (dose) =>
             {
                 foreach (var sourceDose in SourceDosesList)
                 {
@@ -142,10 +142,10 @@ namespace DicomStrictCompare
                 }
             });
 
-            //Do not try to Parallel.ForEach this, it will break, it will run out of memory
+            //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
             if (DosePairsList.Count > 0)
             {
-                Parallel.ForEach(DosePairsList, pair =>
+                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount/2 }, pair =>
                 {
                     try
                     {
@@ -340,6 +340,7 @@ namespace DicomStrictCompare
 
         private Tuple<int, int> Evaluate( DoseMatrix source, DoseMatrix target, double tol)
         {
+            
             var xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
             var xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
             var xRes = (source.XRes > target.XRes) ? source.XRes : target.XRes;
@@ -350,8 +351,18 @@ namespace DicomStrictCompare
             var zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
             var zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
 
+            var TotalComparisons = (xMax - xMin) * xRes;
+            TotalComparisons *= (yMax - yMin) * yRes;
+            TotalComparisons *= (zMax - zMin) * zRes;
+
+
+
+
             int TotalCompared = 0;
             int failed = 0;
+            int ComparedToPoint = 0;
+            int debugFrequency = 1000000;
+            var debugMod = TotalComparisons / debugFrequency;
             double MaxSource = source.MaxPointDose.Dose;
             double MinDoseEvaluated = MaxSource * ThreshholdTol;
             for (var x = xMin; x <= xMax; x += xRes)
@@ -360,6 +371,11 @@ namespace DicomStrictCompare
                 {
                     for (var z = zMin; z <= zMax; z += zRes)
                     {
+                        ComparedToPoint++;
+                        if (ComparedToPoint % debugMod == 0)
+                        {
+                            Debug.WriteLine("I have finished " + (ComparedToPoint / debugMod).ToString() +" %");
+                        }
                         var sourcei = source.GetPointDose(x, y, z).Dose;
                         var targeti = target.GetPointDose(x, y, z).Dose;
                         if (targeti < MinDoseEvaluated || sourcei < MinDoseEvaluated) { continue; }
