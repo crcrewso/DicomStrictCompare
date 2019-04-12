@@ -166,19 +166,22 @@ namespace DSC
         /// <param name="e"></param>
         private void btnExecute_Click(object sender, EventArgs e)
         {
+
             try
             {
+                doseProgressBar.Minimum = 0;
+                doseProgressBar.Maximum = Int32.Parse(lblSourceFilesFound.Text);
+                doseProgressBar.Step = 1;
+                doseProgressBar.Value = 0;
+                _dataHandler.ThresholdTol = Threshold / 100.0;
+                _dataHandler.MainTol = MainTol / 100.0;
+                _dataHandler.TightTol = TightTol / 100.0;
+                _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory);
+                doseProgressBar.Value = doseProgressBar.Maximum;
+
                 if (chkDoseCompare.Checked == true)
                 {
-                    doseProgressBar.Minimum = 0;
-                    doseProgressBar.Maximum = Int32.Parse(lblSourceFilesFound.Text);
-                    doseProgressBar.Step = 0;
-                    doseProgressBar.Value = 0;
-                    _dataHandler.ThresholdTol = Threshold / 100.0;
-                    _dataHandler.MainTol = MainTol / 100.0;
-                    _dataHandler.TightTol = TightTol / 100.0;
-                    _dataHandler.Run();
-                    doseProgressBar.Value = doseProgressBar.Maximum;
+
                     SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
                     saveFile.Save(_dataHandler.ResultMessage);
                 }

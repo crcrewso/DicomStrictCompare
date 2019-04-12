@@ -76,11 +76,11 @@ namespace DicomStrictCompare
 
 
 
-        public void Run()
+        public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory)
         {
             #region safetyChecks
 
-            
+
 
 
             try
@@ -102,34 +102,74 @@ namespace DicomStrictCompare
                 throw new NullReferenceException("Target directory cannot be null"); ;
             }
 
-            if (SourceListStrings.Length <=0 )
+            if (SourceListStrings.Length <= 0)
                 throw new InvalidOperationException("There are no Dose files in the source directory Tree");
-            if (TargetListStrings.Length <=0 )
+            if (TargetListStrings.Length <= 0)
                 throw new InvalidOperationException("There are no Dose files in the Target directory Tree");
             #endregion
-
+            System.Threading.Thread sourceDoseProcess = new System.Threading.Thread(() => 
+            {
             SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
+
+            });
+
+            System.Threading.Thread sourcePlanProcess = new System.Threading.Thread(() =>
+            {
             SourcePlanList = FileHandler.PlanFiles(SourceListStrings);
+
+            });
+
+            System.Threading.Thread targetDoseProcess = new System.Threading.Thread(() =>
+            {
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
+
+            });
+
+            System.Threading.Thread targetPlanProcess = new System.Threading.Thread(() =>
+            {
             TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
+
+            });
+
+            sourceDoseProcess.Start();
+            targetDoseProcess.Start();
+            sourcePlanProcess.Start();
+            targetPlanProcess.Start();
+
+            sourceDoseProcess.Join();
+            targetDoseProcess.Join();
+            sourcePlanProcess.Join();
+            targetPlanProcess.Join();
+
             DosePairsList = new List<MatchedDosePair>();
-            ResultMessage = "Tight Tolerance, " + (100*TightTol).ToString();
-            ResultMessage += "\nMain Tolerance, " + (100*MainTol).ToString();
-            ResultMessage += "\nThreshold, " + (100*ThresholdTol).ToString() + "\n";
+            ResultMessage = "Tight Tolerance, " + (100 * TightTol).ToString();
+            ResultMessage += "\nMain Tolerance, " + (100 * MainTol).ToString();
+            ResultMessage += "\nThreshold, " + (100 * ThresholdTol).ToString() + "\n";
             ResultMessage += MatchedDosePair.ResultHeader;
 
-            foreach (var doseFile in SourceDosesList)
+            System.Threading.Thread t1 = new System.Threading.Thread(() =>
             {
-                doseFile.SetFieldName(SourcePlanList);
-            }
+                foreach (var doseFile in SourceDosesList)
+                {
+                    doseFile.SetFieldName(SourcePlanList);
+                }
+            });
 
-            foreach (var doseFile in TargetDosesList)
+            System.Threading.Thread t2 = new System.Threading.Thread(() =>
+            {
+                foreach (var doseFile in TargetDosesList)
             {
                 doseFile.SetFieldName(TargetPlanList);
-            }
+            } });
+
+            t1.Start();
+            t2.Start();
+            t2.Join();
+            t1.Join();
+
 
             // match each pair for analysis
-            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (dose) =>
+            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (dose) =>
             {
                 foreach (var sourceDose in SourceDosesList)
                 {
@@ -143,7 +183,7 @@ namespace DicomStrictCompare
             });
 
             //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
-            if (DosePairsList.Count > 0)
+            if (DosePairsList.Count > 0 && runDoseComparisons)
             {
                 Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount/2 }, pair =>
                 {
@@ -163,6 +203,17 @@ namespace DicomStrictCompare
 
 
                 });
+            }
+            if (runPDDComparisons)
+            {
+                foreach (var pair in DosePairsList)
+                {
+                    pair.GeneratePDD();
+                    Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
+                    SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
+                    saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle );
+
+                }
             }
 
 
@@ -211,13 +262,17 @@ namespace DicomStrictCompare
         /// </summary>
         public string Name => _source.ShortFileName + ',' + _target.ShortFileName;
 
-        public string ResultString => Name+','+TotalCount.ToString()+','+TotalComparedTightTol.ToString()+','+TotalFailedTightTol+','+PercentFailedTightTol.ToString("0.0000")+','+TotalFailedMainTol.ToString()+','+PercentFailedMainTol.ToString("0.0000");
+        public string ResultString => Name + ',' + TotalCount.ToString() + ',' + TotalComparedTightTol.ToString() + ',' + TotalFailedTightTol + ',' + PercentFailedTightTol.ToString("0.0000") + ',' + TotalFailedMainTol.ToString() + ',' + PercentFailedMainTol.ToString("0.0000");
 
         public static string ResultHeader => "Source Name,Target Name,Voxels,Voxels above Threshold,Failed Tight,Percent, Failed Main,Percent\n";
 
-        
         private DoseFile _source;
         private DoseFile _target;
+
+        public List<DoseValue> SourcePDD { get; private set; }
+        public List<DoseValue> TargetPDD { get; private set; }
+        public string ChartTitle { get; private set; }
+        public string ChartFileName { get; private set; }
 
         /// <summary>
         /// Calculates the percent of voxels that failed based on the total 
@@ -240,7 +295,32 @@ namespace DicomStrictCompare
             MainTol = mainTol;
         }
 
+        public void GeneratePDD()
+        {
+            var sourceMatrix = _source.DoseMatrix();
+            var targetMatrix = _target.DoseMatrix();
 
+            var xMin = (sourceMatrix.X0 > targetMatrix.X0) ? sourceMatrix.X0 : targetMatrix.X0;
+            var xMax = (sourceMatrix.XMax < targetMatrix.XMax) ? sourceMatrix.XMax : targetMatrix.XMax;
+            var xRes = (sourceMatrix.XRes > targetMatrix.XRes) ? sourceMatrix.XRes : targetMatrix.XRes;
+            var yMin = (sourceMatrix.Y0 > targetMatrix.Y0) ? sourceMatrix.Y0 : targetMatrix.Y0;
+            var yMax = (sourceMatrix.YMax < targetMatrix.YMax) ? sourceMatrix.YMax : targetMatrix.YMax;
+            var yRes = sourceMatrix.YRes;
+
+            var zMin = (sourceMatrix.Z0 > targetMatrix.Z0) ? sourceMatrix.Z0 : targetMatrix.Z0;
+            var zMax = (sourceMatrix.ZMax < targetMatrix.ZMax) ? sourceMatrix.ZMax : targetMatrix.ZMax;
+            var zRes = sourceMatrix.ZRes;
+
+
+            var startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0 );
+            var endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
+
+            SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
+            TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
+
+            ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
+            ChartFileName = _source.PlanID + @"\ " + _source.FieldName;
+        }
 
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out
