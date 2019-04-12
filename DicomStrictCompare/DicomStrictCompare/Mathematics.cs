@@ -74,7 +74,7 @@ namespace DicomStrictCompare
         }
 
         /// <summary>
-        /// returns false if they're different, true if they're within tolerance of each other
+        /// returns false if they're different, true if they're within minDoseEvaluated of each other
         /// assumes epsilon boundary checking has already been done. This was broken out for easier testing. 
         /// </summary>
         /// <param name="sourcei"></param>
@@ -120,8 +120,8 @@ namespace DicomStrictCompare
             Gpu.Default.For(0, absDifferenceDoubles.Length,
                 i => absDifferenceDoubles[i] = (differenceDoubles[i] < 0) ? -1*differenceDoubles[i] : differenceDoubles[i]);
 
-            //determine if relative difference is greater than tolerance 
-            // stores 1 as GT tolerance is true
+            //determine if relative difference is greater than minDoseEvaluated 
+            // stores 1 as GT minDoseEvaluated is true
             Gpu.Default.For(0, isGTtol.Length,
                 i => isGTtol[i] = (absDifferenceDoubles[i] > tolerance) ? 1 : 0);
 
@@ -139,6 +139,82 @@ namespace DicomStrictCompare
             }*/
 
             return failed;
+        }
+    }
+
+    public static class ProfileTools
+    {
+        /// <summary>
+		/// Returns the 1 dimensional tolerance agreement as the number of voxels that pass x % and x mm
+		/// defaults to 2%/2mm
+		/// expand this
+		/// </summary>
+		/// <param name="profile">the target being compared</param>
+		/// <param name="reference">the source being compared against</param>
+		/// <param name="dta">match distance, mm </param>
+		/// <param name="percent">minDoseEvaluated % of max dose of ref </param>
+		/// <returns></returns>
+		public static double Comparison(double[] source, double[] target, int dta = 2, double tolerance = 2)
+        {
+            if (source.Length <= 0 || target.Length <= 0 ) { throw new System.ArgumentNullException();  }
+            if (source.Length != target.Length) { throw new System.ArgumentException(); }
+            
+            //create and initialize failed array
+            int[] failed = new int[source.Length];
+            for (int i = 0; i < failed.Length, i++)
+            {
+                failed[i] = 0;
+            }
+
+            double maxDose = 0;
+            double ret = 0;
+            double minDoseEvaluated = 0; // the minDoseEvaluated of dose matching in absolute units of the source target
+            int pointsCompared = source.Length;
+            int pointsFailedDtAandPercent = 0;
+            double threshold = 0;
+
+            List<DoseValue> failedPercent = new List<DoseValue>(); // contains the doses that didn't pass tolerance agreement
+
+
+            // finds the maximum dose
+            foreach (var dose in source) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
+
+            minDoseEvaluated = maxDose * tolerance / 100;
+            threshold = 5 * minDoseEvaluated;
+
+            for (int i = 0; i < target.Count; i++)
+            {
+                if (target[i].Dose < threshold) { continue; }
+                double difference = Math.Abs(target[i].Dose - source[i].Dose);
+                if (difference > minDoseEvaluated) { failedPercent.Add(target[i]); }
+            }
+
+            foreach (var item in failedPercent)
+            {
+                List<double> listOfDosesWithinDtaTolerance = new List<double>();
+                foreach (var refItem in source)
+                {
+                    // generates a list of doses that are within the dta
+                    if (GeneralExtensions.distance(item, refItem) <= dta)
+                    {
+                        listOfDosesWithinDtaTolerance.Add(refItem.Dose);
+                    }
+                }
+                listOfDosesWithinDtaTolerance.Sort();
+                // checks if the dose is within the boundary doses. if yes the pixel's dose agrees with the source within the dta minDoseEvaluated
+                // should be expanded to use linear interpolation. 
+                if (listOfDosesWithinDtaTolerance[0] <= item.Dose && listOfDosesWithinDtaTolerance[listOfDosesWithinDtaTolerance.Count - 1] >= item.Dose)
+                {
+                    continue;
+                }
+                // if it fails the point failed
+                pointsFailedDtAandPercent++;
+            }
+
+            ret = ((double)pointsFailedDtAandPercent) / ((double)pointsCompared) * 100;
+            return ret;
+
+
         }
     }
 

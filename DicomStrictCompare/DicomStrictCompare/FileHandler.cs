@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Drawing;
+using System.Windows.Forms.DataVisualization.Charting;
 using EvilDICOM.Core;
 using EvilDICOM.Core.Element;
 using EvilDICOM.Core.Helpers;
@@ -313,7 +315,18 @@ namespace DicomStrictCompare
             StreamWriter outfile = new StreamWriter(SaveFileName);
             outfile.Write(csvMessage);
             outfile.Close();
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Save(double[] sourcePDD, double[] targetPDD, string filename, string title, string note)
+        {
+            var chart = new Chart();
+            chart.Size = new Size(2000, 1600);
+            var chartTitle = new Title("PDD " + filename, Docking.Top, new Font("Consolas", 24, FontStyle.Regular), Color.Black);
+            chart.Titles.Add(chartTitle);
+            var chartArea = new ChartArea();
 
         }
 
