@@ -395,8 +395,8 @@ namespace DicomStrictCompare
 
 
             var chart = new Chart();
-            chart.Size = new Size(2000, 1600);
-            var chartTitle = new Title("PDD\n\t" + chartTitleString, Docking.Top, new Font("Consolas", 24, FontStyle.Regular), Color.Black);
+            chart.Size = new Size(3200, 1800);
+            var chartTitle = new Title(chartTitleString, Docking.Top, new Font("Consolas", 36, FontStyle.Regular), Color.Black);
             chart.Titles.Add(chartTitle);
             var chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
@@ -406,7 +406,8 @@ namespace DicomStrictCompare
             chartArea.AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Number;
             chartArea.AxisY.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Number;
             chartArea.AxisX.Minimum = 0;
-            
+            chartArea.AxisX.Maximum = (300.0 < z.Last()) ? 300 : z.Last();
+
             chartArea.AxisY.Minimum = 0;
             chartArea.AxisY.Maximum = 1.20;
             chartArea.AxisY.Interval = 0.20;
@@ -421,29 +422,34 @@ namespace DicomStrictCompare
 
             chart.ChartAreas.Add(chartArea);
             // font style and size declarations must be after the add Chart Area or else they are ignored. 
-            chartArea.AxisX.TitleFont = new Font("Consolas", 14, FontStyle.Regular);
-            chartArea.AxisY.TitleFont = new Font("Consolas", 14, FontStyle.Regular);
-            chartArea.AxisY2.TitleFont = new Font("Consolas", 14, FontStyle.Regular);
-            chartArea.AxisX.LabelStyle.Font = new Font("Consolas", 14, FontStyle.Regular);
-            chartArea.AxisY.LabelStyle.Font = new Font("Consolas", 14, FontStyle.Regular);
-            chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 14, FontStyle.Regular);
+            chartArea.AxisX.TitleFont = new Font("Consolas", 20, FontStyle.Regular);
+            chartArea.AxisY.TitleFont = new Font("Consolas", 20, FontStyle.Regular);
+            chartArea.AxisY2.TitleFont = new Font("Consolas", 20, FontStyle.Regular);
+            chartArea.AxisX.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Regular);
+            chartArea.AxisY.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Regular);
+            chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Regular);
 
-            var title2 = new Title("Results", Docking.Bottom, new Font("Consolas", 14, FontStyle.Regular), Color.DarkBlue);
+            var title2 = new Title("Results", Docking.Bottom, new Font("Consolas", 20, FontStyle.Regular), Color.DarkBlue);
             title2.Text = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count;
             chart.Titles.Add(title2);
 
+            double doseDiffMax = 0;
+            for (int i = 3; i < doseDiff.Count; i++)
+            {
+                doseDiffMax = (doseDiff[i] > doseDiffMax) ? doseDiff[i] : doseDiffMax;
+            }
 
-            if (doseDiff.Max() > 20)
+            if (doseDiffMax > 20)
             {
                 chartArea.AxisY2.Maximum = 120;
                 chartArea.AxisY2.Interval = 20;
-                chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 14, FontStyle.Italic);
+                chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Italic);
             }
 
 
 
             var series = new Series();
-            series.Name = "Source";
+            series.Name = "Reference";
             series.ChartType = SeriesChartType.Line;
             series.XValueType = ChartValueType.Double;
             series.Color = Color.Blue;
@@ -453,7 +459,7 @@ namespace DicomStrictCompare
             chart.Series.Add(series);
             chart.ChartAreas[0].RecalculateAxesScale();
             var series1 = new Series();
-            series1.Name = "Target";
+            series1.Name = "New Model";
             series1.ChartType = SeriesChartType.Point;
             series1.MarkerSize = 4;
             series1.Color = Color.DarkGreen;
@@ -471,32 +477,22 @@ namespace DicomStrictCompare
             series2.YAxisType = AxisType.Secondary;
             chart.Series.Add(series2);
             chart.ChartAreas[0].RecalculateAxesScale();
-            /*var series3 = new Series();
-			series3.Name = "1%/1mm failures";
-			series3.XValueType = ChartValueType.Double;
-			series3.Points.DataBindXY(z, oneOneList);
-			series2.YAxisType = AxisType.Secondary;
-			chart.Series.Add(series3);
-			chart.ChartAreas[0].RecalculateAxesScale();
-			var series4 = new Series();
-			series4.Name = "2%/2mm failures";
-			series4.XValueType = ChartValueType.Double;
-			series4.Points.DataBindXY(z, oneOneList);
-			series4.YAxisType = AxisType.Secondary;
-			chart.Series.Add(series4);
-			chart.ChartAreas[0].RecalculateAxesScale();
-			*/
             chart.Legends.Add(new Legend("Legend"));
+            chart.Legends[0].Docking = Docking.Bottom;
+            chart.Legends[0].LegendStyle = LegendStyle.Row;
+            chart.Legends[0].TitleAlignment = StringAlignment.Center;
             chart.Invalidate();
             chart.Update();
-            string longFileName = location + @"\" + filename;
+            string longFileName = location + @"\\" + filename;
             string longDirectory = longFileName.Substring(0, longFileName.LastIndexOf(@"\"));
             System.IO.Directory.CreateDirectory(longDirectory);
+            chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
             Debug.WriteLine("Finished saving " + filename);
-
-
         }
+
+
+        
 
 
     }

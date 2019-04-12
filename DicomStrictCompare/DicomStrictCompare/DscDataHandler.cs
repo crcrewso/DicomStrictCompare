@@ -76,13 +76,14 @@ namespace DicomStrictCompare
 
 
 
-        public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory)
+        public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, ref System.Windows.Forms.ProgressBar progressBar)
         {
             #region safetyChecks
 
 
 
 
+            progressBar.PerformStep();
             try
             {
                 SourceDirectory.IsNormalized();
@@ -130,7 +131,7 @@ namespace DicomStrictCompare
             TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
 
             });
-
+            progressBar.PerformStep();
             sourceDoseProcess.Start();
             targetDoseProcess.Start();
             sourcePlanProcess.Start();
@@ -140,6 +141,7 @@ namespace DicomStrictCompare
             targetDoseProcess.Join();
             sourcePlanProcess.Join();
             targetPlanProcess.Join();
+            progressBar.PerformStep();
 
             DosePairsList = new List<MatchedDosePair>();
             ResultMessage = "Tight Tolerance, " + (100 * TightTol).ToString();
@@ -162,11 +164,12 @@ namespace DicomStrictCompare
                 doseFile.SetFieldName(TargetPlanList);
             } });
 
+            progressBar.PerformStep();
             t1.Start();
             t2.Start();
             t2.Join();
             t1.Join();
-
+            progressBar.PerformStep();
 
             // match each pair for analysis
             Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (dose) =>
@@ -181,6 +184,7 @@ namespace DicomStrictCompare
                     }
                 }
             });
+            progressBar.PerformStep();
 
             //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
             if (DosePairsList.Count > 0 && runDoseComparisons)
@@ -204,16 +208,17 @@ namespace DicomStrictCompare
 
                 });
             }
+            progressBar.PerformStep();
             if (runPDDComparisons)
             {
-                foreach (var pair in DosePairsList)
+                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, pair =>
                 {
                     pair.GeneratePDD();
                     Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
                     SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                    saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle );
+                    saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle);
 
-                }
+                });
             }
 
 
@@ -319,7 +324,7 @@ namespace DicomStrictCompare
             TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
 
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
-            ChartFileName = _source.PlanID + @"\ " + _source.FieldName;
+            ChartFileName = _source.PlanID + @"\" + _source.FieldName;
         }
 
         /// <summary>
