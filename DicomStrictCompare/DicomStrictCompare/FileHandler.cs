@@ -413,8 +413,8 @@ namespace DicomStrictCompare
             chartArea.AxisY.Interval = 0.20;
 
             chartArea.AxisY2.Minimum = 0;
-            chartArea.AxisY2.Maximum = 12;
-            chartArea.AxisY2.Interval = 2;
+            chartArea.AxisY2.Maximum = 6;
+            chartArea.AxisY2.Interval = 1;
 
             chartArea.AxisX.Title = "Position [mm]";
             chartArea.AxisY.Title = "Dose ";
@@ -434,12 +434,12 @@ namespace DicomStrictCompare
             chart.Titles.Add(title2);
 
             double doseDiffMax = 0;
-            for (int i = 3; i < doseDiff.Count; i++)
+            for (int i = 5; i < doseDiff.Count; i++)
             {
                 doseDiffMax = (doseDiff[i] > doseDiffMax) ? doseDiff[i] : doseDiffMax;
             }
 
-            if (doseDiffMax > 20)
+            if (doseDiffMax > 10)
             {
                 chartArea.AxisY2.Maximum = 120;
                 chartArea.AxisY2.Interval = 20;
