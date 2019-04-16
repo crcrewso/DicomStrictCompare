@@ -33,7 +33,7 @@ namespace DicomStrictCompare
         public static List<DoseFile> DoseFiles(string[] listOfFiles)
         {
             List<DoseFile> doseFiles = new List<DoseFile>();
-            foreach (var file in listOfFiles)
+            Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
             {
                 var temp = new DicomFile(file);
                 if (temp.IsDoseFile)
@@ -42,14 +42,14 @@ namespace DicomStrictCompare
                     Debug.WriteLine("Found Dose File " + tempDose.FileName);
                     doseFiles.Add(tempDose);
                 }
-            }
+            });
             return doseFiles;
         }
 
         public static List<PlanFile> PlanFiles(string[] listOfFiles)
         {
             List<PlanFile> planFiles = new List<PlanFile>();
-            foreach (var file in listOfFiles)
+            Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
             {
                 var temp = new DicomFile(file);
                 if (temp.IsPlanFile)
@@ -58,7 +58,7 @@ namespace DicomStrictCompare
                     Debug.WriteLine("Found Plan File " + tempPlan.FileName);
                     planFiles.Add(tempPlan);
                 }
-            }
+            });
             return planFiles;
         }
 

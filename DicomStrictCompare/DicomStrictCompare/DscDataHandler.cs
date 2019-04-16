@@ -133,13 +133,12 @@ namespace DicomStrictCompare
             });
             progressBar.PerformStep();
             sourceDoseProcess.Start();
-            targetDoseProcess.Start();
-            sourcePlanProcess.Start();
-            targetPlanProcess.Start();
-
             sourceDoseProcess.Join();
+            targetDoseProcess.Start();
             targetDoseProcess.Join();
+            sourcePlanProcess.Start();
             sourcePlanProcess.Join();
+            targetPlanProcess.Start();
             targetPlanProcess.Join();
             progressBar.PerformStep();
 
@@ -149,26 +148,22 @@ namespace DicomStrictCompare
             ResultMessage += "\nThreshold, " + (100 * ThresholdTol).ToString() + "\n";
             ResultMessage += MatchedDosePair.ResultHeader;
 
-            System.Threading.Thread t1 = new System.Threading.Thread(() =>
+
+            Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
+
             {
-                foreach (var doseFile in SourceDosesList)
-                {
                     doseFile.SetFieldName(SourcePlanList);
-                }
+                
             });
 
-            System.Threading.Thread t2 = new System.Threading.Thread(() =>
-            {
-                foreach (var doseFile in TargetDosesList)
+            progressBar.PerformStep();
+
+            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
             {
                 doseFile.SetFieldName(TargetPlanList);
-            } });
+            } );
 
-            progressBar.PerformStep();
-            t1.Start();
-            t2.Start();
-            t2.Join();
-            t1.Join();
+
             progressBar.PerformStep();
 
             // match each pair for analysis
@@ -185,11 +180,13 @@ namespace DicomStrictCompare
                 }
             });
             progressBar.PerformStep();
+            if (DosePairsList.Count <= 0)
+                return;
 
             //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
-            if (DosePairsList.Count > 0 && runDoseComparisons)
+            if (runDoseComparisons)
             {
-                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount/2 }, pair =>
+                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, pair =>
                 {
                     try
                     {
