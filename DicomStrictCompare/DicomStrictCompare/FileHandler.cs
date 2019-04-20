@@ -30,6 +30,8 @@ namespace DicomStrictCompare
     class FileHandler
     {
 
+        
+
         public static List<DoseFile> DoseFiles(string[] listOfFiles)
         {
             List<DoseFile> doseFiles = new List<DoseFile>();
@@ -320,6 +322,7 @@ namespace DicomStrictCompare
 
         /// <summary>
         /// This will only save PDD's 
+        /// TODO increase font 
         /// </summary>
         /// <param name="sourcePDD"></param>
         /// <param name="targetPDD"></param>
@@ -393,10 +396,12 @@ namespace DicomStrictCompare
             }
 
 
-
+            var titleFont = new Font("Consolas", 36, FontStyle.Regular);
+            var axesFont = new Font("Consolas", 20, FontStyle.Regular);
+            var subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
             var chart = new Chart();
             chart.Size = new Size(3200, 1800);
-            var chartTitle = new Title(chartTitleString, Docking.Top, new Font("Consolas", 36, FontStyle.Regular), Color.Black);
+            var chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black);
             chart.Titles.Add(chartTitle);
             var chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
@@ -422,17 +427,18 @@ namespace DicomStrictCompare
 
             chart.ChartAreas.Add(chartArea);
             // font style and size declarations must be after the add Chart Area or else they are ignored. 
-            chartArea.AxisX.TitleFont = new Font("Consolas", 20, FontStyle.Regular);
-            chartArea.AxisY.TitleFont = new Font("Consolas", 20, FontStyle.Regular);
-            chartArea.AxisY2.TitleFont = new Font("Consolas", 20, FontStyle.Regular);
-            chartArea.AxisX.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Regular);
-            chartArea.AxisY.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Regular);
-            chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Regular);
+            chartArea.AxisX.TitleFont = axesFont;
+            chartArea.AxisY.TitleFont = axesFont;
+            chartArea.AxisY2.TitleFont = axesFont;
+            chartArea.AxisX.LabelStyle.Font = axesFont;
+            chartArea.AxisY.LabelStyle.Font = axesFont;
+            chartArea.AxisY2.LabelStyle.Font = axesFont);
 
-            var title2 = new Title("Results", Docking.Bottom, new Font("Consolas", 20, FontStyle.Regular), Color.DarkBlue);
+            var title2 = new Title("Results", Docking.Bottom, subtitleFont, Color.DarkBlue);
             title2.Text = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count;
             chart.Titles.Add(title2);
-
+            /*
+             /// Old logic for when the dose diff could be large. not necessary for this project
             double doseDiffMax = 0;
             for (int i = 5; i < doseDiff.Count; i++)
             {
@@ -445,7 +451,7 @@ namespace DicomStrictCompare
                 chartArea.AxisY2.Interval = 20;
                 chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Italic);
             }
-
+            */
 
 
             var series = new Series();
