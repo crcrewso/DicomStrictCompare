@@ -21,6 +21,8 @@ namespace DSC
         public string TargetDirectory { get; private set; }
         public string SaveDirectory { get; private set; }
         public string SaveNamePrefix { get; private set; }
+        public string SourceAliasName { get; private set; } = "Reference";
+        public string TargetAliasName { get; private set; } = "New Model";
 
         private DscDataHandler _dataHandler;
 
@@ -33,6 +35,8 @@ namespace DSC
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
             tbxThreshholdTol.Text = Threshold.ToString();
+            tbxSourceLabel.Text = SourceAliasName;
+            tbxTargetLabel.Text = TargetAliasName;
             _dataHandler = new DscDataHandler();
 
         }
@@ -167,43 +171,48 @@ namespace DSC
         private void btnExecute_Click(object sender, EventArgs e)
         {
 
-            System.Threading.Thread runner = new System.Threading.Thread(() => 
+
+            _dataHandler.ThresholdTol = Threshold / 100.0;
+            _dataHandler.MainTol = MainTol / 100.0;
+            _dataHandler.TightTol = TightTol / 100.0;
+            _dataHandler.SourceAliasName = SourceAliasName;
+            _dataHandler.TargetAliasName = TargetAliasName;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;
+            worker.ProgressChanged += worker_ProgressChanged;
+            worker.RunWorkerCompleted += workerRunWorkerCompleted;
+            if (!chkPDDCompare.Checked && !chkDoseCompare.Checked)
             {
-
-            });
-
-
-            try
-            {
-                doseProgressBar.Minimum = 0;
-                doseProgressBar.Maximum = 10;
-                doseProgressBar.Step = 1;
-                doseProgressBar.Value = 0;
-                _dataHandler.ThresholdTol = Threshold / 100.0;
-                _dataHandler.MainTol = MainTol / 100.0;
-                _dataHandler.TightTol = TightTol / 100.0;
-                _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, ref doseProgressBar);
-                doseProgressBar.Value = doseProgressBar.Maximum;
-
-                if (chkDoseCompare.Checked == true)
-                {
-
-                    SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
-                    saveFile.Save(_dataHandler.ResultMessage);
-                }
-                if (chkPDDCompare.Checked == true)
-                {
-                    //TODO replace the above system.windows.forms message box with the production of a new tsv file or comma I need to decide.
-                }
-
+                lblRunStatus.Text = "Nothing to do";
+                return;
             }
-            catch (Exception)
-            {
-                System.Windows.Forms.MessageBox.Show("Check your inputs please");
-            }
-
+            worker.RunWorkerAsync();
         }
 
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
+
+            if (chkDoseCompare.Checked == true)
+            {
+                SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
+                saveFile.Save(_dataHandler.ResultMessage);
+            }
+        }
+
+        void worker_ProgressChanged (object sender, ProgressChangedEventArgs e)
+        {
+            doseProgressBar.Value = e.ProgressPercentage;
+            lblRunStatus.Text = e.UserState.ToString();
+        }
+
+        void workerRunWorkerCompleted (object sender, RunWorkerCompletedEventArgs e)
+        {
+            lblRunStatus.Text = "Finished";
+            doseProgressBar.Value = doseProgressBar.Maximum;
+        }
 
         private async void threshBox_TextChanged(object sender, EventArgs e)
         {
@@ -263,6 +272,14 @@ namespace DSC
             tbxSaveDir.Text = SaveDirectory;
 
 
+        }
+
+        private async void TbxSourceLabel_TextChanged(object sender, EventArgs e)
+        {
+            await Task.Delay(300);
+            var temp = tbxSaveName.Text;
+            SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
+            tbxSaveName.Text = SaveNamePrefix;
         }
     }
 }
