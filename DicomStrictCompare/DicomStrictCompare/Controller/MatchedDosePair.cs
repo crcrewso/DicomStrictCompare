@@ -115,10 +115,10 @@ namespace DicomStrictCompare
             if (_source.X == _target.X && _source.Y == _target.Y && _source.Z == _target.Z)
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-                var tightRet = Evaluate(sourceDose, targetDose, TightTol);
+                var tightRet = EvaluateAbsolute(sourceDose, targetDose, TightTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = Evaluate(sourceDose, targetDose, MainTol);
+                var mainRet = EvaluateAbsolute(sourceDose, targetDose, MainTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -126,10 +126,10 @@ namespace DicomStrictCompare
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
-                var tightRet = Evaluate(_source.DoseMatrix(), _target.DoseMatrix(), TightTol);
+                var tightRet = EvaluateAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), TightTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = Evaluate(_source.DoseMatrix(), _target.DoseMatrix(), MainTol);
+                var mainRet = EvaluateAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), MainTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -148,7 +148,7 @@ namespace DicomStrictCompare
         /// <param name="target"></param>
         /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
         /// <returns></returns>
-        private Tuple<int,int> Evaluate( double[] source,  double[] target, double tol)
+        private Tuple<int,int> EvaluateAbsolute( double[] source,  double[] target, double tol)
         {
             int failed = 0;
             int TotalCompared = 0;
@@ -174,33 +174,42 @@ namespace DicomStrictCompare
             return ret;
         }
 
-        private int EvaluateParallel( double[] source, double[] target, double tol)
+        /// <summary>
+        /// Calculates the actual # of failed comparisons given the tolerance
+        /// TODO Optimize this it's bad, slowest possible implimentation here. 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
+        /// <returns></returns>
+        private Tuple<int, int> EvaluateRelative(double[] source, double[] target, double tol)
         {
-            int[] failedList = new int[source.Count()];
+            int failed = 0;
+            int TotalCompared = 0;
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * ThreshholdTol;
-            Parallel.For(0, failedList.Count(), i =>
+            double sourceVariance = MaxSource * tol;
+            for (int i = 0; i < target.Length; i++)
             {
-                double sourcei = source[i];
-                double targeti = target[i];
+                var sourcei = source[i];
+                var targeti = target[i];
                 if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
                 {
-                    var sourceLow = (1.0 - tol) * sourcei;
-                    var sourceHigh = (1.0 + tol) * sourcei;
+                    TotalCompared++;
+                    var sourceLow = sourcei - sourceVariance;
+                    var sourceHigh = sourcei + sourceVariance;
                     if (targeti < sourceLow || targeti > sourceHigh)
-                        failedList[i] = 1;
+                        failed++;
                 }
-                else
-                {
-                    failedList[i] = 0;
-                }
-            });
-            return failedList.AsParallel().Sum();
+
+            }
+            Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
+            Tuple<int, int> ret = new Tuple<int, int>(failed, TotalCompared);
+            return ret;
         }
 
-
-        private Tuple<int, int> Evaluate( DoseMatrix source, DoseMatrix target, double tol)
+        private Tuple<int, int> EvaluateAbsolute( DoseMatrix source, DoseMatrix target, double tol)
         {
             
             var xMin = (source.X0 > target.X0) ? source.X0 : target.X0;

@@ -234,7 +234,162 @@ namespace DicomStrictCompare
 
         }
 
-        
+        public void RunGPU(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, object sender)
+        {
+            double progress = 0;
+            #region safetyChecks
+            try
+            {
+                SourceDirectory.IsNormalized();
+            }
+            catch (NullReferenceException)
+            {
+                throw new NullReferenceException("Source directory cannot be null");
+            }
+
+            try
+            {
+                TargetDirectory.IsNormalized();
+            }
+            catch (NullReferenceException)
+            {
+
+                throw new NullReferenceException("Target directory cannot be null"); ;
+            }
+
+            if (SourceListStrings.Length <= 0)
+                throw new InvalidOperationException("There are no Dose files in the source directory Tree");
+            if (TargetListStrings.Length <= 0)
+                throw new InvalidOperationException("There are no Dose files in the Target directory Tree");
+            #endregion
+
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup");
+            System.Threading.Thread sourceDoseProcess = new System.Threading.Thread(() =>
+            {
+                SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
+
+            });
+
+            System.Threading.Thread sourcePlanProcess = new System.Threading.Thread(() =>
+            {
+                SourcePlanList = FileHandler.PlanFiles(SourceListStrings);
+
+            });
+
+            System.Threading.Thread targetDoseProcess = new System.Threading.Thread(() =>
+            {
+                TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
+
+            });
+
+            System.Threading.Thread targetPlanProcess = new System.Threading.Thread(() =>
+            {
+                TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
+
+            });
+            sourceDoseProcess.Start();
+            targetDoseProcess.Start();
+            sourcePlanProcess.Start();
+            targetPlanProcess.Start();
+            sourceDoseProcess.Join();
+            targetDoseProcess.Join();
+            sourcePlanProcess.Join();
+            targetPlanProcess.Join();
+
+            DosePairsList = new List<MatchedDosePair>();
+            ResultMessage = "Tight Tolerance, " + (100 * TightTol).ToString();
+            ResultMessage += "\nMain Tolerance, " + (100 * MainTol).ToString();
+            ResultMessage += "\nThreshold, " + (100 * ThresholdTol).ToString() + "\n";
+            ResultMessage += MatchedDosePair.ResultHeader;
+
+            progress += 5;
+
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Scanning Source Folder");
+            Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
+
+            {
+                doseFile.SetFieldName(SourcePlanList);
+
+            });
+
+            progress += 5;
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Scanning Target Folder");
+            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
+            {
+                doseFile.SetFieldName(TargetPlanList);
+            });
+
+
+            double ProgressIncrimentor = 10.0 / TargetDosesList.Count;
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
+            // match each pair for analysis
+            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (dose) =>
+            {
+                progress += ProgressIncrimentor;
+                progress = progress % 100;
+                (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
+                foreach (var sourceDose in SourceDosesList)
+                {
+                    if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
+                    {
+                        Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
+                        DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
+                            this.MainTol));
+                    }
+                }
+            });
+            if (DosePairsList.Count <= 0)
+                return;
+
+
+            //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
+            if (runDoseComparisons)
+            {
+
+
+                ProgressIncrimentor = 50.0 / DosePairsList.Count;
+                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, pair =>
+                {
+                    progress += ProgressIncrimentor;
+                    progress = progress % 100;
+                    (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing");
+                    try
+                    {
+                        pair.Evaluate();
+                        ResultMessage += pair.ResultString + '\n';
+                        Debug.WriteLine(pair.ResultString);
+
+                    }
+                    // Will catch array misalignment problems
+                    catch (Exception)
+                    {
+                        ResultMessage += pair.Name + ",Was not Evaluated ,\n";
+
+                    }
+
+
+                });
+            }
+            progress = 70;
+            ProgressIncrimentor = 30 / DosePairsList.Count;
+            progress = progress % 100;
+            (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+            if (runPDDComparisons)
+            {
+                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, pair =>
+                {
+                    progress += ProgressIncrimentor;
+                    progress = progress % 100;
+                    (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+                    pair.GeneratePDD();
+                    Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
+                    SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
+                    saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
+
+                });
+            }
+
+        }
 
     }
 
