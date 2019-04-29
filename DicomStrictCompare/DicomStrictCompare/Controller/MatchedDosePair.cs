@@ -1,232 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using EvilDICOM.RT;
 
 namespace DicomStrictCompare
 {
-    /// <summary>
-    /// Holds the user entered data and builds the file list for the file handler
-    /// </summary>
-    class DscDataHandler
-    {
-
-
-        public string SourceDirectory { get; private set; }
-        public string TargetDirectory { get; private set; }
-        public string[] SourceListStrings { get; private set; }
-        public string[] TargetListStrings { get; private set; }
-
-        /// <summary>
-        /// List of RD (Dose) files in the source directory
-        /// </summary>
-        public List<DoseFile> SourceDosesList { get; private set; }
-        /// <summary>
-        /// List of RP (Plan) files in the source directory
-        /// </summary>
-        public List<PlanFile> SourcePlanList { get; private set; }
-        /// <summary>
-        /// List of RD (Dose) files in the target directory
-        /// </summary>
-        public List<DoseFile> TargetDosesList { get; private set; }
-        /// <summary>
-        /// List of RP (Plan) Files in the target directory
-        /// </summary>
-        public List<PlanFile> TargetPlanList { get; private set; }
-        /// <summary>
-        /// List of matched source and plan dose files, at the time of this comment matching was made by plan name, field name and patient ID. 
-        /// </summary>
-        public List<MatchedDosePair> DosePairsList { get; private set; }
-
-        public double ThresholdTol { get; set; }
-        public double TightTol { get; set; }
-        public double MainTol { get; set; }
-
-        /// <summary>
-        /// Increasingly inaccurate name for the csv separated results from the analysis, 
-        /// includes error messages for matches that didn't work. 
-        /// </summary>
-        public string ResultMessage { get; private set; }
-
-        public DscDataHandler()
-        {
-            DosePairsList = new List<MatchedDosePair>();
-        }
-
-
-
-
-        public int CreateSourceList(string folder)
-        {
-            SourceDirectory = folder;
-            SourceListStrings = FileHandler.LoadListRdDcmList(folder);
-            return SourceListStrings.Length;
-        }
-
-        public int CreateTargetList(string folder)
-        {
-            TargetDirectory = folder;
-            TargetListStrings = FileHandler.LoadListRdDcmList(folder);
-            return TargetListStrings.Length;
-        }
-
-
-
-        public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, ref System.Windows.Forms.ProgressBar progressBar)
-        {
-            #region safetyChecks
-
-
-
-
-            progressBar.PerformStep();
-            try
-            {
-                SourceDirectory.IsNormalized();
-            }
-            catch (NullReferenceException)
-            {
-                throw new NullReferenceException("Source directory cannot be null");
-            }
-
-            try
-            {
-                TargetDirectory.IsNormalized();
-            }
-            catch (NullReferenceException)
-            {
-
-                throw new NullReferenceException("Target directory cannot be null"); ;
-            }
-
-            if (SourceListStrings.Length <= 0)
-                throw new InvalidOperationException("There are no Dose files in the source directory Tree");
-            if (TargetListStrings.Length <= 0)
-                throw new InvalidOperationException("There are no Dose files in the Target directory Tree");
-            #endregion
-            System.Threading.Thread sourceDoseProcess = new System.Threading.Thread(() => 
-            {
-            SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
-
-            });
-
-            System.Threading.Thread sourcePlanProcess = new System.Threading.Thread(() =>
-            {
-            SourcePlanList = FileHandler.PlanFiles(SourceListStrings);
-
-            });
-
-            System.Threading.Thread targetDoseProcess = new System.Threading.Thread(() =>
-            {
-            TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
-
-            });
-
-            System.Threading.Thread targetPlanProcess = new System.Threading.Thread(() =>
-            {
-            TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
-
-            });
-            progressBar.PerformStep();
-            sourceDoseProcess.Start();
-            sourceDoseProcess.Join();
-            targetDoseProcess.Start();
-            targetDoseProcess.Join();
-            sourcePlanProcess.Start();
-            sourcePlanProcess.Join();
-            targetPlanProcess.Start();
-            targetPlanProcess.Join();
-            progressBar.PerformStep();
-
-            DosePairsList = new List<MatchedDosePair>();
-            ResultMessage = "Tight Tolerance, " + (100 * TightTol).ToString();
-            ResultMessage += "\nMain Tolerance, " + (100 * MainTol).ToString();
-            ResultMessage += "\nThreshold, " + (100 * ThresholdTol).ToString() + "\n";
-            ResultMessage += MatchedDosePair.ResultHeader;
-
-
-            Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
-
-            {
-                    doseFile.SetFieldName(SourcePlanList);
-                
-            });
-
-            progressBar.PerformStep();
-
-            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
-            {
-                doseFile.SetFieldName(TargetPlanList);
-            } );
-
-
-            progressBar.PerformStep();
-
-            // match each pair for analysis
-            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (dose) =>
-            {
-                foreach (var sourceDose in SourceDosesList)
-                {
-                    if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
-                    {
-                        Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
-                        DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
-                            this.MainTol));
-                    }
-                }
-            });
-            progressBar.PerformStep();
-            if (DosePairsList.Count <= 0)
-                return;
-
-            //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
-            if (runDoseComparisons)
-            {
-                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, pair =>
-                {
-                    try
-                    {
-                        pair.Evaluate();
-                        ResultMessage += pair.ResultString + '\n';
-                        Debug.WriteLine(pair.ResultString);
-
-                    }
-                    // Will catch array misalignment problems
-                    catch (Exception)
-                    {
-                        ResultMessage += pair.Name + ",Was not Evaluated ,\n";
-
-                    }
-
-
-                });
-            }
-            progressBar.PerformStep();
-            if (runPDDComparisons)
-            {
-                Parallel.ForEach(DosePairsList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, pair =>
-                {
-                    pair.GeneratePDD();
-                    Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
-                    SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                    saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle);
-
-                });
-            }
-
-
-            
-        }
-
-        
-
-    }
-
-
     /// <summary>
     /// Will contain the evaluation of any stored pair of DoseFiles
     /// </summary>
@@ -335,10 +115,10 @@ namespace DicomStrictCompare
             if (_source.X == _target.X && _source.Y == _target.Y && _source.Z == _target.Z)
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-                var tightRet = Evaluate(sourceDose, targetDose, TightTol);
+                var tightRet = EvaluateAbsolute(sourceDose, targetDose, TightTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = Evaluate(sourceDose, targetDose, MainTol);
+                var mainRet = EvaluateAbsolute(sourceDose, targetDose, MainTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -346,10 +126,10 @@ namespace DicomStrictCompare
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
-                var tightRet = Evaluate(_source.DoseMatrix(), _target.DoseMatrix(), TightTol);
+                var tightRet = EvaluateAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), TightTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = Evaluate(_source.DoseMatrix(), _target.DoseMatrix(), MainTol);
+                var mainRet = EvaluateAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), MainTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -368,7 +148,7 @@ namespace DicomStrictCompare
         /// <param name="target"></param>
         /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
         /// <returns></returns>
-        private Tuple<int,int> Evaluate( double[] source,  double[] target, double tol)
+        private Tuple<int,int> EvaluateAbsolute( double[] source,  double[] target, double tol)
         {
             int failed = 0;
             int TotalCompared = 0;
@@ -394,33 +174,42 @@ namespace DicomStrictCompare
             return ret;
         }
 
-        private int EvaluateParallel( double[] source, double[] target, double tol)
+        /// <summary>
+        /// Calculates the actual # of failed comparisons given the tolerance
+        /// TODO Optimize this it's bad, slowest possible implimentation here. 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
+        /// <returns></returns>
+        private Tuple<int, int> EvaluateRelative(double[] source, double[] target, double tol)
         {
-            int[] failedList = new int[source.Count()];
+            int failed = 0;
+            int TotalCompared = 0;
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * ThreshholdTol;
-            Parallel.For(0, failedList.Count(), i =>
+            double sourceVariance = MaxSource * tol;
+            for (int i = 0; i < target.Length; i++)
             {
-                double sourcei = source[i];
-                double targeti = target[i];
+                var sourcei = source[i];
+                var targeti = target[i];
                 if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
                 {
-                    var sourceLow = (1.0 - tol) * sourcei;
-                    var sourceHigh = (1.0 + tol) * sourcei;
+                    TotalCompared++;
+                    var sourceLow = sourcei - sourceVariance;
+                    var sourceHigh = sourcei + sourceVariance;
                     if (targeti < sourceLow || targeti > sourceHigh)
-                        failedList[i] = 1;
+                        failed++;
                 }
-                else
-                {
-                    failedList[i] = 0;
-                }
-            });
-            return failedList.AsParallel().Sum();
+
+            }
+            Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
+            Tuple<int, int> ret = new Tuple<int, int>(failed, TotalCompared);
+            return ret;
         }
 
-
-        private Tuple<int, int> Evaluate( DoseMatrix source, DoseMatrix target, double tol)
+        private Tuple<int, int> EvaluateAbsolute( DoseMatrix source, DoseMatrix target, double tol)
         {
             
             var xMin = (source.X0 > target.X0) ? source.X0 : target.X0;

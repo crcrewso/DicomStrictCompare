@@ -127,7 +127,10 @@ Expects  - Two folders, each filled with dicom dose files from the same patient,
 Each of the following folders can have subfolders. Magic will work here!
 Source - The set of Files you Trust
 Target - The set of Files you want to determine how different they are from source
-
+Save - Directory you want to save the csv files to. 
+         - PDD comparison plots will be saved into indexed subdirectories
+Save Name - Save Name of the Exel csv file containing the summary information.
+ 
 Tight Tolerance - Nominally 1%
 Main Tolerance - Must be larger than Tight, nominally 2%</value>
   </data>

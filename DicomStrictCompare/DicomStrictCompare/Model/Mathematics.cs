@@ -10,8 +10,16 @@ namespace DicomStrictCompare
 {
     interface IMathematics
     {
-        int Compare(double[] source, double[] target, double tolerance, double epsilon);
-
+        /// <summary>
+        /// Compares the two provided dose arrays voxel to voxel. Dose difference is calculated as % of source dose
+        /// </summary>
+        /// <param name="source">Reference dose array</param>
+        /// <param name="target">Dose Array being verified</param>
+        /// <param name="tolerance">Less than this percent difference is a pass</param>
+        /// <param name="epsilon">Threshold percent of max dose below which comparison will not be evaluated</param>
+        /// <returns></returns>
+        int CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon);
+        int CompareRelative(double[] source, double[] target, double tolerance, double epsilon);
     }
 
     public class X86Mathematics : IMathematics
@@ -22,9 +30,14 @@ namespace DicomStrictCompare
 
         }
 
-        public int Compare(double[] source, double[] target, double tolerance, double epsilon)
+        public int CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
         {
-            return LinearCompare(source,  target, tolerance, epsilon);
+            return LinearCompareAbslute(source,  target, tolerance, epsilon);
+        }
+
+        public int CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        {
+            return LinearCompareRelative(source, target, tolerance, epsilon);
         }
 
         public int ParallelCompare(double[] source, double[] target, double tolerance, double epsilon)
@@ -53,7 +66,7 @@ namespace DicomStrictCompare
 
         }
 
-        public int LinearCompare(double[] source, double[] target, double tolerance, double epsilon)
+        public int LinearCompareAbslute(double[] source, double[] target, double tolerance, double epsilon)
         {
             int failed = 0;
             double MaxSource = source.Max();
@@ -71,6 +84,30 @@ namespace DicomStrictCompare
                         failed++;
                 }
           
+            }
+            return failed;
+        }
+
+
+
+        public int LinearCompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        {
+            int failed = 0;
+            double MaxSource = source.Max();
+            double MaxTarget = target.Max();
+            double MinDoseEvaluated = MaxSource * tolerance;
+            for (int i = 0; i < target.Length; i++)
+            {
+                var sourcei = source[i];
+                var targeti = target[i];
+                if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
+                {
+                    var sourceLow = sourcei - (tolerance * MaxSource);
+                    var sourceHigh = sourcei + (tolerance * MaxSource);
+                    if (targeti < sourceLow || targeti > sourceHigh)
+                        failed++;
+                }
+
             }
             return failed;
         }
@@ -100,11 +137,11 @@ namespace DicomStrictCompare
 
     public class CudaMathematics : IMathematics
     {
-        public int Compare(double[] source, double[] target, double tolerance, double epsilon)
+        public int CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
         {
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
-            double MinDoseEvaluated = MaxSource * tolerance;
+            double MinDoseEvaluated = MaxSource * epsilon;
             var differenceDoubles = new double[source.Length];
             var absDifferenceDoubles = new double[source.Length];
             var isGTtol = new int[source.Length];
@@ -140,6 +177,30 @@ namespace DicomStrictCompare
                 }
             }*/
 
+            return failed;
+        }
+        public int CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        {
+            double MaxSource = source.Max();
+            double MaxTarget = target.Max();
+            double MinDoseEvaluated = MaxSource * epsilon;
+            double sourceVariance = MaxSource * tolerance;
+            var sourceLow = new double[source.Length];
+            var sourceHigh = new double[source.Length];
+            var differenceDoubles = new double[source.Length];
+            var absDifferenceDoubles = new double[source.Length];
+            var isGTtol = new int[source.Length];
+
+            // filter doses below threshold
+            // TODO: should failure be -1?
+            Gpu.Default.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
+            Gpu.Default.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
+            //determine if relative difference is greater than minDoseEvaluated 
+            // stores 1 as GT minDoseEvaluated is true
+            Gpu.Default.For(0, isGTtol.Length,
+                i => isGTtol[i] = (((source[i] - sourceVariance) < target[i]) && ((source[i] + sourceVariance) > target[i])) ? 0 : 1);
+            int failed = 0;
+            failed = Gpu.Default.Sum(isGTtol);
             return failed;
         }
 
