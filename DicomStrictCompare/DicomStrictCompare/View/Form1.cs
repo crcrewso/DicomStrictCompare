@@ -14,6 +14,7 @@ namespace DSC
 {
     public partial class Form1 : Form
     {
+        public bool tested;
         public float TightTol { get; private set; } = 1;
         public float MainTol { get; private set; } = 2;
         public float Threshold { get; private set; } = 10;
@@ -35,99 +36,86 @@ namespace DSC
             tbxTightTol.Text = TightTol.ToString();
             tbxMainTol.Text = MainTol.ToString();
             tbxThreshholdTol.Text = Threshold.ToString();
-            tbxSourceLabel.Text = SourceAliasName;
-            tbxTargetLabel.Text = TargetAliasName;
+            tbxSourceLabel.Text = SourceAliasName.ToString();
+            tbxTargetLabel.Text = TargetAliasName.ToString();
             _dataHandler = new DscDataHandler();
+            tested = false;
 
         }
+
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            tested = false;
+        }
+
+
+
+        #region textBoxesChanged
 
         /// <summary>
         /// Allows user to enter a tolerance value and converts it to a class parameter 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void tbxTightTol_TextChanged(object sender, EventArgs e)
+        private void tbxTightTol_TextChanged(object sender, EventArgs e)
         {
-            await Task.Delay(delayTime);
-            try
-            {
-                TightTol = float.Parse(tbxTightTol.Text);
-                TightTol = Math.Abs(TightTol);
-                if (TightTol > MainTol)
-                {
-                    MainTol = TightTol;
-                    tbxMainTol.Text = MainTol.ToString();
-                }
-                tbxTightTol.Text = TightTol.ToString();
-            }
-            catch (ArgumentNullException)
-            {
-                return;
-            }
-            catch (FormatException)
-            {
-                System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
-                return;
-            }
-            catch (OverflowException)
-            {
-                return;
-            }
+            tested = false;
         }
 
-        private async void tbxMainTol_TextChanged(object sender, EventArgs e)
+        private void tbxMainTol_TextChanged(object sender, EventArgs e)
         {
-            await Task.Delay(delayTime);
-            try
-            {
-                MainTol = float.Parse(tbxMainTol.Text);
-                MainTol = Math.Abs(MainTol);
-                if (TightTol > MainTol)
-                {
-                    MainTol = TightTol;
-                    tbxMainTol.Text = MainTol.ToString();
-                }
-                tbxMainTol.Text = MainTol.ToString();
-            }
-            catch (ArgumentNullException)
-            {
-                return;
-            }
-            catch (FormatException)
-            {
-                System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
-                return;
-            }
-            catch (OverflowException)
-            {
-                return;
-            }
+            tested = false;
         }
 
-        private async void tbxSource_TextChanged(object sender, EventArgs e)
+        private void threshBox_TextChanged(object sender, EventArgs e)
         {
-            await Task.Delay(10 * delayTime);
-            SourceDirectory = tbxSource.Text;
-            if (!Directory.Exists(SourceDirectory))
-                SourceDirectory = null;
-            tbxSource.Text = SourceDirectory;
-            lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
+            tested = false;
         }
 
-        private async void tbxTarget_TextChanged(object sender, EventArgs e)
+        private void tbxSource_TextChanged(object sender, EventArgs e)
         {
-            await Task.Delay(10 * delayTime);
-            TargetDirectory = tbxTarget.Text;
-            if (!Directory.Exists(TargetDirectory))
-                TargetDirectory = null;
-            tbxTarget.Text = TargetDirectory;
-            lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
+            tested = false;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void tbxTarget_TextChanged(object sender, EventArgs e)
         {
-
+            tested = false;
         }
+
+
+        private void TbxSaveDir_TextChanged(object sender, EventArgs e)
+        {
+            tested = false;
+        }
+
+        private void TbxSourceLabel_TextChanged(object sender, EventArgs e)
+        {
+            tested = false;
+            var temp = tbxSourceLabel.Text;
+            SourceAliasName = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
+            tbxSourceLabel.Text = SourceAliasName;
+        }
+
+        private void TbxTargetLabel_TextChanged(object sender, EventArgs e)
+        {
+            var temp = tbxTargetLabel.Text;
+            TargetAliasName = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
+            tbxTargetLabel.Text = TargetAliasName;
+            tested = false;
+        }
+
+        private void TbxSaveName_TextChanged(object sender, EventArgs e)
+        {
+            tested = false;
+            var temp = tbxSaveName.Text;
+            SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
+            tbxSaveName.Text = SaveNamePrefix;
+        }
+        #endregion
+
+
+        #region ButtonClicks
 
         private void btnSourceDir_Click(object sender, EventArgs e)
         {
@@ -163,6 +151,34 @@ namespace DSC
             }
         }
 
+        private void BtnSaveDir_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                fbd.Description = @"Select Source Dose Folder Location";
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    SaveDirectory = fbd.SelectedPath;
+                    tbxSaveDir.Text = SaveDirectory;
+                }
+
+            }
+        }
+
+
+        #endregion
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// TODO add error checking here!
         /// </summary>
@@ -177,17 +193,33 @@ namespace DSC
             _dataHandler.TightTol = TightTol / 100.0;
             _dataHandler.SourceAliasName = SourceAliasName;
             _dataHandler.TargetAliasName = TargetAliasName;
+            if (chkBoxUseGPU.Checked == true)
+            {
+                _dataHandler.UseGPU = true;
+            }
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
             worker.DoWork += worker_DoWork;
             worker.ProgressChanged += worker_ProgressChanged;
             worker.RunWorkerCompleted += workerRunWorkerCompleted;
+            if (tested == false)
+            {
+                TestDirectories_Click(sender, e);
+            }
+            if (tested == false)
+            {
+                lblRunStatus.Text = "Tested text Fields, Please Rerun";
+                return;
+            }
             if (!chkPDDCompare.Checked && !chkDoseCompare.Checked)
             {
                 lblRunStatus.Text = "Nothing to do";
                 return;
             }
+
+
+
             worker.RunWorkerAsync();
         }
 
@@ -212,74 +244,81 @@ namespace DSC
         {
             lblRunStatus.Text = "Finished";
             doseProgressBar.Value = doseProgressBar.Maximum;
+
+            if(e.Error != null)
+            {
+                System.Windows.Forms.MessageBox.Show(e.Error.ToString());
+            }
+
         }
 
-        private async void threshBox_TextChanged(object sender, EventArgs e)
+
+
+
+
+
+
+
+
+
+        private void TestDirectories_Click(object sender, EventArgs e)
         {
-            await Task.Delay(delayTime);
             try
             {
+                SaveDirectory = tbxSaveDir.Text;
+                if (!Directory.Exists(SaveDirectory))
+                    SaveDirectory = null;
+                tbxSaveDir.Text = SaveDirectory;
+
+                TargetDirectory = tbxTarget.Text;
+                if (!Directory.Exists(TargetDirectory))
+                    TargetDirectory = null;
+                tbxTarget.Text = TargetDirectory;
+                lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
+
+                SourceDirectory = tbxSource.Text;
+                if (!Directory.Exists(SourceDirectory))
+                    SourceDirectory = null;
+                tbxSource.Text = SourceDirectory;
+                lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
+            }
+            catch (ArgumentNullException )
+            {
+                System.Windows.Forms.MessageBox.Show("One of the directory fields is either empty or invalid");
+                return;
+            }
+
+            try
+            {
+                TightTol = float.Parse(tbxTightTol.Text);
+                TightTol = Math.Abs(TightTol);
+                tbxTightTol.Text = TightTol.ToString();
+
+                MainTol = float.Parse(tbxMainTol.Text);
+                MainTol = Math.Abs(MainTol);
+                tbxMainTol.Text = MainTol.ToString();
+
+                if (TightTol > MainTol)
+                {
+                    System.Windows.Forms.MessageBox.Show("Your tight tolerance is greater than your main tolerance. This does not make sense");
+                    return;
+                }
+
                 Threshold = float.Parse(tbxThreshholdTol.Text);
                 Threshold = Math.Abs(Threshold);
                 tbxThreshholdTol.Text = Threshold.ToString();
-            }
-            catch (ArgumentNullException)
-            {
-                return;
             }
             catch (FormatException)
             {
                 System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
                 return;
             }
-            catch (OverflowException)
+            catch (ArgumentNullException)
             {
+                System.Windows.Forms.MessageBox.Show("One of the tolerance fields is either empty or invalid");
                 return;
             }
-        }
-
-        private void BtnSaveDir_Click(object sender, EventArgs e)
-        {
-            using (var fbd = new FolderBrowserDialog())
-            {
-                fbd.Description = @"Select Source Dose Folder Location";
-                DialogResult result = fbd.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
-                    SaveDirectory = fbd.SelectedPath;
-                    tbxSaveDir.Text = SaveDirectory;
-                }
-
-            }
-        }
-
-        private async void TbxSaveName_TextChanged(object sender, EventArgs e)
-        {
-            await Task.Delay(300);
-            var temp = tbxSaveName.Text;
-            SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
-            tbxSaveName.Text = SaveNamePrefix;
-
-        }
-
-        private async void TbxSaveDir_TextChanged(object sender, EventArgs e)
-        {
-            await Task.Delay(2 * delayTime);
-            SaveDirectory = tbxSaveDir.Text;
-            if (!Directory.Exists(SaveDirectory))
-                SaveDirectory = null;
-            tbxSaveDir.Text = SaveDirectory;
-
-
-        }
-
-        private async void TbxSourceLabel_TextChanged(object sender, EventArgs e)
-        {
-            await Task.Delay(300);
-            var temp = tbxSaveName.Text;
-            SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
-            tbxSaveName.Text = SaveNamePrefix;
+            tested = true;
         }
     }
 }

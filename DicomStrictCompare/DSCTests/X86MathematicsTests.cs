@@ -38,7 +38,7 @@ namespace DicomStrictCompare.Tests
             double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
             var retCompare = testing.LinearCompareAbslute(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -60,7 +60,7 @@ namespace DicomStrictCompare.Tests
             double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
             var retCompare = testing.LinearCompareAbslute( sourceDoubles,  targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -83,7 +83,7 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -106,7 +106,7 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -131,7 +131,7 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var retCompare = testing.CompareAbsolute(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(1, retCompare);
+            Assert.AreEqual(1, retCompare.Item1);
 
         }
 
@@ -156,7 +156,7 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var retCompare = testing.CompareAbsolute(sourceDoubles,  targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -179,7 +179,7 @@ namespace DicomStrictCompare.Tests
             double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
             var retCompare = testing.CompareAbsolute(sourceDoubles,  targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 

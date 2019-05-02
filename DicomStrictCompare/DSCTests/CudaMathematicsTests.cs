@@ -32,7 +32,7 @@ namespace DicomStrictCompare.Tests
             var target = new double[] { 1.0, 1.0, 1.0, 1.0 };
             var cudaMath = new CudaMathematics();
             var result = cudaMath.CompareAbsolute( source,  target, 0.01, 0.001);
-            Assert.AreEqual(0, result);
+            Assert.AreEqual(0, result.Item1);
         }
 
         [TestMethod()]
@@ -42,7 +42,7 @@ namespace DicomStrictCompare.Tests
             var target = new double[] { 2.0, 2.0, 2.0, 2.0 };
             var cudaMath = new CudaMathematics();
             var result = cudaMath.CompareAbsolute( source,  target, 0.01, 0.001);
-            Assert.AreEqual(4, result);
+            Assert.AreEqual(4, result.Item1);
         }
 
 
@@ -53,7 +53,7 @@ namespace DicomStrictCompare.Tests
             var target = new double[]{ 1.1, 1.1, 1.1, 1.1 };
             var cudaMath = new CudaMathematics();
             var result = cudaMath.CompareAbsolute( source,  target, 0.1, 0.01);
-            Assert.AreEqual(4, result);
+            Assert.AreEqual(4, result.Item1);
         }
 
         [TestMethod()]
@@ -73,7 +73,7 @@ namespace DicomStrictCompare.Tests
             }
             var cudaMath = new CudaMathematics();
             var retCompare = cudaMath.CompareAbsolute(source, target, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare);
+            Assert.AreEqual(0, retCompare.Item1);
 
         }
 

@@ -1,6 +1,8 @@
 ﻿using Alea.Parallel;
 using System.Linq;
 using System.Threading.Tasks;
+using EvilDICOM.RT;
+
 
 namespace DicomStrictCompare
 {
@@ -12,17 +14,17 @@ namespace DicomStrictCompare
 
         }
 
-        public int CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
+        public override System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
         {
             return LinearCompareAbslute(source,  target, tolerance, epsilon);
         }
 
-        public int CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        public override System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
         {
             return LinearCompareRelative(source, target, tolerance, epsilon);
         }
 
-        public int ParallelCompare(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> ParallelCompare(double[] source, double[] target, double tolerance, double epsilon)
         {
             int[] failedList = new int[source.Count()];
             double MaxSource = source.Max();
@@ -44,54 +46,63 @@ namespace DicomStrictCompare
                     failedList[i] = 0;
                 }
             });
-            return failedList.AsParallel().Sum();
 
+            return new System.Tuple<int, int>(failedList.AsParallel().Sum(), 0);
         }
 
-        public int LinearCompareAbslute(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> LinearCompareAbslute(double[] source, double[] target, double tolerance, double epsilon)
         {
             int failed = 0;
+            int TotalCompared = 0;
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
-            double MinDoseEvaluated = MaxSource * tolerance;
+            double MinDoseEvaluated = MaxSource * epsilon;
             for (int i = 0; i < target.Length; i++)
             {
                 var sourcei = source[i];
                 var targeti = target[i];
                 if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
                 {
+                    TotalCompared++;
                     var sourceLow = (1.0 - tolerance) * sourcei;
                     var sourceHigh = (1.0 + tolerance) * sourcei;
                     if (targeti < sourceLow || targeti > sourceHigh)
                         failed++;
                 }
-          
+
             }
-            return failed;
+            System.Diagnostics.Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
+            System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
+            return ret;
         }
 
 
 
-        public int LinearCompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> LinearCompareRelative(double[] source, double[] target, double tolerance, double epsilon)
         {
             int failed = 0;
+            int TotalCompared = 0;
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
-            double MinDoseEvaluated = MaxSource * tolerance;
+            double MinDoseEvaluated = MaxSource * epsilon;
+            double sourceVariance = MaxSource * tolerance;
             for (int i = 0; i < target.Length; i++)
             {
                 var sourcei = source[i];
                 var targeti = target[i];
                 if (sourcei > MinDoseEvaluated && targeti > MinDoseEvaluated)
                 {
-                    var sourceLow = sourcei - (tolerance * MaxSource);
-                    var sourceHigh = sourcei + (tolerance * MaxSource);
+                    TotalCompared++;
+                    var sourceLow = sourcei - sourceVariance;
+                    var sourceHigh = sourcei + sourceVariance;
                     if (targeti < sourceLow || targeti > sourceHigh)
                         failed++;
                 }
 
             }
-            return failed;
+            System.Diagnostics.Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
+            System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
+            return ret;
         }
 
         /// <summary>

@@ -7,8 +7,18 @@ namespace DicomStrictCompare
 {
     public class CudaMathematics : IMathematics
     {
-        public int CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
+
+        public CudaMathematics()
         {
+            if (Alea.DeviceArch.Default.Major < 2)
+                throw new SystemException("I do not have a gpu");
+            
+        }
+
+        [GpuManaged]
+        public override System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
+        {
+            System.Diagnostics.Debug.WriteLine("starting an absolute comparison on GPU");
             if (source.Length != target.Length)
                 throw new ArgumentException("The source and target lengths need to match");
 
@@ -26,7 +36,6 @@ namespace DicomStrictCompare
             Gpu.Default.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
             Gpu.Default.For(0, source.Length, i => source[i] = (target[i] > epsilon) ? source[i] : 0);
             Gpu.Default.For(0, target.Length, i => target[i] = (source[i] > epsilon) ? target[i] : 0);
-
             Gpu.Default.For(0, source.Length, i => isCountedArray[i] = (source[i] > 0) ? 1 : 0);
 
             // find relative difference 
@@ -55,15 +64,20 @@ namespace DicomStrictCompare
                     failed++;
                 }
             }*/
+            System.Diagnostics.Debug.WriteLine("finished an absolute comparison on GPU");
 
-            return failed;
+            return new System.Tuple<int, int>(failed, isCounted);
         }
-        public int CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+
+        [GpuManaged]
+        public override System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
         {
+            System.Diagnostics.Debug.WriteLine("starting a relative comparison on GPU");
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * epsilon;
             double sourceVariance = MaxSource * tolerance;
+            var isCountedArray = new int[source.Length];
             var sourceLow = new double[source.Length];
             var sourceHigh = new double[source.Length];
             var differenceDoubles = new double[source.Length];
@@ -73,17 +87,23 @@ namespace DicomStrictCompare
             // filter doses below threshold
             // TODO: should failure be -1?
             Gpu.Default.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
+            Gpu.Default.For(0, source.Length, i => target[i] = (source[i] > epsilon) ? target[i] : 0);
             Gpu.Default.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
+            Gpu.Default.For(0, target.Length, i => source[i] = (target[i] > epsilon) ? source[i] : 0);
+            Gpu.Default.For(0, source.Length, i => isCountedArray[i] = (source[i] > 0) ? 1 : 0);
             //determine if relative difference is greater than minDoseEvaluated 
             // stores 1 as GT minDoseEvaluated is true
             Gpu.Default.For(0, isGTtol.Length,
                 i => isGTtol[i] = (((source[i] - sourceVariance) < target[i]) && ((source[i] + sourceVariance) > target[i])) ? 0 : 1);
             int failed = 0;
             failed = Gpu.Default.Sum(isGTtol);
-            return failed;
+            int isCounted = Gpu.Default.Sum(isCountedArray);
+            System.Diagnostics.Debug.WriteLine("finished a relative comparison on GPU");
+
+            return new System.Tuple<int, int>(failed, isCounted);
         }
 
-        public int CompareOpt(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> CompareOpt(double[] source, double[] target, double tolerance, double epsilon)
         {
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
@@ -92,14 +112,17 @@ namespace DicomStrictCompare
             var absDifferenceDoubles = new double[source.Length];
             var isGTtol = new int[source.Length];
 
+            var gpu = Gpu.Default;
+
             // filter doses below threshold
             // TODO: should failure be -1?
-            Gpu.Default.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
-            Gpu.Default.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
+
+            gpu.For(0, source.Length, i => source[i] = (source[i] > epsilon) ? source[i] : 0);
+            gpu.For(0, target.Length, i => target[i] = (target[i] > epsilon) ? target[i] : 0);
 
 
             // find relative difference 
-            Gpu.Default.For(0, differenceDoubles.Length, i => differenceDoubles[i] = (Math.Abs( ((source[i] - target[i]) / source[i])) > tolerance)? 1:0 );
+            gpu.For(0, differenceDoubles.Length, i => differenceDoubles[i] = (Math.Abs( ((source[i] - target[i]) / source[i])) > tolerance)? 1:0 );
 
 
             int failed = 0;
@@ -113,7 +136,8 @@ namespace DicomStrictCompare
                 }
             }*/
 
-            return failed;
+
+            return new System.Tuple<int, int>(failed, 0);
         }
     }
 

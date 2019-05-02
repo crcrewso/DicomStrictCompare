@@ -58,6 +58,7 @@
             this.lblTargetRefName = new System.Windows.Forms.Label();
             this.lblSourceRefName = new System.Windows.Forms.Label();
             this.lblRunStatus = new System.Windows.Forms.Label();
+            this.chkBoxUseGPU = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // lblIntro
@@ -75,7 +76,7 @@
             this.tbxSource.MinimumSize = new System.Drawing.Size(779, 20);
             this.tbxSource.Name = "tbxSource";
             this.tbxSource.Size = new System.Drawing.Size(779, 20);
-            this.tbxSource.TabIndex = 0;
+            this.tbxSource.TabIndex = 4;
             this.tbxSource.TextChanged += new System.EventHandler(this.tbxSource_TextChanged);
             // 
             // tbxTarget
@@ -83,7 +84,7 @@
             this.tbxTarget.Location = new System.Drawing.Point(93, 342);
             this.tbxTarget.Name = "tbxTarget";
             this.tbxTarget.Size = new System.Drawing.Size(779, 20);
-            this.tbxTarget.TabIndex = 1;
+            this.tbxTarget.TabIndex = 6;
             this.tbxTarget.TextChanged += new System.EventHandler(this.tbxTarget_TextChanged);
             // 
             // lblTightTol
@@ -109,7 +110,7 @@
             this.tbxTightTol.Location = new System.Drawing.Point(554, 14);
             this.tbxTightTol.Name = "tbxTightTol";
             this.tbxTightTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxTightTol.TabIndex = 2;
+            this.tbxTightTol.TabIndex = 0;
             this.tbxTightTol.TextChanged += new System.EventHandler(this.tbxTightTol_TextChanged);
             // 
             // tbxMainTol
@@ -117,7 +118,7 @@
             this.tbxMainTol.Location = new System.Drawing.Point(554, 43);
             this.tbxMainTol.Name = "tbxMainTol";
             this.tbxMainTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxMainTol.TabIndex = 3;
+            this.tbxMainTol.TabIndex = 1;
             this.tbxMainTol.TextChanged += new System.EventHandler(this.tbxMainTol_TextChanged);
             // 
             // btnExecute
@@ -125,7 +126,7 @@
             this.btnExecute.Location = new System.Drawing.Point(797, 41);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
-            this.btnExecute.TabIndex = 7;
+            this.btnExecute.TabIndex = 10;
             this.btnExecute.Text = "Run";
             this.btnExecute.UseVisualStyleBackColor = true;
             this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
@@ -191,7 +192,7 @@
             this.tbxThreshholdTol.Location = new System.Drawing.Point(554, 72);
             this.tbxThreshholdTol.Name = "tbxThreshholdTol";
             this.tbxThreshholdTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxThreshholdTol.TabIndex = 4;
+            this.tbxThreshholdTol.TabIndex = 2;
             this.tbxThreshholdTol.TextChanged += new System.EventHandler(this.threshBox_TextChanged);
             // 
             // lblthreshhold
@@ -218,7 +219,7 @@
             this.tbxSaveDir.Location = new System.Drawing.Point(93, 394);
             this.tbxSaveDir.Name = "tbxSaveDir";
             this.tbxSaveDir.Size = new System.Drawing.Size(779, 20);
-            this.tbxSaveDir.TabIndex = 6;
+            this.tbxSaveDir.TabIndex = 8;
             this.tbxSaveDir.TextChanged += new System.EventHandler(this.TbxSaveDir_TextChanged);
             // 
             // tbxSaveName
@@ -226,7 +227,7 @@
             this.tbxSaveName.Location = new System.Drawing.Point(93, 368);
             this.tbxSaveName.Name = "tbxSaveName";
             this.tbxSaveName.Size = new System.Drawing.Size(455, 20);
-            this.tbxSaveName.TabIndex = 5;
+            this.tbxSaveName.TabIndex = 7;
             this.tbxSaveName.TextChanged += new System.EventHandler(this.TbxSaveName_TextChanged);
             // 
             // lblSaveName
@@ -272,23 +273,25 @@
             this.testDirectories.Location = new System.Drawing.Point(797, 12);
             this.testDirectories.Name = "testDirectories";
             this.testDirectories.Size = new System.Drawing.Size(75, 23);
-            this.testDirectories.TabIndex = 27;
+            this.testDirectories.TabIndex = 9;
             this.testDirectories.Text = "Test Directories";
             this.testDirectories.UseVisualStyleBackColor = true;
+            this.testDirectories.Click += new System.EventHandler(this.TestDirectories_Click);
             // 
             // tbxTargetLabel
             // 
             this.tbxTargetLabel.Location = new System.Drawing.Point(93, 315);
             this.tbxTargetLabel.Name = "tbxTargetLabel";
             this.tbxTargetLabel.Size = new System.Drawing.Size(455, 20);
-            this.tbxTargetLabel.TabIndex = 28;
+            this.tbxTargetLabel.TabIndex = 5;
+            this.tbxTargetLabel.TextChanged += new System.EventHandler(this.TbxTargetLabel_TextChanged);
             // 
             // tbxSourceLabel
             // 
             this.tbxSourceLabel.Location = new System.Drawing.Point(93, 263);
             this.tbxSourceLabel.Name = "tbxSourceLabel";
             this.tbxSourceLabel.Size = new System.Drawing.Size(455, 20);
-            this.tbxSourceLabel.TabIndex = 29;
+            this.tbxSourceLabel.TabIndex = 3;
             this.tbxSourceLabel.TextChanged += new System.EventHandler(this.TbxSourceLabel_TextChanged);
             // 
             // lblTargetRefName
@@ -318,12 +321,24 @@
             this.lblRunStatus.TabIndex = 33;
             this.lblRunStatus.Text = "Status";
             // 
+            // chkBoxUseGPU
+            // 
+            this.chkBoxUseGPU.AutoSize = true;
+            this.chkBoxUseGPU.Location = new System.Drawing.Point(794, 118);
+            this.chkBoxUseGPU.Name = "chkBoxUseGPU";
+            this.chkBoxUseGPU.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkBoxUseGPU.Size = new System.Drawing.Size(78, 17);
+            this.chkBoxUseGPU.TabIndex = 34;
+            this.chkBoxUseGPU.Text = "Use CUDA";
+            this.chkBoxUseGPU.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(884, 461);
+            this.Controls.Add(this.chkBoxUseGPU);
             this.Controls.Add(this.lblRunStatus);
             this.Controls.Add(this.lblSourceRefName);
             this.Controls.Add(this.lblTargetRefName);
@@ -393,6 +408,7 @@
         private System.Windows.Forms.Label lblTargetRefName;
         private System.Windows.Forms.Label lblSourceRefName;
         private System.Windows.Forms.Label lblRunStatus;
+        private System.Windows.Forms.CheckBox chkBoxUseGPU;
     }
 }
 

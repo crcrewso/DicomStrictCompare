@@ -107,7 +107,7 @@ namespace DicomStrictCompare
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out
         /// </summary>
-        public void Evaluate()
+        public void Evaluate(IMathematics mathematics)
         {
             var sourceDose = _source.DoseValues().ToArray();
             var targetDose = _target.DoseValues().ToArray();
@@ -115,10 +115,10 @@ namespace DicomStrictCompare
             if (_source.X == _target.X && _source.Y == _target.Y && _source.Z == _target.Z)
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-                var tightRet = EvaluateAbsolute(sourceDose, targetDose, TightTol);
+                var tightRet = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = EvaluateAbsolute(sourceDose, targetDose, MainTol);
+                var mainRet = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -126,10 +126,10 @@ namespace DicomStrictCompare
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
-                var tightRet = EvaluateAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), TightTol);
+                var tightRet = mathematics.CompareAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), TightTol, ThreshholdTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = EvaluateAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), MainTol);
+                var mainRet = mathematics.CompareAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), MainTol, ThreshholdTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -148,7 +148,7 @@ namespace DicomStrictCompare
         /// <param name="target"></param>
         /// <param name="tol">maximum allowable percent difference between two dose values for the voxels to be considered equal</param>
         /// <returns></returns>
-        private Tuple<int,int> EvaluateAbsolute( double[] source,  double[] target, double tol)
+        /*private Tuple<int,int> EvaluateAbsolute( double[] source,  double[] target, double tol)
         {
             int failed = 0;
             int TotalCompared = 0;
@@ -266,7 +266,7 @@ namespace DicomStrictCompare
             Tuple<int, int> ret = new Tuple<int, int>(failed, TotalCompared);
             return ret;
         }
-
+        */
     }
 
 
