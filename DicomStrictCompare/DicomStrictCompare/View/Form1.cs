@@ -197,6 +197,10 @@ namespace DSC
             {
                 _dataHandler.UseGPU = true;
             }
+            else
+            {
+                _dataHandler.UseGPU = false;
+            }
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;

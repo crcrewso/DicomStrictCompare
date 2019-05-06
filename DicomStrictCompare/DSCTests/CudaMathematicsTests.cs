@@ -33,6 +33,7 @@ namespace DicomStrictCompare.Tests
             var cudaMath = new CudaMathematics();
             var result = cudaMath.CompareAbsolute( source,  target, 0.01, 0.001);
             Assert.AreEqual(0, result.Item1);
+            Assert.AreEqual(4, result.Item2);
         }
 
         [TestMethod()]
@@ -43,6 +44,7 @@ namespace DicomStrictCompare.Tests
             var cudaMath = new CudaMathematics();
             var result = cudaMath.CompareAbsolute( source,  target, 0.01, 0.001);
             Assert.AreEqual(4, result.Item1);
+            Assert.AreEqual(4, result.Item2);
         }
 
 
@@ -59,7 +61,7 @@ namespace DicomStrictCompare.Tests
         [TestMethod()]
         public void CompareTestSameArrayLong()
         {
-            int maxSize = 1000000;
+            int maxSize = 10000000;
             double[] source = new double[maxSize];
             double[] target = new double[maxSize];
             double tolerance = 0.01;
@@ -73,6 +75,27 @@ namespace DicomStrictCompare.Tests
             }
             var cudaMath = new CudaMathematics();
             var retCompare = cudaMath.CompareAbsolute(source, target, tolerance, epsilon);
+            Assert.AreEqual(0, retCompare.Item1);
+
+        }
+
+        [TestMethod()]
+        public void CompareTestSameArrayLongOld()
+        {
+            int maxSize = 10000000;
+            double[] source = new double[maxSize];
+            double[] target = new double[maxSize];
+            double tolerance = 0.01;
+            double epsilon = 0.001;
+
+
+            for (int i = 0; i < maxSize; i++)
+            {
+                source[i] = maxSize + i;
+                target[i] = maxSize + i;
+            }
+            var cudaMath = new CudaMathematics();
+            var retCompare = cudaMath.CompareAbsoluteOld(source, target, tolerance, epsilon);
             Assert.AreEqual(0, retCompare.Item1);
 
         }
