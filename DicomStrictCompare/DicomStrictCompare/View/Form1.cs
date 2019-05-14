@@ -42,7 +42,7 @@ namespace DSC
             tested = false;
             worker = new BackgroundWorker
             {
-                WorkerReportsProgress = true
+                WorkerReportsProgress = true, WorkerSupportsCancellation = true
             };
             worker.DoWork += Worker_DoWork;
             worker.ProgressChanged += Worker_ProgressChanged;

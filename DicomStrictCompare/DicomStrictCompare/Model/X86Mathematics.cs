@@ -100,7 +100,6 @@ namespace DicomStrictCompare
                 }
 
             }
-            System.Diagnostics.Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
             System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
             return ret;
         }

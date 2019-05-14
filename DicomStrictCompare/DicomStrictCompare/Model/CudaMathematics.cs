@@ -7,6 +7,7 @@ namespace DicomStrictCompare
 {
     public class CudaMathematics : IMathematics
     {
+        private readonly Gpu gpu = Gpu.Default;
 
         public CudaMathematics()
         {
@@ -15,14 +16,14 @@ namespace DicomStrictCompare
             
         }
 
-        public override System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
+        public override Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
         {
             return CompareAbsoluteOld(source, target, tolerance, epsilon);
         }
 
 
         [GpuManaged]
-        public System.Tuple<int, int> CompareAbsoluteOld(double[] source, double[] target, double tolerance, double epsilon)
+        public Tuple<int, int> CompareAbsoluteOld(double[] source, double[] target, double tolerance, double epsilon)
         {
             System.Diagnostics.Debug.WriteLine("starting an absolute comparison on GPU");
             if (source.Length != target.Length)
@@ -31,13 +32,13 @@ namespace DicomStrictCompare
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * epsilon;
-            int[] isCountedArray = new int[source.Length];
+            double[] isCountedArray = new double[source.Length];
             double[] differenceDoubles = new double[source.Length];
             double[] absDifferenceDoubles = new double[source.Length];
-            int[] isGTtol = new int[source.Length];
+            double[] isGTtol = new double[source.Length];
             int failed = 0;
             int isCounted = 0;
-            Gpu gpu = Gpu.Default;
+            
 
             // filter doses below threshold
             // TODO: should failure be -1?
@@ -59,30 +60,30 @@ namespace DicomStrictCompare
            gpu.For(0, isGTtol.Length,
                 i => isGTtol[i] = (absDifferenceDoubles[i] > tolerance) ? 1 : 0);
 
-            isCounted = gpu.Sum(isCountedArray);
+            isCounted = (int)gpu.Sum(isCountedArray);
 
 
-            failed = gpu.Sum(isGTtol);
+            failed = (int)gpu.Sum(isGTtol);
 
             System.Diagnostics.Debug.WriteLine("finished an absolute comparison on GPU");
 
-            return new System.Tuple<int, int>(failed, isCounted);
+            return new Tuple<int, int>(failed, isCounted);
         }
 
         [GpuManaged]
-        public override System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        public override Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
         {
             System.Diagnostics.Debug.WriteLine("starting a relative comparison on GPU");
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * epsilon;
             double sourceVariance = MaxSource * tolerance;
-            int[] isCountedArray = new int[source.Length];
+            double[] isCountedArray = new double[source.Length];
             double[] sourceLow = new double[source.Length];
             double[] sourceHigh = new double[source.Length];
             double[] differenceDoubles = new double[source.Length];
             double[] absDifferenceDoubles = new double[source.Length];
-            int[] isGTtol = new int[source.Length];
+            double[] isGTtol = new double[source.Length];
 
             // filter doses below threshold
             // TODO: should failure be -1?
@@ -96,15 +97,15 @@ namespace DicomStrictCompare
             Gpu.Default.For(0, isGTtol.Length,
                 i => isGTtol[i] = (((source[i] - sourceVariance) < target[i]) && ((source[i] + sourceVariance) > target[i])) ? 0 : 1);
             int failed = 0;
-            failed = Gpu.Default.Sum(isGTtol);
-            int isCounted = Gpu.Default.Sum(isCountedArray);
+            failed = (int)Gpu.Default.Sum(isGTtol);
+            int isCounted = (int)Gpu.Default.Sum(isCountedArray);
             System.Diagnostics.Debug.WriteLine("finished a relative comparison on GPU");
 
-            return new System.Tuple<int, int>(failed, isCounted);
+            return new Tuple<int, int>(failed, isCounted);
         }
 
         [GpuManaged]
-        public System.Tuple<int, int> CompareAbsoluteOpt(double[] source, double[] target, double tolerance, double ThreshholdTol)
+        public Tuple<int, int> CompareAbsoluteOpt(double[] source, double[] target, double tolerance, double ThreshholdTol)
         {
             System.Diagnostics.Debug.WriteLine("starting an absolute comparison on GPU");
             if (source.Length != target.Length)
@@ -157,7 +158,7 @@ namespace DicomStrictCompare
             System.Diagnostics.Debug.WriteLine("finished an absolute comparison on GPU");
             //gpu.Dispose();
 
-            return new System.Tuple<int, int>(failed, isCounted);
+            return new Tuple<int, int>(failed, isCounted);
         }
     }
 

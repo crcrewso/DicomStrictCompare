@@ -13,15 +13,18 @@ namespace DicomStrictCompare
     class MatchedDosePair
     {
         public int TotalCount { get; private set; }
-        public int TotalComparedTightTol { get; private set; } = 0;
-        public int TotalComparedMainTol { get; private set; } = 0;
-
-        public int TotalFailedEpsilonTol { get; private set; }
-        //public double PercentFailedEpsilonTol => PercentCalculator(TotalCompared, TotalFailedEpsilonTol);
-        public int TotalFailedTightTol { get; private set; }
-        public double PercentFailedTightTol => PercentCalculator(TotalComparedTightTol, TotalFailedTightTol);
-        public int TotalFailedMainTol { get; private set; }
-        public double PercentFailedMainTol => PercentCalculator(TotalComparedMainTol, TotalFailedMainTol);
+        public int TotalComparedTightTolAbs { get; private set; } = 0;
+        public int TotalFailedTightTolAbs { get; private set; }
+        public double PercentFailedTightTolAbs => PercentCalculator(TotalComparedTightTolAbs, TotalFailedTightTolAbs);
+        public int TotalComparedMainTolAbs { get; private set; } = 0;
+        public int TotalFailedMainTolAbs { get; private set; }
+        public double PercentFailedMainTolAbs => PercentCalculator(TotalComparedMainTolAbs, TotalFailedMainTolAbs);
+        public int TotalComparedTightTolRel { get; private set; } = 0;
+        public int TotalFailedTightTolRel { get; private set; }
+        public double PercentFailedTightTolRel => PercentCalculator(TotalComparedTightTolRel, TotalFailedTightTolRel);
+        public int TotalComparedMainTolRel { get; private set; } = 0;
+        public int TotalFailedMainTolRel { get; private set; }
+        public double PercentFailedMainTolRel => PercentCalculator(TotalComparedMainTolRel, TotalFailedMainTolRel);
         /// <summary>
         /// The matched pair has been evaluated to measure results
         /// </summary>
@@ -44,9 +47,8 @@ namespace DicomStrictCompare
         /// </summary>
         public string Name => _source.ShortFileName + ',' + _target.ShortFileName;
 
-        public string ResultString => Name + ',' + TotalCount.ToString() + ',' + TotalComparedTightTol.ToString() + ',' + TotalFailedTightTol + ',' + PercentFailedTightTol.ToString("0.0000") + ',' + TotalFailedMainTol.ToString() + ',' + PercentFailedMainTol.ToString("0.0000");
-
-        public static string ResultHeader => "Source Name,Target Name,Voxels,Voxels above Threshold,Failed Tight,Percent, Failed Main,Percent\n";
+        public string ResultString => String.Join(",", resultArray());
+        public static string ResultHeader => String.Join(",", resultArrayHeaderRow0()) + "\n" + String.Join(",", resultArrayHeaderRow1()) + "\n"+String.Join(",", resultArrayHeaderRow2()) + "\n";
 
         private readonly DoseFile _source;
         private readonly DoseFile _target;
@@ -67,6 +69,86 @@ namespace DicomStrictCompare
             return (double)failed / (double)total * 100.0;
         }
 
+        string[] resultArray()
+        {
+            string[] ret = new string[14];
+            int i = 0;
+            ret[i++] = Name;
+            ret[i++] = TotalCount.ToString();
+            ret[i++] = TotalComparedTightTolAbs.ToString();
+            ret[i++] = TotalFailedTightTolAbs.ToString();
+            ret[i++] = PercentFailedTightTolAbs.ToString("0.0000");
+            ret[i++] = TotalComparedMainTolAbs.ToString();
+            ret[i++] = TotalFailedMainTolAbs.ToString();
+            ret[i++] = PercentFailedMainTolAbs.ToString("0.0000");
+            ret[i++] = TotalComparedTightTolRel.ToString();
+            ret[i++] = TotalFailedTightTolRel.ToString();
+            ret[i++] = PercentFailedTightTolRel.ToString("0.0000");
+            ret[i++] = TotalComparedMainTolRel.ToString();
+            ret[i++] = TotalFailedMainTolRel.ToString();
+            ret[i++] = PercentFailedMainTolRel.ToString("0.0000");
+            return ret;
+        }
+        static string[] resultArrayHeaderRow0()
+        {
+            string[] ret = new string[14];
+            int i = 0;
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "Absolute";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "Relative";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "";
+            return ret;
+        }
+        static string[] resultArrayHeaderRow1()
+        {
+            string[] ret = new string[14];
+            int i = 0;
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "Tight";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "Main";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "Tight";
+            ret[i++] = "";
+            ret[i++] = "";
+            ret[i++] = "Main";
+            ret[i++] = "";
+            ret[i++] = "";
+            return ret;
+        }
+        static string[] resultArrayHeaderRow2()
+        {
+            string[] ret = new string[14];
+            int i = 0;
+            ret[i++] = "Source File Name,Target File Name";
+            ret[i++] = "TotalCount";
+            ret[i++] = "Total Compared";
+            ret[i++] = "Total Failed";
+            ret[i++] = "Percent Failed ";
+            ret[i++] = "Total Compared";
+            ret[i++] = "Total Failed";
+            ret[i++] = "Percent Failed ";
+            ret[i++] = "Total Compared";
+            ret[i++] = "Total Failed";
+            ret[i++] = "Percent Failed ";
+            ret[i++] = "Total Compared";
+            ret[i++] = "Total Failed";
+            ret[i++] = "Percent Failed ";
+            return ret;
+        }
 
         public MatchedDosePair(DoseFile source, DoseFile target, double epsilonTol, double tightTol, double mainTol)
         {
@@ -105,23 +187,37 @@ namespace DicomStrictCompare
             if (sourceDose.CompareDimensions(targetDose))
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-                Tuple<int, int> tightRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
-                TotalFailedTightTol = tightRet.Item1;
-                TotalComparedTightTol = tightRet.Item2;
-                Tuple<int, int> mainRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
-                TotalFailedMainTol = mainRet.Item1;
-                TotalComparedMainTol = mainRet.Item2;
+                Tuple<int, int> ret;
+                ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
+                TotalFailedTightTolAbs = ret.Item1;
+                TotalComparedTightTolAbs = ret.Item2;
+                ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                TotalFailedMainTolAbs = ret.Item1;
+                TotalComparedMainTolAbs = ret.Item2;
+                ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
+                TotalFailedTightTolRel = ret.Item1;
+                TotalComparedTightTolRel = ret.Item2;
+                ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                TotalFailedMainTolRel = ret.Item1;
+                TotalComparedMainTolRel = ret.Item2;
                 IsEvaluated = true;
             }
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
-                Tuple<int, int> tightRet = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
-                TotalFailedTightTol = tightRet.Item1;
-                TotalComparedTightTol = tightRet.Item2;
-                Tuple<int, int> mainRet = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
-                TotalFailedMainTol = mainRet.Item1;
-                TotalComparedMainTol = mainRet.Item2;
+                Tuple<int, int> ret;
+                ret = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
+                TotalFailedTightTolAbs = ret.Item1;
+                TotalComparedTightTolAbs = ret.Item2;
+                ret = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
+                TotalFailedMainTolAbs = ret.Item1;
+                TotalComparedMainTolAbs = ret.Item2;
+                ret = mathematics.CompareRelative(sourceDose, targetDose, TightTol, ThreshholdTol);
+                TotalFailedTightTolRel = ret.Item1;
+                TotalComparedTightTolRel = ret.Item2;
+                ret = mathematics.CompareRelative(sourceDose, targetDose, MainTol, ThreshholdTol);
+                TotalFailedMainTolRel = ret.Item1;
+                TotalComparedMainTolRel = ret.Item2;
                 IsEvaluated = true;
             }
 
