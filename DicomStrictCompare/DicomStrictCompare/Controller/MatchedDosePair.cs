@@ -109,16 +109,16 @@ namespace DicomStrictCompare
         /// </summary>
         public void Evaluate(IMathematics mathematics)
         {
-            var sourceDose = _source.DoseValues().ToArray();
-            var targetDose = _target.DoseValues().ToArray();
+            var sourceDose = new DicomStrictCompare.Model.DoseMatrixOptimal(_source.DoseMatrix());
+            var targetDose = new DicomStrictCompare.Model.DoseMatrixOptimal(_target.DoseMatrix());
             TotalCount = targetDose.Length;
-            if (_source.X == _target.X && _source.Y == _target.Y && _source.Z == _target.Z)
+            if (sourceDose.CompareDimensions(targetDose))
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-                var tightRet = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
+                var tightRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
+                var mainRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -126,10 +126,10 @@ namespace DicomStrictCompare
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
-                var tightRet = mathematics.CompareAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), TightTol, ThreshholdTol);
+                var tightRet = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = mathematics.CompareAbsolute(_source.DoseMatrix(), _target.DoseMatrix(), MainTol, ThreshholdTol);
+                var mainRet = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;

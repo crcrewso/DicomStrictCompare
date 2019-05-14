@@ -135,6 +135,7 @@
     <Compile Include="Controller\DscDataHandler.cs" />
     <Compile Include="File Handling\FileHandler.cs" />
     <Compile Include="Model\CudaMathematics.cs" />
+    <Compile Include="Model\DoseMatrixOptimal.cs" />
     <Compile Include="Model\ProfileTools.cs" />
     <Compile Include="Model\X86Mathematics.cs" />
     <Compile Include="View\Form1.cs">
