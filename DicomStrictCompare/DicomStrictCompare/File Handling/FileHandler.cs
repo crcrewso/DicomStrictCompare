@@ -32,32 +32,32 @@ namespace DicomStrictCompare
         public static List<DoseFile> DoseFiles(string[] listOfFiles)
         {
             List<DoseFile> doseFiles = new List<DoseFile>();
-            Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
-            {
-                var temp = new DicomFile(file);
-                if (temp.IsDoseFile)
-                {
-                    var tempDose = new DoseFile(file);
-                    Debug.WriteLine("Found Dose File " + tempDose.FileName);
-                    doseFiles.Add(tempDose);
-                }
-            });
+            _ = Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+              {
+                  DicomFile temp = new DicomFile(file);
+                  if (temp.IsDoseFile)
+                  {
+                      DoseFile tempDose = new DoseFile(file);
+                      Debug.WriteLine("Found Dose File " + tempDose.FileName);
+                      doseFiles.Add(tempDose);
+                  }
+              });
             return doseFiles;
         }
 
         public static List<PlanFile> PlanFiles(string[] listOfFiles)
         {
             List<PlanFile> planFiles = new List<PlanFile>();
-            Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
-            {
-                var temp = new DicomFile(file);
-                if (temp.IsPlanFile)
-                {
-                    var tempPlan = new PlanFile(file);
-                    Debug.WriteLine("Found Plan File " + tempPlan.FileName);
-                    planFiles.Add(tempPlan);
-                }
-            });
+            _ = Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+              {
+                  DicomFile temp = new DicomFile(file);
+                  if (temp.IsPlanFile)
+                  {
+                      PlanFile tempPlan = new PlanFile(file);
+                      Debug.WriteLine("Found Plan File " + tempPlan.FileName);
+                      planFiles.Add(tempPlan);
+                  }
+              });
             return planFiles;
         }
 
@@ -118,16 +118,16 @@ namespace DicomStrictCompare
 
         public DoseFile(string fileName)
         {
-            var dcm1 = DICOMObject.Read(fileName);
+            DICOMObject dcm1 = DICOMObject.Read(fileName);
             FileName = fileName;
-            var slashindex = FileName.LastIndexOf(@"\");
+            int slashindex = FileName.LastIndexOf(@"\");
             slashindex = FileName.Substring(0, slashindex - 1).LastIndexOf(@"\");
             slashindex = FileName.Substring(0, slashindex - 1).LastIndexOf(@"\");
             ShortFileName = FileName.Substring(slashindex + 1);
             Name = dcm1.FindFirst(TagHelper.SeriesDescription).ToString();
             PatientId = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
 
-            var tempSopInstanceId = dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID);
+            EvilDICOM.Core.Interfaces.IDICOMElement tempSopInstanceId = dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID);
             SopInstanceId = tempSopInstanceId.DData.ToString();
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
@@ -148,12 +148,12 @@ namespace DicomStrictCompare
 
         public void SetFieldName(List<PlanFile> planFiles)
         {
-            foreach (var plan in planFiles)
+            foreach (PlanFile plan in planFiles)
             {
                 if (plan.SopInstanceId == SopInstanceId)
                 {
                     PlanID = plan.PlanID;
-                    foreach (var beam in plan.FieldNumberToNameList)
+                    foreach (Tuple<string, string> beam in plan.FieldNumberToNameList)
                     {
                         if (beam.Item1 == BeamNumber)
                         {
@@ -174,7 +174,7 @@ namespace DicomStrictCompare
         {
             if (IsDoseFile)
             {
-                var dcm1 = DICOMObject.Read(FileName);
+                DICOMObject dcm1 = DICOMObject.Read(FileName);
                 DoseMatrix dcmMatrix = new DoseMatrix(dcm1);
                 X = dcmMatrix.DimensionX;
                 Y = dcmMatrix.DimensionY;
@@ -196,7 +196,7 @@ namespace DicomStrictCompare
         {
             if (IsDoseFile)
             {
-                var dcm1 = DICOMObject.Read(FileName);
+                DICOMObject dcm1 = DICOMObject.Read(FileName);
                 DoseMatrix dcmMatrix = new DoseMatrix(dcm1);
                 X = dcmMatrix.DimensionX;
                 Y = dcmMatrix.DimensionY;
@@ -219,7 +219,7 @@ namespace DicomStrictCompare
         public DicomFile(string fileName)
         {
 
-            var dcm1 = DICOMObject.Read(fileName);
+            DICOMObject dcm1 = DICOMObject.Read(fileName);
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
             {
                 IsDoseFile = true;
@@ -253,15 +253,15 @@ namespace DicomStrictCompare
             FieldNumberToNameList = new List<Tuple<string, string>>();
             FileName = fileName;
             ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
-            var dcm1 = DICOMObject.Read(fileName);
+            DICOMObject dcm1 = DICOMObject.Read(fileName);
             SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).DData.ToString();
             PatientID = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTPLAN"))
             {
                 IsPlanFile = true;
                 PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();
-                var beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
-                var beamNames = dcm1.FindAll(TagHelper.BeamName);
+                List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
+                List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNames = dcm1.FindAll(TagHelper.BeamName);
                 if (beamNames.Count == beamNumbers.Count)
                 {
                     for (int i = 0; i < beamNames.Count; i++)

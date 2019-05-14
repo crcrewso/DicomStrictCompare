@@ -28,7 +28,8 @@ namespace DSC
         private DscDataHandler _dataHandler;
 
         const int delayTime = 1000;
-
+        private readonly BackgroundWorker worker;
+        private bool _isRunning;
         /// <inheritdoc />
         public Form1()
         {
@@ -40,6 +41,12 @@ namespace DSC
             tbxTargetLabel.Text = TargetAliasName.ToString();
             _dataHandler = new DscDataHandler();
             tested = false;
+            worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;
+            worker.ProgressChanged += worker_ProgressChanged;
+            worker.RunWorkerCompleted += workerRunWorkerCompleted;
+            _isRunning = false;
 
         }
 
@@ -92,14 +99,14 @@ namespace DSC
         private void TbxSourceLabel_TextChanged(object sender, EventArgs e)
         {
             tested = false;
-            var temp = tbxSourceLabel.Text;
+            string temp = tbxSourceLabel.Text;
             SourceAliasName = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxSourceLabel.Text = SourceAliasName;
         }
 
         private void TbxTargetLabel_TextChanged(object sender, EventArgs e)
         {
-            var temp = tbxTargetLabel.Text;
+            string temp = tbxTargetLabel.Text;
             TargetAliasName = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxTargetLabel.Text = TargetAliasName;
             tested = false;
@@ -108,7 +115,7 @@ namespace DSC
         private void TbxSaveName_TextChanged(object sender, EventArgs e)
         {
             tested = false;
-            var temp = tbxSaveName.Text;
+            string temp = tbxSaveName.Text;
             SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxSaveName.Text = SaveNamePrefix;
         }
@@ -119,7 +126,7 @@ namespace DSC
 
         private void btnSourceDir_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
                 fbd.Description = @"Select Source Dose Folder Location";
                 DialogResult result = fbd.ShowDialog();
@@ -137,7 +144,7 @@ namespace DSC
 
         private void btnTargetDir_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
                 fbd.Description = @"Select Source Dose Folder Location";
                 DialogResult result = fbd.ShowDialog();
@@ -153,7 +160,7 @@ namespace DSC
 
         private void BtnSaveDir_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
                 fbd.Description = @"Select Source Dose Folder Location";
                 DialogResult result = fbd.ShowDialog();
@@ -187,48 +194,51 @@ namespace DSC
         private void btnExecute_Click(object sender, EventArgs e)
         {
 
-
-            _dataHandler.ThresholdTol = Threshold / 100.0;
-            _dataHandler.MainTol = MainTol / 100.0;
-            _dataHandler.TightTol = TightTol / 100.0;
-            _dataHandler.SourceAliasName = SourceAliasName;
-            _dataHandler.TargetAliasName = TargetAliasName;
-            if (chkBoxUseGPU.Checked == true)
+            if (!_isRunning)
             {
-                _dataHandler.UseGPU = true;
+
+                _dataHandler.ThresholdTol = Threshold / 100.0;
+                _dataHandler.MainTol = MainTol / 100.0;
+                _dataHandler.TightTol = TightTol / 100.0;
+                _dataHandler.SourceAliasName = SourceAliasName;
+                _dataHandler.TargetAliasName = TargetAliasName;
+                if (chkBoxUseGPU.Checked == true)
+                {
+                    _dataHandler.UseGPU = true;
+                }
+                else
+                {
+                    _dataHandler.UseGPU = false;
+                }
+
+
+                if (tested == false)
+                {
+                    TestDirectories_Click(sender, e);
+                }
+                if (tested == false)
+                {
+                    lblRunStatus.Text = "Tested text Fields, Please Rerun";
+                    return;
+                }
+                if (!chkPDDCompare.Checked && !chkDoseCompare.Checked)
+                {
+                    lblRunStatus.Text = "Nothing to do";
+                    return;
+                }
+
+
+
+                worker.RunWorkerAsync();
+                return;
             }
             else
-            {
-                _dataHandler.UseGPU = false;
-            }
-
-            BackgroundWorker worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += worker_DoWork;
-            worker.ProgressChanged += worker_ProgressChanged;
-            worker.RunWorkerCompleted += workerRunWorkerCompleted;
-            if (tested == false)
-            {
-                TestDirectories_Click(sender, e);
-            }
-            if (tested == false)
-            {
-                lblRunStatus.Text = "Tested text Fields, Please Rerun";
-                return;
-            }
-            if (!chkPDDCompare.Checked && !chkDoseCompare.Checked)
-            {
-                lblRunStatus.Text = "Nothing to do";
-                return;
-            }
-
-
-
-            worker.RunWorkerAsync();
+                worker.CancelAsync();
         }
 
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
+            _isRunning = true;
             _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
 
             if (chkDoseCompare.Checked == true)
@@ -246,12 +256,13 @@ namespace DSC
 
         void workerRunWorkerCompleted (object sender, RunWorkerCompletedEventArgs e)
         {
+            _isRunning = false;
             lblRunStatus.Text = "Finished";
             doseProgressBar.Value = doseProgressBar.Maximum;
 
             if(e.Error != null)
             {
-                System.Windows.Forms.MessageBox.Show(e.Error.ToString());
+                _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
             }
 
         }
@@ -288,7 +299,7 @@ namespace DSC
             }
             catch (ArgumentNullException )
             {
-                System.Windows.Forms.MessageBox.Show("One of the directory fields is either empty or invalid");
+                _ = System.Windows.Forms.MessageBox.Show("One of the directory fields is either empty or invalid");
                 return;
             }
 
@@ -304,7 +315,7 @@ namespace DSC
 
                 if (TightTol > MainTol)
                 {
-                    System.Windows.Forms.MessageBox.Show("Your tight tolerance is greater than your main tolerance. This does not make sense");
+                    _ = System.Windows.Forms.MessageBox.Show("Your tight tolerance is greater than your main tolerance. This does not make sense");
                     return;
                 }
 
@@ -314,12 +325,12 @@ namespace DSC
             }
             catch (FormatException)
             {
-                System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
+                _ = System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
                 return;
             }
             catch (ArgumentNullException)
             {
-                System.Windows.Forms.MessageBox.Show("One of the tolerance fields is either empty or invalid");
+                _ = System.Windows.Forms.MessageBox.Show("One of the tolerance fields is either empty or invalid");
                 return;
             }
             tested = true;

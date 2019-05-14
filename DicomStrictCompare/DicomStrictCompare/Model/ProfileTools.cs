@@ -42,7 +42,7 @@ namespace DicomStrictCompare
 
 
             // finds the maximum dose
-            foreach (var dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
+            foreach (DoseValue dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
             tolerance = maxDose * percent / 100;
             threshold = 5 * tolerance;
@@ -54,10 +54,10 @@ namespace DicomStrictCompare
                 if (difference > tolerance) { failedPercent.Add(profile[i]); }
             }
 
-            foreach (var item in failedPercent)
+            foreach (DoseValue item in failedPercent)
             {
                 List<double> listOfDosesWithinDtaTolerance = new List<double>();
-                foreach (var refItem in reference)
+                foreach (DoseValue refItem in reference)
                 {
                     // generates a list of doses that are within the dta
                     if (Distance(item, refItem) <= dta)
@@ -102,7 +102,7 @@ namespace DicomStrictCompare
 
 
             // finds the maximum dose
-            foreach (var dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
+            foreach (DoseValue dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
             tolerance = maxDose * percent / 100;
             threshold = 5 * tolerance;
@@ -114,10 +114,10 @@ namespace DicomStrictCompare
                 if (difference > tolerance) { failedPercent.Add(profile[i]); }
             }
 
-            foreach (var item in failedPercent)
+            foreach (DoseValue item in failedPercent)
             {
                 List<double> listOfDosesWithinDtaTolerance = new List<double>();
-                foreach (var refItem in reference)
+                foreach (DoseValue refItem in reference)
                 {
                     // generates a list of doses that are within the dta
                     if (Distance(item, refItem) <= dta)

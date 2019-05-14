@@ -42,50 +42,50 @@ namespace DicomStrictCompare.Model
         public DoseValue GetPointDose(double x, double y, double z)
         {
             //From method at http://en.wikipedia.org/wiki/Trilinear_interpolation
-            var interpX = (x - X0) / XRes % 1 != 0.0; // Interpolate X?
-            var xSteps = (int)((x - X0) / XRes);
-            var lowX = X0 + xSteps * XRes;
-            var highX = X0 + (xSteps + 1) * XRes;
-            var interpY = (y - Y0) / YRes % 1 != 0; // Interpolate Y?
-            var ySteps = (int)((y - Y0) / YRes);
-            var lowY = Y0 + ySteps * YRes;
-            var highY = Y0 + (ySteps + 1) * YRes;
-            var interpZ = (z - Z0) / ZRes % 1 != 0; // Interpolate Z?
-            var zSteps = (int)((z - Z0) / ZRes);
-            var lowZ = Z0 + zSteps * ZRes;
-            var highZ = Z0 + (zSteps + 1) * ZRes;
+            bool interpX = (x - X0) / XRes % 1 != 0.0; // Interpolate X?
+            int xSteps = (int)((x - X0) / XRes);
+            double lowX = X0 + xSteps * XRes;
+            double highX = X0 + (xSteps + 1) * XRes;
+            bool interpY = (y - Y0) / YRes % 1 != 0; // Interpolate Y?
+            int ySteps = (int)((y - Y0) / YRes);
+            double lowY = Y0 + ySteps * YRes;
+            double highY = Y0 + (ySteps + 1) * YRes;
+            bool interpZ = (z - Z0) / ZRes % 1 != 0; // Interpolate Z?
+            int zSteps = (int)((z - Z0) / ZRes);
+            double lowZ = Z0 + zSteps * ZRes;
+            double highZ = Z0 + (zSteps + 1) * ZRes;
 
-            var xd = interpX ? (x - lowX) / (highX - lowX) : 0;
-            var yd = interpY ? (y - lowY) / (highY - lowY) : 0;
-            var zd = interpZ ? (z - lowZ) / (highZ - lowZ) : 0;
+            double xd = interpX ? (x - lowX) / (highX - lowX) : 0;
+            double yd = interpY ? (y - lowY) / (highY - lowY) : 0;
+            double zd = interpZ ? (z - lowZ) / (highZ - lowZ) : 0;
 
-            var c00 = interpX
+            double c00 = interpX
                 ? GetDiscretePointDose(xSteps, ySteps, zSteps) * (1 - xd) +
                   GetDiscretePointDose(xSteps + 1, ySteps, zSteps) * xd
                 : GetDiscretePointDose(xSteps, ySteps, zSteps);
-            var c10 = interpY
+            double c10 = interpY
                 ? interpX
                     ? GetDiscretePointDose(xSteps, ySteps + 1, zSteps) * (1 - xd) +
                       GetDiscretePointDose(xSteps + 1, ySteps + 1, zSteps) * xd
                     : GetDiscretePointDose(xSteps, ySteps + 1, zSteps)
                 : 0;
-            var c01 = interpZ
+            double c01 = interpZ
                 ? interpX
                     ? GetDiscretePointDose(xSteps, ySteps, zSteps + 1) * (1 - xd) +
                       GetDiscretePointDose(xSteps + 1, ySteps, zSteps + 1) * xd
                     : GetDiscretePointDose(xSteps, ySteps, zSteps + 1)
                 : 0;
-            var c11 = interpY && interpZ
+            double c11 = interpY && interpZ
                 ? interpX
                     ? GetDiscretePointDose(xSteps, ySteps + 1, zSteps + 1) * (1 - xd) +
                       GetDiscretePointDose(xSteps + 1, ySteps + 1, zSteps + 1) * xd
                     : GetDiscretePointDose(xSteps, ySteps + 1, zSteps + 1)
                 : 0;
 
-            var c0 = interpY ? c00 * (1 - yd) + c10 * yd : c00;
-            var c1 = interpY ? c01 * (1 - yd) + c11 * yd : c01;
+            double c0 = interpY ? c00 * (1 - yd) + c10 * yd : c00;
+            double c1 = interpY ? c01 * (1 - yd) + c11 * yd : c01;
 
-            var c = interpZ ? c0 * (1 - zd) + c1 * zd : c0;
+            double c = interpZ ? c0 * (1 - zd) + c1 * zd : c0;
             return new DoseValue(x, y, z, c);
 
             double GetDiscretePointDose(int xStepsGDPD, int yStepsGDPD, int zStepsGDPD)

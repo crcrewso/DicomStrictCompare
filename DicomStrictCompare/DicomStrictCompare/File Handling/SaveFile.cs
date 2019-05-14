@@ -64,7 +64,7 @@ namespace DicomStrictCompare
         public void Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
         {
             double maxDose = 0;
-            foreach (var dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
+            foreach (DoseValue dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
             if (sourcePDD.Count != targetPDD.Count)
             {
@@ -88,13 +88,13 @@ namespace DicomStrictCompare
 
             //converts List<DoseValue> to List<double> for plotting
             // sets the x locations of each data point
-            foreach (var item in sourcePDD)
+            foreach (DoseValue item in sourcePDD)
             {
                 z.Add(item.Y - sourcePDD[0].Y);
                 doses0.Add(item.Dose);
             }
 
-            foreach (var item in targetPDD)
+            foreach (DoseValue item in targetPDD)
             {
                 doses1.Add(item.Dose);
             }
@@ -128,14 +128,14 @@ namespace DicomStrictCompare
             }
 
 
-            var titleFont = new Font("Consolas", 36, FontStyle.Regular);
-            var axesFont = new Font("Consolas", 20, FontStyle.Regular);
-            var subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
-            var chart = new Chart();
+            Font titleFont = new Font("Consolas", 36, FontStyle.Regular);
+            Font axesFont = new Font("Consolas", 20, FontStyle.Regular);
+            Font subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
+            Chart chart = new Chart();
             chart.Size = new Size(3200, 1800);
-            var chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black);
+            Title chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black);
             chart.Titles.Add(chartTitle);
-            var chartArea = new ChartArea();
+            ChartArea chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
             chartArea.AxisY.MajorGrid.LineColor = Color.Black;
             chartArea.AxisY2.MajorGrid.LineColor = Color.LightGray;
@@ -166,7 +166,7 @@ namespace DicomStrictCompare
             chartArea.AxisY.LabelStyle.Font = axesFont;
             chartArea.AxisY2.LabelStyle.Font = axesFont;
 
-            var title2 = new Title("Results", Docking.Bottom, subtitleFont, Color.DarkBlue);
+            Title title2 = new Title("Results", Docking.Bottom, subtitleFont, Color.DarkBlue);
             title2.Text = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count;
             chart.Titles.Add(title2);
             /*
@@ -186,7 +186,7 @@ namespace DicomStrictCompare
             */
 
 
-            var series = new Series();
+            Series series = new Series();
             series.Name = SourceAlias;
             series.ChartType = SeriesChartType.Line;
             series.XValueType = ChartValueType.Double;
@@ -196,7 +196,7 @@ namespace DicomStrictCompare
             series.YAxisType = AxisType.Primary;
             chart.Series.Add(series);
             chart.ChartAreas[0].RecalculateAxesScale();
-            var series1 = new Series();
+            Series series1 = new Series();
             series1.Name = TargetAlias;
             series1.ChartType = SeriesChartType.Point;
             series1.MarkerSize = 4;
@@ -206,7 +206,7 @@ namespace DicomStrictCompare
             series1.YAxisType = AxisType.Primary;
             chart.Series.Add(series1);
             chart.ChartAreas[0].RecalculateAxesScale();
-            var series2 = new Series();
+            Series series2 = new Series();
             series2.Name = "Dose Difference (%)";
             series2.ChartType = SeriesChartType.Line;
             series2.XValueType = ChartValueType.Double;
@@ -226,7 +226,7 @@ namespace DicomStrictCompare
 
             string longFileName = location + @"\\" + filename;
             string longDirectory = longFileName.Substring(0, longFileName.LastIndexOf(@"\"));
-            System.IO.Directory.CreateDirectory(longDirectory);
+            _ = System.IO.Directory.CreateDirectory(longDirectory);
             chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
             Debug.WriteLine("Finished saving " + filename);

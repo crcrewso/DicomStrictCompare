@@ -31,13 +31,13 @@ namespace DicomStrictCompare
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * epsilon;
-            var isCountedArray = new int[source.Length];
-            var differenceDoubles = new double[source.Length];
-            var absDifferenceDoubles = new double[source.Length];
-            var isGTtol = new int[source.Length];
+            int[] isCountedArray = new int[source.Length];
+            double[] differenceDoubles = new double[source.Length];
+            double[] absDifferenceDoubles = new double[source.Length];
+            int[] isGTtol = new int[source.Length];
             int failed = 0;
             int isCounted = 0;
-            var gpu = Gpu.Default;
+            Gpu gpu = Gpu.Default;
 
             // filter doses below threshold
             // TODO: should failure be -1?
@@ -77,12 +77,12 @@ namespace DicomStrictCompare
             double MaxTarget = target.Max();
             double MinDoseEvaluated = MaxSource * epsilon;
             double sourceVariance = MaxSource * tolerance;
-            var isCountedArray = new int[source.Length];
-            var sourceLow = new double[source.Length];
-            var sourceHigh = new double[source.Length];
-            var differenceDoubles = new double[source.Length];
-            var absDifferenceDoubles = new double[source.Length];
-            var isGTtol = new int[source.Length];
+            int[] isCountedArray = new int[source.Length];
+            double[] sourceLow = new double[source.Length];
+            double[] sourceHigh = new double[source.Length];
+            double[] differenceDoubles = new double[source.Length];
+            double[] absDifferenceDoubles = new double[source.Length];
+            int[] isGTtol = new int[source.Length];
 
             // filter doses below threshold
             // TODO: should failure be -1?
@@ -119,18 +119,18 @@ namespace DicomStrictCompare
             double highMultiplier = (1 + tolerance);
             int failed = 0;
             int isCounted = 0;
-            var gpu = Gpu.Default;
+            Gpu gpu = Gpu.Default;
 
             // filter doses below threshold
             // TODO: should failure be -1?
 
             int dimension = source.Length;
-            var sourceOnGPU = gpu.Allocate(source);
-            var targetOnGPU = gpu.Allocate(target);
+            double[] sourceOnGPU = gpu.Allocate(source);
+            double[] targetOnGPU = gpu.Allocate(target);
             double[] isCountedArray = gpu.Allocate<double>(dimension);
-            var sourceOnGPULow = gpu.Allocate<double>(dimension);
-            var sourceOnGPUHigh = gpu.Allocate<double>(dimension);
-            var isGTtol = gpu.Allocate<double>(dimension);
+            double[] sourceOnGPULow = gpu.Allocate<double>(dimension);
+            double[] sourceOnGPUHigh = gpu.Allocate<double>(dimension);
+            double[] isGTtol = gpu.Allocate<double>(dimension);
 
             gpu.For(0, dimension, i => sourceOnGPU[i] = (sourceOnGPU[i] > epsilon) ? sourceOnGPU[i] : zero);
             gpu.For(0, dimension, i => targetOnGPU[i] = (targetOnGPU[i] > epsilon) ? targetOnGPU[i] : zero);

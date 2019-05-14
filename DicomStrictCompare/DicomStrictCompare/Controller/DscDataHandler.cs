@@ -84,10 +84,10 @@ namespace DicomStrictCompare
         public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, object sender)
         {
             // Maximum number of CPU threads
-            var cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
-            var parallel = cpuParallel;
+            ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+            ParallelOptions parallel = cpuParallel;
             // I'm only going to code this for 1 GPU
-            var gpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1};
+            ParallelOptions gpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1};
 
 
             // Sets the system to use the correct resources without doubling down on GPU
@@ -106,7 +106,7 @@ namespace DicomStrictCompare
             #region safetyChecks
             try
             {
-                SourceDirectory.IsNormalized();
+                _ = SourceDirectory.IsNormalized();
             }
             catch (NullReferenceException)
             {
@@ -115,7 +115,7 @@ namespace DicomStrictCompare
 
             try
             {
-                TargetDirectory.IsNormalized();
+                _ = TargetDirectory.IsNormalized();
             }
             catch (NullReferenceException)
             {
@@ -175,38 +175,38 @@ namespace DicomStrictCompare
             progress += 5;
 
             (sender as BackgroundWorker).ReportProgress((int)progress, "Scanning Source Folder");
-            Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile => 
-            {
-                    doseFile.SetFieldName(SourcePlanList);
-                
-            });
+            _ = Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
+              {
+                  doseFile.SetFieldName(SourcePlanList);
+
+              });
 
             progress += 5;
             (sender as BackgroundWorker).ReportProgress((int)progress, "Scanning Target Folder");
-            Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
-            {
-                doseFile.SetFieldName(TargetPlanList);
-            } );
+            _ = Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
+              {
+                  doseFile.SetFieldName(TargetPlanList);
+              });
 
 
             double ProgressIncrimentor = 10.0 / TargetDosesList.Count;
             (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
             // match each pair for analysis
-            Parallel.ForEach(TargetDosesList, cpuParallel, (dose) =>
-            {
-                progress += ProgressIncrimentor;
-                progress = progress % 100;
-                (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
-                foreach (var sourceDose in SourceDosesList)
-                {
-                    if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
-                    {
-                        Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
-                        DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
-                            this.MainTol));
-                    }
-                }
-            });
+            _ = Parallel.ForEach(TargetDosesList, cpuParallel, (dose) =>
+              {
+                  progress += ProgressIncrimentor;
+                  progress %= 100;
+                  (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
+                  foreach (DoseFile sourceDose in SourceDosesList)
+                  {
+                      if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
+                      {
+                          Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
+                          DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
+                              this.MainTol));
+                      }
+                  }
+              });
             if (DosePairsList.Count <= 0)
                 return;
 
@@ -217,45 +217,45 @@ namespace DicomStrictCompare
 
 
                 ProgressIncrimentor = 50.0 / DosePairsList.Count;
-                Parallel.ForEach(DosePairsList, parallel, pair =>
-                {
-                    progress += ProgressIncrimentor;
-                    progress = progress % 100;
-                    (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing");
-                    try
-                    {
-                        pair.Evaluate(mathematics);
-                        ResultMessage += pair.ResultString + '\n';
-                    }
+                _ = Parallel.ForEach(DosePairsList, parallel, pair =>
+                  {
+                      progress += ProgressIncrimentor;
+                      progress %= 100;
+                      (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing");
+                      try
+                      {
+                          pair.Evaluate(mathematics);
+                          ResultMessage += pair.ResultString + '\n';
+                      }
                     // Will catch array misalignment problems
                     catch (Exception)
-                    {
-                        string temp = pair.Name + ",Was not Evaluated ,\n";
-                        ResultMessage += temp;
-                        Debug.WriteLine(temp);
-                        
-                    }
+                      {
+                          string temp = pair.Name + ",Was not Evaluated ,\n";
+                          ResultMessage += temp;
+                          Debug.WriteLine(temp);
+
+                      }
 
 
-                });
+                  });
             }
             progress = 70;
             ProgressIncrimentor = 30 / DosePairsList.Count;
-            progress = progress % 100;
+            progress %= 100;
             (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
             if (runPDDComparisons)
             {
-                Parallel.ForEach(DosePairsList, cpuParallel, pair =>
-                {
-                    progress += ProgressIncrimentor;
-                    progress = progress % 100;
-                    (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
-                    pair.GeneratePDD();
-                    Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
-                    SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                    saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
+                _ = Parallel.ForEach(DosePairsList, cpuParallel, pair =>
+                  {
+                      progress += ProgressIncrimentor;
+                      progress %= 100;
+                      (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+                      pair.GeneratePDD();
+                      Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
+                      SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
+                      saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
 
-                });
+                  });
             }
             
         }

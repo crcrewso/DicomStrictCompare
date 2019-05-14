@@ -48,8 +48,8 @@ namespace DicomStrictCompare
 
         public static string ResultHeader => "Source Name,Target Name,Voxels,Voxels above Threshold,Failed Tight,Percent, Failed Main,Percent\n";
 
-        private DoseFile _source;
-        private DoseFile _target;
+        private readonly DoseFile _source;
+        private readonly DoseFile _target;
 
         public List<DoseValue> SourcePDD { get; private set; }
         public List<DoseValue> TargetPDD { get; private set; }
@@ -79,23 +79,13 @@ namespace DicomStrictCompare
 
         public void GeneratePDD()
         {
-            var sourceMatrix = _source.DoseMatrix();
-            var targetMatrix = _target.DoseMatrix();
-
-            var xMin = (sourceMatrix.X0 > targetMatrix.X0) ? sourceMatrix.X0 : targetMatrix.X0;
-            var xMax = (sourceMatrix.XMax < targetMatrix.XMax) ? sourceMatrix.XMax : targetMatrix.XMax;
-            var xRes = (sourceMatrix.XRes > targetMatrix.XRes) ? sourceMatrix.XRes : targetMatrix.XRes;
-            var yMin = (sourceMatrix.Y0 > targetMatrix.Y0) ? sourceMatrix.Y0 : targetMatrix.Y0;
-            var yMax = (sourceMatrix.YMax < targetMatrix.YMax) ? sourceMatrix.YMax : targetMatrix.YMax;
-            var yRes = sourceMatrix.YRes;
-
-            var zMin = (sourceMatrix.Z0 > targetMatrix.Z0) ? sourceMatrix.Z0 : targetMatrix.Z0;
-            var zMax = (sourceMatrix.ZMax < targetMatrix.ZMax) ? sourceMatrix.ZMax : targetMatrix.ZMax;
-            var zRes = sourceMatrix.ZRes;
-
-
-            var startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0 );
-            var endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
+            DoseMatrix sourceMatrix = _source.DoseMatrix();
+            DoseMatrix targetMatrix = _target.DoseMatrix();
+            double yMin = (sourceMatrix.Y0 > targetMatrix.Y0) ? sourceMatrix.Y0 : targetMatrix.Y0;
+            double yMax = (sourceMatrix.YMax < targetMatrix.YMax) ? sourceMatrix.YMax : targetMatrix.YMax;
+            double yRes = sourceMatrix.YRes;
+            EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0 );
+            EvilDICOM.Core.Helpers.Vector3 endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
 
             SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
             TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
@@ -109,16 +99,16 @@ namespace DicomStrictCompare
         /// </summary>
         public void Evaluate(IMathematics mathematics)
         {
-            var sourceDose = new DicomStrictCompare.Model.DoseMatrixOptimal(_source.DoseMatrix());
-            var targetDose = new DicomStrictCompare.Model.DoseMatrixOptimal(_target.DoseMatrix());
+            Model.DoseMatrixOptimal sourceDose = new Model.DoseMatrixOptimal(_source.DoseMatrix());
+            Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());
             TotalCount = targetDose.Length;
             if (sourceDose.CompareDimensions(targetDose))
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
-                var tightRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
+                Tuple<int, int> tightRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                Tuple<int, int> mainRet = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
@@ -126,10 +116,10 @@ namespace DicomStrictCompare
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
-                var tightRet = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
+                Tuple<int, int> tightRet = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
                 TotalFailedTightTol = tightRet.Item1;
                 TotalComparedTightTol = tightRet.Item2;
-                var mainRet = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
+                Tuple<int, int> mainRet = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
                 TotalFailedMainTol = mainRet.Item1;
                 TotalComparedMainTol = mainRet.Item2;
                 IsEvaluated = true;
