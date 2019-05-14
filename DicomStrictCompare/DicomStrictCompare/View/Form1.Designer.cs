@@ -77,7 +77,7 @@
             this.tbxSource.Name = "tbxSource";
             this.tbxSource.Size = new System.Drawing.Size(779, 20);
             this.tbxSource.TabIndex = 4;
-            this.tbxSource.TextChanged += new System.EventHandler(this.tbxSource_TextChanged);
+            this.tbxSource.TextChanged += new System.EventHandler(this.TbxSource_TextChanged);
             // 
             // tbxTarget
             // 
@@ -85,7 +85,7 @@
             this.tbxTarget.Name = "tbxTarget";
             this.tbxTarget.Size = new System.Drawing.Size(779, 20);
             this.tbxTarget.TabIndex = 6;
-            this.tbxTarget.TextChanged += new System.EventHandler(this.tbxTarget_TextChanged);
+            this.tbxTarget.TextChanged += new System.EventHandler(this.TbxTarget_TextChanged);
             // 
             // lblTightTol
             // 
@@ -111,7 +111,7 @@
             this.tbxTightTol.Name = "tbxTightTol";
             this.tbxTightTol.Size = new System.Drawing.Size(53, 20);
             this.tbxTightTol.TabIndex = 0;
-            this.tbxTightTol.TextChanged += new System.EventHandler(this.tbxTightTol_TextChanged);
+            this.tbxTightTol.TextChanged += new System.EventHandler(this.TbxTightTol_TextChanged);
             // 
             // tbxMainTol
             // 
@@ -119,7 +119,7 @@
             this.tbxMainTol.Name = "tbxMainTol";
             this.tbxMainTol.Size = new System.Drawing.Size(53, 20);
             this.tbxMainTol.TabIndex = 1;
-            this.tbxMainTol.TextChanged += new System.EventHandler(this.tbxMainTol_TextChanged);
+            this.tbxMainTol.TextChanged += new System.EventHandler(this.TbxMainTol_TextChanged);
             // 
             // btnExecute
             // 
@@ -129,7 +129,7 @@
             this.btnExecute.TabIndex = 10;
             this.btnExecute.Text = "Run";
             this.btnExecute.UseVisualStyleBackColor = true;
-            this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
+            this.btnExecute.Click += new System.EventHandler(this.BtnExecute_Click);
             // 
             // btnSourceDir
             // 
@@ -139,7 +139,7 @@
             this.btnSourceDir.TabIndex = 10;
             this.btnSourceDir.Text = "Source";
             this.btnSourceDir.UseVisualStyleBackColor = true;
-            this.btnSourceDir.Click += new System.EventHandler(this.btnSourceDir_Click);
+            this.btnSourceDir.Click += new System.EventHandler(this.BtnSourceDir_Click);
             // 
             // btnTargetDir
             // 
@@ -149,7 +149,7 @@
             this.btnTargetDir.TabIndex = 11;
             this.btnTargetDir.Text = "Target";
             this.btnTargetDir.UseVisualStyleBackColor = true;
-            this.btnTargetDir.Click += new System.EventHandler(this.btnTargetDir_Click);
+            this.btnTargetDir.Click += new System.EventHandler(this.BtnTargetDir_Click);
             // 
             // lblSourceFilesFoundText
             // 
@@ -193,7 +193,7 @@
             this.tbxThreshholdTol.Name = "tbxThreshholdTol";
             this.tbxThreshholdTol.Size = new System.Drawing.Size(53, 20);
             this.tbxThreshholdTol.TabIndex = 2;
-            this.tbxThreshholdTol.TextChanged += new System.EventHandler(this.threshBox_TextChanged);
+            this.tbxThreshholdTol.TextChanged += new System.EventHandler(this.ThreshBox_TextChanged);
             // 
             // lblthreshhold
             // 

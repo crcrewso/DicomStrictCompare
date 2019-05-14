@@ -25,9 +25,8 @@ namespace DSC
         public string SourceAliasName { get; private set; } = "Reference";
         public string TargetAliasName { get; private set; } = "New Model";
 
-        private DscDataHandler _dataHandler;
+        private readonly DscDataHandler _dataHandler;
 
-        const int delayTime = 1000;
         private readonly BackgroundWorker worker;
         private bool _isRunning;
         /// <inheritdoc />
@@ -41,11 +40,13 @@ namespace DSC
             tbxTargetLabel.Text = TargetAliasName.ToString();
             _dataHandler = new DscDataHandler();
             tested = false;
-            worker = new BackgroundWorker();
-            worker.WorkerReportsProgress = true;
-            worker.DoWork += worker_DoWork;
-            worker.ProgressChanged += worker_ProgressChanged;
-            worker.RunWorkerCompleted += workerRunWorkerCompleted;
+            worker = new BackgroundWorker
+            {
+                WorkerReportsProgress = true
+            };
+            worker.DoWork += Worker_DoWork;
+            worker.ProgressChanged += Worker_ProgressChanged;
+            worker.RunWorkerCompleted += WorkerRunWorkerCompleted;
             _isRunning = false;
 
         }
@@ -65,27 +66,27 @@ namespace DSC
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void tbxTightTol_TextChanged(object sender, EventArgs e)
+        private void TbxTightTol_TextChanged(object sender, EventArgs e)
         {
             tested = false;
         }
 
-        private void tbxMainTol_TextChanged(object sender, EventArgs e)
+        private void TbxMainTol_TextChanged(object sender, EventArgs e)
         {
             tested = false;
         }
 
-        private void threshBox_TextChanged(object sender, EventArgs e)
+        private void ThreshBox_TextChanged(object sender, EventArgs e)
         {
             tested = false;
         }
 
-        private void tbxSource_TextChanged(object sender, EventArgs e)
+        private void TbxSource_TextChanged(object sender, EventArgs e)
         {
             tested = false;
         }
 
-        private void tbxTarget_TextChanged(object sender, EventArgs e)
+        private void TbxTarget_TextChanged(object sender, EventArgs e)
         {
             tested = false;
         }
@@ -124,7 +125,7 @@ namespace DSC
 
         #region ButtonClicks
 
-        private void btnSourceDir_Click(object sender, EventArgs e)
+        private void BtnSourceDir_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
@@ -142,7 +143,7 @@ namespace DSC
 
         }
 
-        private void btnTargetDir_Click(object sender, EventArgs e)
+        private void BtnTargetDir_Click(object sender, EventArgs e)
         {
             using (FolderBrowserDialog fbd = new FolderBrowserDialog())
             {
@@ -191,7 +192,7 @@ namespace DSC
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnExecute_Click(object sender, EventArgs e)
+        private void BtnExecute_Click(object sender, EventArgs e)
         {
 
             if (!_isRunning)
@@ -236,7 +237,7 @@ namespace DSC
                 worker.CancelAsync();
         }
 
-        void worker_DoWork(object sender, DoWorkEventArgs e)
+        void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             _isRunning = true;
             _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
@@ -248,13 +249,13 @@ namespace DSC
             }
         }
 
-        void worker_ProgressChanged (object sender, ProgressChangedEventArgs e)
+        void Worker_ProgressChanged (object sender, ProgressChangedEventArgs e)
         {
             doseProgressBar.Value = e.ProgressPercentage;
             lblRunStatus.Text = e.UserState.ToString();
         }
 
-        void workerRunWorkerCompleted (object sender, RunWorkerCompletedEventArgs e)
+        void WorkerRunWorkerCompleted (object sender, RunWorkerCompletedEventArgs e)
         {
             _isRunning = false;
             lblRunStatus.Text = "Finished";
