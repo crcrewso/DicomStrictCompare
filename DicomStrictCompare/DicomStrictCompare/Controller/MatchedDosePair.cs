@@ -194,15 +194,27 @@ namespace DicomStrictCompare
                 ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
                 TotalFailedTightTolAbs = ret.Item1;
                 TotalComparedTightTolAbs = ret.Item2;
-                ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
-                TotalFailedMainTolAbs = ret.Item1;
-                TotalComparedMainTolAbs = ret.Item2;
-                ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
-                TotalFailedTightTolRel = ret.Item1;
-                TotalComparedTightTolRel = ret.Item2;
-                ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
-                TotalFailedMainTolRel = ret.Item1;
-                TotalComparedMainTolRel = ret.Item2;
+                if (ret.Item1 == 0) // if failed tightest evaluation skip further evaluation Requires tight < main to work. 
+                {
+                    TotalFailedMainTolAbs = ret.Item1;
+                    TotalComparedMainTolAbs = ret.Item2;
+                    TotalFailedTightTolRel = ret.Item1;
+                    TotalComparedTightTolRel = ret.Item2;
+                    TotalFailedMainTolRel = ret.Item1;
+                    TotalComparedMainTolRel = ret.Item2;
+                }
+                else
+                {
+                    ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                    TotalFailedMainTolAbs = ret.Item1;
+                    TotalComparedMainTolAbs = ret.Item2;
+                    ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
+                    TotalFailedTightTolRel = ret.Item1;
+                    TotalComparedTightTolRel = ret.Item2;
+                    ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                    TotalFailedMainTolRel = ret.Item1;
+                    TotalComparedMainTolRel = ret.Item2;
+                }
                 IsEvaluated = true;
             }
             else
@@ -213,15 +225,27 @@ namespace DicomStrictCompare
                 ret = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
                 TotalFailedTightTolAbs = ret.Item1;
                 TotalComparedTightTolAbs = ret.Item2;
-                ret = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
-                TotalFailedMainTolAbs = ret.Item1;
-                TotalComparedMainTolAbs = ret.Item2;
-                ret = mathematics.CompareRelative(sourceDose, targetDose, TightTol, ThreshholdTol);
-                TotalFailedTightTolRel = ret.Item1;
-                TotalComparedTightTolRel = ret.Item2;
-                ret = mathematics.CompareRelative(sourceDose, targetDose, MainTol, ThreshholdTol);
-                TotalFailedMainTolRel = ret.Item1;
-                TotalComparedMainTolRel = ret.Item2;
+                if (ret.Item1 == 0)
+                {
+                    TotalFailedMainTolAbs = ret.Item1;
+                    TotalComparedMainTolAbs = ret.Item2;
+                    TotalFailedTightTolRel = ret.Item1;
+                    TotalComparedTightTolRel = ret.Item2;
+                    TotalFailedMainTolRel = ret.Item1;
+                    TotalComparedMainTolRel = ret.Item2;
+                }
+                else
+                {
+                    ret = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
+                    TotalFailedMainTolAbs = ret.Item1;
+                    TotalComparedMainTolAbs = ret.Item2;
+                    ret = mathematics.CompareRelative(sourceDose, targetDose, TightTol, ThreshholdTol);
+                    TotalFailedTightTolRel = ret.Item1;
+                    TotalComparedTightTolRel = ret.Item2;
+                    ret = mathematics.CompareRelative(sourceDose, targetDose, MainTol, ThreshholdTol);
+                    TotalFailedMainTolRel = ret.Item1;
+                    TotalComparedMainTolRel = ret.Item2;
+                }
                 IsEvaluated = true;
             }
 
