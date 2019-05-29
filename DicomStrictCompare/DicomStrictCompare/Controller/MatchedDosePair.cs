@@ -45,7 +45,12 @@ namespace DicomStrictCompare
         /// <summary>
         /// Name of the pair evaluated
         /// </summary>
-        public string Name => _source.ShortFileName + ',' + _target.ShortFileName;
+        public string Name => _source.PlanID + ',' + _source.FieldName;
+            
+        /// <summary>
+        /// Filenames of the pair of files
+        /// </summary>
+        public string FileNames => _source.ShortFileName + ',' + _target.ShortFileName;
 
         public string ResultString => String.Join(",", resultArray());
         public static string ResultHeader => String.Join(",", resultArrayHeaderRow0()) + "\n" + String.Join(",", resultArrayHeaderRow1()) + "\n"+String.Join(",", resultArrayHeaderRow2()) + "\n";
@@ -71,7 +76,7 @@ namespace DicomStrictCompare
 
         string[] resultArray()
         {
-            string[] ret = new string[14];
+            string[] ret = new string[15];
             int i = 0;
             ret[i++] = Name;
             ret[i++] = PercentFailedTightTolAbs.ToString("0.0000");
@@ -84,11 +89,14 @@ namespace DicomStrictCompare
             ret[i++] = TotalFailedMainTolAbs.ToString();
             ret[i++] = TotalFailedTightTolRel.ToString();
             ret[i++] = TotalFailedMainTolRel.ToString();
+            ret[i++] = FileNames;
+            ret[i++] = _source.FieldMUs;
+            ret[i++] = _target.FieldMUs;
             return ret;
         }
         static string[] resultArrayHeaderRow0()
         {
-            string[] ret = new string[14];
+            string[] ret = new string[15];
             int i = 0;
             ret[i++] = "";
             ret[i++] = "";
@@ -106,7 +114,7 @@ namespace DicomStrictCompare
         }
         static string[] resultArrayHeaderRow1()
         {
-            string[] ret = new string[14];
+            string[] ret = new string[15];
             int i = 0;
             ret[i++] = "";
             ret[i++] = "";
@@ -124,9 +132,10 @@ namespace DicomStrictCompare
         }
         static string[] resultArrayHeaderRow2()
         {
-            string[] ret = new string[14];
+            string[] ret = new string[15];
             int i = 0;
-            ret[i++] = "Source File Name,Target File Name";
+            ret[i++] = "Plan Name";
+            ret[i++] = "Field Name";
             ret[i++] = "Tight";
             ret[i++] = "Main";
             ret[i++] = "Tight";
@@ -137,6 +146,9 @@ namespace DicomStrictCompare
             ret[i++] = "Main";
             ret[i++] = "Tight";
             ret[i++] = "Main";
+            ret[i++] = "Source File Name,Target File Name";
+            ret[i++] = "Source MUs";
+            ret[i++] = "Target MUs";
             return ret;
         }
 
@@ -147,6 +159,8 @@ namespace DicomStrictCompare
             ThreshholdTol = epsilonTol;
             TightTol = tightTol;
             MainTol = mainTol;
+            ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
+            ChartFileName = _source.PlanID + @"\" + _source.FieldName;
         }
 
         public void GeneratePDD()
@@ -158,12 +172,10 @@ namespace DicomStrictCompare
             double yRes = sourceMatrix.YRes;
             EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0 );
             EvilDICOM.Core.Helpers.Vector3 endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
-
             SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
             TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
 
-            ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
-            ChartFileName = _source.PlanID + @"\" + _source.FieldName;
+
         }
 
         /// <summary>
@@ -175,6 +187,7 @@ namespace DicomStrictCompare
             Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());
             TotalCount = targetDose.Length;
             if (sourceDose.CompareDimensions(targetDose))
+            //if (false)
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
                 Tuple<int, int> ret;
@@ -195,6 +208,7 @@ namespace DicomStrictCompare
             else
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
+                Debug.WriteLine("Max dose: Source - " + sourceDose.MaxPointDose.Dose + " Target - " + targetDose.MaxPointDose.Dose);
                 Tuple<int, int> ret;
                 ret = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
                 TotalFailedTightTolAbs = ret.Item1;

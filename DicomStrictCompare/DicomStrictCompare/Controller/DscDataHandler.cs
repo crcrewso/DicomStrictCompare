@@ -221,7 +221,7 @@ namespace DicomStrictCompare
                   {
                       progress += ProgressIncrimentor;
                       progress %= 100;
-                      (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing");
+                      (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
                       try
                       {
                           pair.Evaluate(mathematics);

@@ -97,6 +97,8 @@ namespace DicomStrictCompare
         /// </summary>
         public string FieldName { get; private set; }
 
+        public string FieldMUs { get; private set; }
+
         /// <summary>
         /// Compound of other metaData to match against
         /// </summary>
@@ -153,11 +155,12 @@ namespace DicomStrictCompare
                 if (plan.SopInstanceId == SopInstanceId)
                 {
                     PlanID = plan.PlanID;
-                    foreach (Tuple<string, string> beam in plan.FieldNumberToNameList)
+                    foreach (Tuple<string, string, string> beam in plan.FieldNumberToNameList)
                     {
                         if (beam.Item1 == BeamNumber)
                         {
                             FieldName = beam.Item2;
+                            FieldMUs = beam.Item3;
                         }
                     }
                 }
@@ -237,7 +240,10 @@ namespace DicomStrictCompare
 
     class PlanFile
     {
-        public List<Tuple<string, string>> FieldNumberToNameList { get; }
+        /// <summary>
+        /// Contains the field name, field number and number of MU's 
+        /// </summary>
+        public List<Tuple<string, string, string>> FieldNumberToNameList { get; }
         public string FileName { get; }
         public string ShortFileName { get; }
         /// <summary>
@@ -250,7 +256,7 @@ namespace DicomStrictCompare
 
         public PlanFile(string fileName)
         {
-            FieldNumberToNameList = new List<Tuple<string, string>>();
+            FieldNumberToNameList = new List<Tuple<string, string, string>>();
             FileName = fileName;
             ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
             DICOMObject dcm1 = DICOMObject.Read(fileName);
@@ -262,11 +268,12 @@ namespace DicomStrictCompare
                 PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNames = dcm1.FindAll(TagHelper.BeamName);
+                List<EvilDICOM.Core.Interfaces.IDICOMElement> beamMUs = dcm1.FindAll(TagHelper.BeamMeterset);
                 if (beamNames.Count == beamNumbers.Count)
                 {
                     for (int i = 0; i < beamNames.Count; i++)
                     {
-                        FieldNumberToNameList.Add(new Tuple<string, string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString()));
+                        FieldNumberToNameList.Add(new Tuple<string, string,string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString(), beamMUs[i].DData.ToString()));
                     }
                 }
             }
