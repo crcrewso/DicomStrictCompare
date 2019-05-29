@@ -74,19 +74,16 @@ namespace DicomStrictCompare
             string[] ret = new string[14];
             int i = 0;
             ret[i++] = Name;
+            ret[i++] = PercentFailedTightTolAbs.ToString("0.0000");
+            ret[i++] = PercentFailedMainTolAbs.ToString("0.0000");
+            ret[i++] = PercentFailedTightTolRel.ToString("0.0000");
+            ret[i++] = PercentFailedMainTolRel.ToString("0.0000");
             ret[i++] = TotalCount.ToString();
             ret[i++] = TotalComparedTightTolAbs.ToString();
             ret[i++] = TotalFailedTightTolAbs.ToString();
-            ret[i++] = PercentFailedTightTolAbs.ToString("0.0000");
-            ret[i++] = TotalComparedMainTolAbs.ToString();
             ret[i++] = TotalFailedMainTolAbs.ToString();
-            ret[i++] = PercentFailedMainTolAbs.ToString("0.0000");
-            ret[i++] = TotalComparedTightTolRel.ToString();
             ret[i++] = TotalFailedTightTolRel.ToString();
-            ret[i++] = PercentFailedTightTolRel.ToString("0.0000");
-            ret[i++] = TotalComparedMainTolRel.ToString();
             ret[i++] = TotalFailedMainTolRel.ToString();
-            ret[i++] = PercentFailedMainTolRel.ToString("0.0000");
             return ret;
         }
         static string[] resultArrayHeaderRow0()
@@ -95,15 +92,13 @@ namespace DicomStrictCompare
             int i = 0;
             ret[i++] = "";
             ret[i++] = "";
-            ret[i++] = "Absolute";
+            ret[i++] = "Percent Failed";
             ret[i++] = "";
             ret[i++] = "";
             ret[i++] = "";
             ret[i++] = "";
             ret[i++] = "";
-            ret[i++] = "Relative";
-            ret[i++] = "";
-            ret[i++] = "";
+            ret[i++] = "Total Failed";
             ret[i++] = "";
             ret[i++] = "";
             ret[i++] = "";
@@ -115,17 +110,15 @@ namespace DicomStrictCompare
             int i = 0;
             ret[i++] = "";
             ret[i++] = "";
-            ret[i++] = "Tight";
+            ret[i++] = "Absolute";
+            ret[i++] = "";
+            ret[i++] = "Relative";
             ret[i++] = "";
             ret[i++] = "";
-            ret[i++] = "Main";
             ret[i++] = "";
+            ret[i++] = "Absolute";
             ret[i++] = "";
-            ret[i++] = "Tight";
-            ret[i++] = "";
-            ret[i++] = "";
-            ret[i++] = "Main";
-            ret[i++] = "";
+            ret[i++] = "Relative";
             ret[i++] = "";
             return ret;
         }
@@ -134,19 +127,16 @@ namespace DicomStrictCompare
             string[] ret = new string[14];
             int i = 0;
             ret[i++] = "Source File Name,Target File Name";
+            ret[i++] = "Tight";
+            ret[i++] = "Main";
+            ret[i++] = "Tight";
+            ret[i++] = "Main";
             ret[i++] = "TotalCount";
             ret[i++] = "Total Compared";
-            ret[i++] = "Total Failed";
-            ret[i++] = "Percent Failed ";
-            ret[i++] = "Total Compared";
-            ret[i++] = "Total Failed";
-            ret[i++] = "Percent Failed ";
-            ret[i++] = "Total Compared";
-            ret[i++] = "Total Failed";
-            ret[i++] = "Percent Failed ";
-            ret[i++] = "Total Compared";
-            ret[i++] = "Total Failed";
-            ret[i++] = "Percent Failed ";
+            ret[i++] = "Tight";
+            ret[i++] = "Main";
+            ret[i++] = "Tight";
+            ret[i++] = "Main";
             return ret;
         }
 
