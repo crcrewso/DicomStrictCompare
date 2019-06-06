@@ -30,7 +30,7 @@ namespace DicomStrictCompare
 
         
 
-        public static ConcurrentBag<DoseFile> DoseFiles(string[] listOfFiles)
+        public static List<DoseFile> DoseFiles(string[] listOfFiles)
         {
             ConcurrentBag<DoseFile> doseFiles = new ConcurrentBag<DoseFile>();
             _ = Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
@@ -43,10 +43,10 @@ namespace DicomStrictCompare
                       doseFiles.Add(tempDose);
                   }
               });
-            return doseFiles;
+            return new List<DoseFile>( doseFiles);
         }
 
-        public static ConcurrentBag<PlanFile> PlanFiles(string[] listOfFiles)
+        public static List<PlanFile> PlanFiles(string[] listOfFiles)
         {
             ConcurrentBag<PlanFile> planFiles = new ConcurrentBag<PlanFile>();
             _ = Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
@@ -59,7 +59,7 @@ namespace DicomStrictCompare
                       planFiles.Add(tempPlan);
                   }
               });
-            return planFiles;
+            return new List<PlanFile>(planFiles);
         }
 
 
@@ -149,23 +149,13 @@ namespace DicomStrictCompare
             }
         }
 
-        public void SetFieldName(ConcurrentBag<PlanFile> planFiles)
+        public void SetFieldName(List<PlanFile> planFiles)
         {
-            foreach (PlanFile plan in planFiles)
-            {
-                if (plan.SopInstanceId == SopInstanceId)
-                {
-                    PlanID = plan.PlanID;
-                    foreach (Tuple<string, string, string> beam in plan.FieldNumberToNameList)
-                    {
-                        if (beam.Item1 == BeamNumber)
-                        {
-                            FieldName = beam.Item2;
-                            FieldMUs = beam.Item3;
-                        }
-                    }
-                }
-            }
+            PlanFile match = planFiles.Find(X => X.SopInstanceId == SopInstanceId);
+            PlanID = match.PlanID;
+            Tuple<string, string, string> beam = match.FieldNumberToNameList.Find(x => x.Item1 == BeamNumber);
+            FieldName = beam.Item2;
+            FieldMUs = beam.Item3;
         }
 
         /// <summary>

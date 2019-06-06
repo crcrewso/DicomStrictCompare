@@ -26,23 +26,23 @@ namespace DicomStrictCompare
         /// <summary>
         /// List of RD (Dose) files in the source directory
         /// </summary>
-        public ConcurrentBag<DoseFile> SourceDosesList { get; private set; }
+        public List<DoseFile> SourceDosesList { get; private set; }
         /// <summary>
         /// List of RP (Plan) files in the source directory
         /// </summary>
-        public ConcurrentBag<PlanFile> SourcePlanList { get; private set; }
+        public List<PlanFile> SourcePlanList { get; private set; }
         /// <summary>
         /// List of RD (Dose) files in the target directory
         /// </summary>
-        public ConcurrentBag<DoseFile> TargetDosesList { get; private set; }
+        public List<DoseFile> TargetDosesList { get; private set; }
         /// <summary>
         /// List of RP (Plan) Files in the target directory
         /// </summary>
-        public ConcurrentBag<PlanFile> TargetPlanList { get; private set; }
+        public List<PlanFile> TargetPlanList { get; private set; }
         /// <summary>
         /// List of matched source and plan dose files, at the time of this comment matching was made by plan name, field name and patient ID. 
         /// </summary>
-        public List<MatchedDosePair> DosePairsList { get; private set; }
+        public ConcurrentBag<MatchedDosePair> DosePairsList { get; private set; }
 
         public double ThresholdTol { get; set; }
         public double TightTol { get; set; }
@@ -59,7 +59,7 @@ namespace DicomStrictCompare
 
         public DscDataHandler()
         {
-            DosePairsList = new List<MatchedDosePair>();
+            DosePairsList = new ConcurrentBag<MatchedDosePair>();
             mathematics = new X86Mathematics();
         }
 
@@ -167,7 +167,7 @@ namespace DicomStrictCompare
             #endregion
 
 
-            DosePairsList = new List<MatchedDosePair>();
+            DosePairsList = new ConcurrentBag<MatchedDosePair>();
             ResultMessage = "Tight Tolerance, " + (100 * TightTol).ToString();
             ResultMessage += "\nMain Tolerance, " + (100 * MainTol).ToString();
             ResultMessage += "\nThreshold, " + (100 * ThresholdTol).ToString() + "\n";
@@ -198,15 +198,12 @@ namespace DicomStrictCompare
                   progress += ProgressIncrimentor;
                   progress %= 100;
                   (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
-                  foreach (DoseFile sourceDose in SourceDosesList)
-                  {
-                      if (dose.MatchIdentifier == sourceDose.MatchIdentifier)
-                      {
+                  var sourceDose = SourceDosesList.Find(x => x.MatchIdentifier == dose.MatchIdentifier);
                           Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
                           DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
                               this.MainTol));
-                      }
-                  }
+                     
+                
               });
             if (DosePairsList.Count <= 0)
                 return;
