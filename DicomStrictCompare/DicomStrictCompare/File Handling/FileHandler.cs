@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -29,9 +30,9 @@ namespace DicomStrictCompare
 
         
 
-        public static List<DoseFile> DoseFiles(string[] listOfFiles)
+        public static ConcurrentBag<DoseFile> DoseFiles(string[] listOfFiles)
         {
-            List<DoseFile> doseFiles = new List<DoseFile>();
+            ConcurrentBag<DoseFile> doseFiles = new ConcurrentBag<DoseFile>();
             _ = Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
               {
                   DicomFile temp = new DicomFile(file);
@@ -45,9 +46,9 @@ namespace DicomStrictCompare
             return doseFiles;
         }
 
-        public static List<PlanFile> PlanFiles(string[] listOfFiles)
+        public static ConcurrentBag<PlanFile> PlanFiles(string[] listOfFiles)
         {
-            List<PlanFile> planFiles = new List<PlanFile>();
+            ConcurrentBag<PlanFile> planFiles = new ConcurrentBag<PlanFile>();
             _ = Parallel.ForEach(listOfFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
               {
                   DicomFile temp = new DicomFile(file);
@@ -148,7 +149,7 @@ namespace DicomStrictCompare
             }
         }
 
-        public void SetFieldName(List<PlanFile> planFiles)
+        public void SetFieldName(ConcurrentBag<PlanFile> planFiles)
         {
             foreach (PlanFile plan in planFiles)
             {

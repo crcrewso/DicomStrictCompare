@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -25,19 +26,19 @@ namespace DicomStrictCompare
         /// <summary>
         /// List of RD (Dose) files in the source directory
         /// </summary>
-        public List<DoseFile> SourceDosesList { get; private set; }
+        public ConcurrentBag<DoseFile> SourceDosesList { get; private set; }
         /// <summary>
         /// List of RP (Plan) files in the source directory
         /// </summary>
-        public List<PlanFile> SourcePlanList { get; private set; }
+        public ConcurrentBag<PlanFile> SourcePlanList { get; private set; }
         /// <summary>
         /// List of RD (Dose) files in the target directory
         /// </summary>
-        public List<DoseFile> TargetDosesList { get; private set; }
+        public ConcurrentBag<DoseFile> TargetDosesList { get; private set; }
         /// <summary>
         /// List of RP (Plan) Files in the target directory
         /// </summary>
-        public List<PlanFile> TargetPlanList { get; private set; }
+        public ConcurrentBag<PlanFile> TargetPlanList { get; private set; }
         /// <summary>
         /// List of matched source and plan dose files, at the time of this comment matching was made by plan name, field name and patient ID. 
         /// </summary>
