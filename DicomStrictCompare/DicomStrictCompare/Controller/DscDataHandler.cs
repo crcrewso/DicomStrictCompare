@@ -131,38 +131,15 @@ namespace DicomStrictCompare
             #endregion
 
             #region setup
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup");
-            System.Threading.Thread sourceDoseProcess = new System.Threading.Thread(() => 
-            {
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Source Doses ");
             SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
-
-            });
-
-            System.Threading.Thread sourcePlanProcess = new System.Threading.Thread(() =>
-            {
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Source Plans ");
             SourcePlanList = FileHandler.PlanFiles(SourceListStrings);
-
-            });
-
-            System.Threading.Thread targetDoseProcess = new System.Threading.Thread(() =>
-            {
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Target Doses ");
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
-
-            });
-
-            System.Threading.Thread targetPlanProcess = new System.Threading.Thread(() =>
-            {
+            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Target Plans ");
             TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
 
-            });
-            sourceDoseProcess.Start();
-            targetDoseProcess.Start();
-            sourcePlanProcess.Start();
-            targetPlanProcess.Start();
-            sourceDoseProcess.Join();
-            targetDoseProcess.Join();
-            sourcePlanProcess.Join();
-            targetPlanProcess.Join();
 
             #endregion
 
@@ -199,10 +176,12 @@ namespace DicomStrictCompare
                   progress %= 100;
                   (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
                   var sourceDose = SourceDosesList.Find(x => x.MatchIdentifier == dose.MatchIdentifier);
-                          Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
-                          DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
-                              this.MainTol));
-                     
+                  if (sourceDose != null)
+                  {
+                      Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
+                      DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
+                          this.MainTol));
+                  }
                 
               });
             if (DosePairsList.Count <= 0)

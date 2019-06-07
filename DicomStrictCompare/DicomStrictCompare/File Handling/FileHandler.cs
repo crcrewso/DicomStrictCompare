@@ -152,10 +152,30 @@ namespace DicomStrictCompare
         public void SetFieldName(List<PlanFile> planFiles)
         {
             PlanFile match = planFiles.Find(X => X.SopInstanceId == SopInstanceId);
-            PlanID = match.PlanID;
-            Tuple<string, string, string> beam = match.FieldNumberToNameList.Find(x => x.Item1 == BeamNumber);
-            FieldName = beam.Item2;
-            FieldMUs = beam.Item3;
+            if (match != null)
+            {
+                Tuple<string, string, string> beam = match.FieldNumberToNameList.Find(x => x.Item1 == BeamNumber);
+                if (beam != null)
+                {
+                    PlanID = match.PlanID;
+                    FieldName = beam.Item2;
+                    FieldMUs = beam.Item3;
+                }
+                else
+                {
+                    var random = new Random();
+                    PlanID = "FieldNotFound" + random.Next();
+                    FieldName = "FieldNotFound" + random.Next();
+                    FieldMUs = "-1";
+                }
+            }
+            else
+            {
+                var random = new Random();
+                PlanID = "FieldNotFound" + random.Next();
+                FieldName = "FieldNotFound" + random.Next();
+                FieldMUs = "-1";
+            }
         }
 
         /// <summary>
@@ -260,11 +280,19 @@ namespace DicomStrictCompare
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNames = dcm1.FindAll(TagHelper.BeamName);
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamMUs = dcm1.FindAll(TagHelper.BeamMeterset);
-                if (beamNames.Count == beamNumbers.Count)
+                if (beamNames.Count == beamNumbers.Count && beamNames.Count == beamMUs.Count)
                 {
                     for (int i = 0; i < beamNames.Count; i++)
                     {
-                        FieldNumberToNameList.Add(new Tuple<string, string,string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString(), beamMUs[i].DData.ToString()));
+                        try
+                        {
+                            var temp = new Tuple<string, string, string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString(), beamMUs[i].DData.ToString());
+                            FieldNumberToNameList.Add(temp);
+                        }
+                        catch (ArgumentOutOfRangeException e)
+                        {
+                            break;
+                        }
                     }
                 }
             }
