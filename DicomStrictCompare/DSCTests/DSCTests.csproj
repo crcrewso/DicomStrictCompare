@@ -50,8 +50,8 @@
     <Reference Include="Alea.Parallel, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ba52afc3c2e933d6, processorArchitecture=MSIL">
       <HintPath>..\packages\Alea.3.0.4\lib\net45\Alea.Parallel.dll</HintPath>
     </Reference>
-    <Reference Include="EvilDICOM, Version=2.0.3.7, Culture=neutral, PublicKeyToken=236d7078f2290bcd, processorArchitecture=MSIL">
-      <HintPath>..\packages\EvilDICOM.2.0.4\lib\net45\EvilDICOM.dll</HintPath>
+    <Reference Include="EvilDICOM, Version=2.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EvilDICOM.2.0.5\lib\net46\EvilDICOM.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.6.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\FSharp.Core.4.6.2\lib\net45\FSharp.Core.dll</HintPath>

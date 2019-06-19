@@ -289,7 +289,7 @@ namespace DicomStrictCompare
                             var temp = new Tuple<string, string, string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString(), beamMUs[i].DData.ToString());
                             FieldNumberToNameList.Add(temp);
                         }
-                        catch (ArgumentOutOfRangeException e)
+                        catch (ArgumentOutOfRangeException)
                         {
                             break;
                         }
