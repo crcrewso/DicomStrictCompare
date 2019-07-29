@@ -116,11 +116,11 @@ namespace DicomStrictCompare
                     doses1[i] = 0;
                 }
             }
-
+            string strFormat = "0.00";
             string titleText = "";
-            titleText += "\t\t\t80% \t50%";
-            titleText += "\nReference\t"+z[sourcePercent80].ToString() + "\t" + z[sourcePercent50].ToString();
-            titleText += "\nNew Model\t"+z[targetPercent80].ToString() + "\t" + z[targetPercent50].ToString();
+            titleText += "\t \t \t \t 80% \t \t \t 50%";
+            titleText += "\n" + SourceAlias + " \t"+z[sourcePercent80].ToString(strFormat) + " \t" + z[sourcePercent50].ToString(strFormat);
+            titleText += "\n" + TargetAlias + " \t"+z[targetPercent80].ToString(strFormat) + " \t" + z[targetPercent50].ToString(strFormat);
 
             //produces the list of differences to plot
             List<double> doseDiff = new List<double>();
@@ -149,9 +149,9 @@ namespace DicomStrictCompare
             chart.Titles.Add(chartTitle);
 
             //textbox for Percent depth metrics
-            Title DepthMetricsBox = new Title(titleText, Docking.Right);
+            Title DepthMetricsBox = new Title(titleText, Docking.Top, subtitleFont, Color.Black);
             DepthMetricsBox.IsDockedInsideChartArea = true;
-            DepthMetricsBox.Docking = Docking.Right;
+            DepthMetricsBox.Docking = Docking.Top;
             chart.Titles.Add(DepthMetricsBox);
             ChartArea chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
