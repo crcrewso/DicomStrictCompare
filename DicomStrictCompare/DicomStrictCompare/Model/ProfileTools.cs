@@ -141,6 +141,39 @@ namespace DicomStrictCompare
 
         }
 
+        /// <summary>
+        /// Calculates the depth from surface that a PDD will drop below the percent provided. percent=50 would yield the depth at which the profile falls to below 0.5*Peak 
+        /// </summary>
+        /// <param name="doseValues">PDD Profile data</param>
+        /// <param name="percent">Integer representing percent of depth of interest </param>
+        /// <returns>The index of the furthest voxel from the surface that has a dose value above the percent of interest</returns>
+        ///<exception cref="ArgumentOutOfRangeException">Thrown when the profile does not drop below the sought percent</exception>
+        public static int DepthToPercentOfPeak(List<DoseValue> doseValues, int percent)
+        {
+            // finding value and location of maximum
+            double max = 0;
+            int indexMax = 0;
+            for(int i = 0; i < doseValues.Count; i++)
+            {
+                if (doseValues[i].Dose > max)
+                {
+                    max = doseValues[i].Dose;
+                    indexMax = i;
+                }
+            }
+            // I have the location and value of max
+            double threshold = max * (double)percent / 100.0;
+            for(int i = indexMax; i < doseValues.Count; i++)
+            {
+                if (doseValues[i].Dose < threshold)
+                {
+                    return i - 1;
+                }
+            }
+            throw new ArgumentOutOfRangeException("The profile does not drop below " + percent + " of the peak");
+        }
+
+
     }
 
 }

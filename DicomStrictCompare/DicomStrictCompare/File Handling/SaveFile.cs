@@ -85,7 +85,12 @@ namespace DicomStrictCompare
             List<double> doses0 = new List<double>(); // the list of doubles to plot for dose0
             List<double> doses1 = new List<double>(); // the list of doubles to plot for dose1
 
-
+            // index of z to use to report the percent of peak metrics 
+            int sourcePercent80 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 80);
+            int sourcePercent50 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 50);
+            int targetPercent80 = ProfileTools.DepthToPercentOfPeak(targetPDD, 80);
+            int targetPercent50 = ProfileTools.DepthToPercentOfPeak(targetPDD, 50);
+            
             //converts List<DoseValue> to List<double> for plotting
             // sets the x locations of each data point
             foreach (DoseValue item in sourcePDD)
@@ -112,6 +117,10 @@ namespace DicomStrictCompare
                 }
             }
 
+            string titleText = "";
+            titleText += "\t\t\t80% \t50%";
+            titleText += "\nReference\t"+z[sourcePercent80].ToString() + "\t" + z[sourcePercent50].ToString();
+            titleText += "\nNew Model\t"+z[targetPercent80].ToString() + "\t" + z[targetPercent50].ToString();
 
             //produces the list of differences to plot
             List<double> doseDiff = new List<double>();
@@ -133,8 +142,17 @@ namespace DicomStrictCompare
             Font subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
             Chart chart = new Chart();
             chart.Size = new Size(3200, 1800);
+            //chart title
             Title chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black);
+            chartTitle.Docking = Docking.Top;
+            chartTitle.IsDockedInsideChartArea = false;
             chart.Titles.Add(chartTitle);
+
+            //textbox for Percent depth metrics
+            Title DepthMetricsBox = new Title(titleText, Docking.Right);
+            DepthMetricsBox.IsDockedInsideChartArea = true;
+            DepthMetricsBox.Docking = Docking.Right;
+            chart.Titles.Add(DepthMetricsBox);
             ChartArea chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
             chartArea.AxisY.MajorGrid.LineColor = Color.Black;
