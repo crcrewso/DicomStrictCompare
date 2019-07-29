@@ -86,10 +86,10 @@ namespace DicomStrictCompare
             List<double> doses1 = new List<double>(); // the list of doubles to plot for dose1
 
             // index of z to use to report the percent of peak metrics 
-            int sourcePercent80 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 80);
-            int sourcePercent50 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 50);
-            int targetPercent80 = ProfileTools.DepthToPercentOfPeak(targetPDD, 80);
-            int targetPercent50 = ProfileTools.DepthToPercentOfPeak(targetPDD, 50);
+            var sourcePercent80 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 80).Y - sourcePDD[0].Y;
+            var sourcePercent50 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 50).Y - sourcePDD[0].Y;
+            var targetPercent80 = ProfileTools.DepthToPercentOfPeak(targetPDD, 80).Y - targetPDD[0].Y;
+            var targetPercent50 = ProfileTools.DepthToPercentOfPeak(targetPDD, 50).Y - targetPDD[0].Y;
             
             //converts List<DoseValue> to List<double> for plotting
             // sets the x locations of each data point
@@ -119,8 +119,8 @@ namespace DicomStrictCompare
             string strFormat = "0.00";
             string titleText = "";
             titleText += "\t \t \t \t 80% \t \t \t 50%";
-            titleText += "\n" + SourceAlias + " \t"+z[sourcePercent80].ToString(strFormat) + " \t" + z[sourcePercent50].ToString(strFormat);
-            titleText += "\n" + TargetAlias + " \t"+z[targetPercent80].ToString(strFormat) + " \t" + z[targetPercent50].ToString(strFormat);
+            titleText += "\n" + SourceAlias + " \t"+sourcePercent80.ToString(strFormat) + " \t" + sourcePercent50.ToString(strFormat);
+            titleText += "\n" + TargetAlias + " \t"+targetPercent80.ToString(strFormat) + " \t" + targetPercent50.ToString(strFormat);
 
             //produces the list of differences to plot
             List<double> doseDiff = new List<double>();
