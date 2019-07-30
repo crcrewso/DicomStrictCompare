@@ -15,7 +15,7 @@ namespace DicomStrictCompare
     class DscDataHandler
     {
 
-
+        public bool fuzzy = false;
         public string SourceDirectory { get; private set; }
         public string SourceAliasName { get; set; }
         public string TargetAliasName { get; set; }
@@ -201,7 +201,7 @@ namespace DicomStrictCompare
                       (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
                       try
                       {
-                          pair.Evaluate(mathematics);
+                          pair.Evaluate(mathematics, fuzzy);
                           ResultMessage += pair.ResultString + '\n';
                       }
                     // Will catch array misalignment problems

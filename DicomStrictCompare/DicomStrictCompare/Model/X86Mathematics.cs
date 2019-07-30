@@ -14,18 +14,22 @@ namespace DicomStrictCompare
 
         }
 
-        public override System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
+        public override System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
-            return LinearCompareAbslute(source,  target, tolerance, epsilon);
+            return LinearCompareAbslute(source,  target, tolerance, epsilon, fuzzy);
         }
 
-        public override System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        public override System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
-            return LinearCompareRelative(source, target, tolerance, epsilon);
+            return LinearCompareRelative(source, target, tolerance, epsilon, fuzzy);
         }
 
-        public System.Tuple<int, int> ParallelCompare(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> ParallelCompare(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
+            if (fuzzy)
+            {
+                throw new System.ArgumentException("Method does not yet impliment fuzzy logic");
+            }
             int[] failedList = new int[source.Count()];
             double MaxSource = source.Max();
             double MaxTarget = target.Max();
@@ -39,6 +43,7 @@ namespace DicomStrictCompare
                       double sourceLow = (1.0 - tolerance) * sourcei;
                       double sourceHigh = (1.0 + tolerance) * sourcei;
                       if (targeti < sourceLow || targeti > sourceHigh)
+
                           failedList[i] = 1;
                   }
                   else
@@ -50,8 +55,12 @@ namespace DicomStrictCompare
             return new System.Tuple<int, int>(failedList.AsParallel().Sum(), 0);
         }
 
-        public System.Tuple<int, int> LinearCompareAbslute(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> LinearCompareAbslute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
+            if (fuzzy)
+            {
+                throw new System.ArgumentException("Method does not yet impliment fuzzy logic");
+            }
             int failed = 0;
             int TotalCompared = 0;
             double MaxSource = source.Max();
@@ -78,8 +87,12 @@ namespace DicomStrictCompare
 
 
 
-        public System.Tuple<int, int> LinearCompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        public System.Tuple<int, int> LinearCompareRelative(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
+            if (fuzzy)
+            {
+                throw new System.ArgumentException("Method does not yet impliment fuzzy logic");
+            }
             int failed = 0;
             int TotalCompared = 0;
             double MaxSource = source.Max();

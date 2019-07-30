@@ -181,7 +181,7 @@ namespace DicomStrictCompare
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out
         /// </summary>
-        public void Evaluate(IMathematics mathematics)
+        public void Evaluate(IMathematics mathematics, bool fuzzy)
         {
             Model.DoseMatrixOptimal sourceDose = new Model.DoseMatrixOptimal(_source.DoseMatrix());
             Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());
@@ -191,7 +191,7 @@ namespace DicomStrictCompare
             {
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName);
                 Tuple<int, int> ret;
-                ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
+                ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol, fuzzy);
                 TotalFailedTightTolAbs = ret.Item1;
                 TotalComparedTightTolAbs = ret.Item2;
                 if (ret.Item1 == 0) // if failed tightest evaluation skip further evaluation Requires tight < main to work. 
@@ -205,13 +205,13 @@ namespace DicomStrictCompare
                 }
                 else
                 {
-                    ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                    ret = mathematics.CompareAbsolute(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol, fuzzy);
                     TotalFailedMainTolAbs = ret.Item1;
                     TotalComparedMainTolAbs = ret.Item2;
-                    ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol);
+                    ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, TightTol, ThreshholdTol, fuzzy);
                     TotalFailedTightTolRel = ret.Item1;
                     TotalComparedTightTolRel = ret.Item2;
-                    ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol);
+                    ret = mathematics.CompareRelative(sourceDose.DoseValues, targetDose.DoseValues, MainTol, ThreshholdTol, fuzzy);
                     TotalFailedMainTolRel = ret.Item1;
                     TotalComparedMainTolRel = ret.Item2;
                 }
@@ -222,7 +222,7 @@ namespace DicomStrictCompare
                 Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
                 Debug.WriteLine("Max dose: Source - " + sourceDose.MaxPointDose.Dose + " Target - " + targetDose.MaxPointDose.Dose);
                 Tuple<int, int> ret;
-                ret = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol);
+                ret = mathematics.CompareAbsolute(sourceDose, targetDose, TightTol, ThreshholdTol, fuzzy);
                 TotalFailedTightTolAbs = ret.Item1;
                 TotalComparedTightTolAbs = ret.Item2;
                 if (ret.Item1 == 0)
@@ -236,13 +236,13 @@ namespace DicomStrictCompare
                 }
                 else
                 {
-                    ret = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol);
+                    ret = mathematics.CompareAbsolute(sourceDose, targetDose, MainTol, ThreshholdTol, fuzzy);
                     TotalFailedMainTolAbs = ret.Item1;
                     TotalComparedMainTolAbs = ret.Item2;
-                    ret = mathematics.CompareRelative(sourceDose, targetDose, TightTol, ThreshholdTol);
+                    ret = mathematics.CompareRelative(sourceDose, targetDose, TightTol, ThreshholdTol, fuzzy);
                     TotalFailedTightTolRel = ret.Item1;
                     TotalComparedTightTolRel = ret.Item2;
-                    ret = mathematics.CompareRelative(sourceDose, targetDose, MainTol, ThreshholdTol);
+                    ret = mathematics.CompareRelative(sourceDose, targetDose, MainTol, ThreshholdTol, fuzzy);
                     TotalFailedMainTolRel = ret.Item1;
                     TotalComparedMainTolRel = ret.Item2;
                 }
