@@ -12,9 +12,9 @@ namespace DicomStrictCompare.Model
         public readonly double[] DoseValues;
         public readonly double Scaling;
         public readonly double X0, Y0, Z0, XMax, YMax, ZMax, XRes, YRes, ZRes;
-        public DoseValue MaxPointDose;
-        public int Length;
-        public int Count;
+        public readonly DoseValue MaxPointDose;
+        public int Length { get; }
+        public int Count { get; }
 
         public DoseMatrixOptimal(DoseMatrix doseMatrix)
         {
@@ -121,7 +121,7 @@ namespace DicomStrictCompare.Model
             return x + y * dimX + z * dimX * dimY;
         }
 
-        public bool CompareDimensions(DoseMatrixOptimal y)
+        public bool CompareDimensions(in DoseMatrixOptimal y)
         {
             if (DoseValues.Length != y.DoseValues.Length)
                 return false;

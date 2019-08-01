@@ -81,7 +81,7 @@ namespace DicomStrictCompare
             System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
             return ret;
         }
-        public virtual System.Tuple<int, int> CompareAbsolute(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, double tolerance, double epsilon, bool fuzzy = false)
+        public virtual System.Tuple<int, int> CompareAbsolute(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, double tolerance, double epsilon, bool fuzzy = false)
         {
 
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
@@ -145,7 +145,7 @@ namespace DicomStrictCompare
             System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
             return ret;
         }
-        public virtual System.Tuple<int, int> CompareRelative(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, double tolerance, double epsilon, bool fuzzy = false)
+        public virtual System.Tuple<int, int> CompareRelative(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, double tolerance, double epsilon, bool fuzzy = false)
         {
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
             double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
