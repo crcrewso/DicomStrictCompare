@@ -54,21 +54,20 @@ namespace DicomStrictCompare
 
         /// <summary>
         /// This will only save PDD's 
-        /// TODO increase font 
         /// </summary>
         /// <param name="sourcePDD"></param>
         /// <param name="targetPDD"></param>
         /// <param name="filename"></param>
         /// <param name="title"></param>
         /// <param name="note"></param>
-        public void Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
+        public string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
         {
             double maxDose = 0;
             foreach (DoseValue dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
             if (sourcePDD.Count != targetPDD.Count)
             {
-                throw new ArgumentOutOfRangeException("The two lists don't have the same length!!!!");
+                throw new ArgumentOutOfRangeException("The two lists don't have the same length!!!!\n" + chartTitleString);
             }
             if (sourcePDD.Count == 0 || targetPDD.Count == 0)
             {
@@ -230,6 +229,7 @@ namespace DicomStrictCompare
             chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
             Debug.WriteLine("Finished saving " + filename);
+            return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }
 
 

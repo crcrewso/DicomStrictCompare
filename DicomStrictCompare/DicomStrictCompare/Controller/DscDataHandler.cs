@@ -186,14 +186,39 @@ namespace DicomStrictCompare
               });
             if (DosePairsList.Count <= 0)
                 return;
+            progress = 39;
+            ProgressIncrimentor = 30.0 / DosePairsList.Count;
+            progress %= 100;
+            (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+            if (runPDDComparisons)
+            {
+                _ = Parallel.ForEach(DosePairsList, cpuParallel, pair =>
+                {
+                    progress += ProgressIncrimentor;
+                    progress %= 100;
+                    (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+                    pair.GeneratePDD();
+                    Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
+                    try
+                    {
+                        SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
+                        pair.PDDoutString = saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
 
+                    }
+                    catch (Exception)
+                    {
+
+                        Debug.WriteLine("Failed to save " + pair.ChartTitle);
+                    }
+                });
+             progress = 69;
 
             //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
             if (runDoseComparisons)
             {
 
 
-                ProgressIncrimentor = 50.0 / DosePairsList.Count;
+                ProgressIncrimentor = 30.0 / DosePairsList.Count;
                 _ = Parallel.ForEach(DosePairsList, parallel, pair =>
                   {
                       progress += ProgressIncrimentor;
@@ -205,34 +230,23 @@ namespace DicomStrictCompare
                           ResultMessage += pair.ResultString + '\n';
                       }
                     // Will catch array misalignment problems
-                    catch (Exception)
+                    catch (Exception e)
                       {
                           string temp = pair.Name + ",Was not Evaluated ,\n";
                           ResultMessage += temp;
                           Debug.WriteLine(temp);
+                          Debug.WriteLine(e.Message.ToString());
+                          Debug.Write(e.StackTrace.ToString());
 
                       }
 
 
                   });
             }
-            progress = 70;
-            ProgressIncrimentor = 30 / DosePairsList.Count;
-            progress %= 100;
-            (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
-            if (runPDDComparisons)
-            {
-                _ = Parallel.ForEach(DosePairsList, cpuParallel, pair =>
-                  {
-                      progress += ProgressIncrimentor;
-                      progress %= 100;
-                      (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
-                      pair.GeneratePDD();
-                      Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
-                      SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                      saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
 
-                  });
+           
+
+
             }
             
         }
