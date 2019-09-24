@@ -16,7 +16,7 @@ namespace DicomStrictCompare
             
         }
 
-        public override Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon)
+        public override Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
             return CompareAbsoluteOld(source, target, tolerance, epsilon);
         }
@@ -71,7 +71,7 @@ namespace DicomStrictCompare
         }
 
         [GpuManaged]
-        public override Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon)
+        public override Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)
         {
             System.Diagnostics.Debug.WriteLine("starting a relative comparison on GPU");
             double MaxSource = source.Max();

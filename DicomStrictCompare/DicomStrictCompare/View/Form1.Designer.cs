@@ -59,10 +59,11 @@
             this.lblSourceRefName = new System.Windows.Forms.Label();
             this.lblRunStatus = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkBoxUseGPU = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.chkBoxUseGPU = new System.Windows.Forms.CheckBox();
+            this.chkBoxFuzzy = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -74,7 +75,7 @@
             this.lblIntro.AutoSize = true;
             this.lblIntro.Location = new System.Drawing.Point(6, 9);
             this.lblIntro.Name = "lblIntro";
-            this.lblIntro.Size = new System.Drawing.Size(389, 195);
+            this.lblIntro.Size = new System.Drawing.Size(389, 221);
             this.lblIntro.TabIndex = 0;
             this.lblIntro.Text = resources.GetString("lblIntro.Text");
             // 
@@ -344,6 +345,7 @@
             // groupBox1
             // 
             this.groupBox1.AutoSize = true;
+            this.groupBox1.Controls.Add(this.chkBoxFuzzy);
             this.groupBox1.Controls.Add(this.chkBoxUseGPU);
             this.groupBox1.Controls.Add(this.testDirectories);
             this.groupBox1.Controls.Add(this.chkDoseCompare);
@@ -359,6 +361,17 @@
             this.groupBox1.TabIndex = 35;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "groupBox1";
+            // 
+            // chkBoxUseGPU
+            // 
+            this.chkBoxUseGPU.AutoSize = true;
+            this.chkBoxUseGPU.Location = new System.Drawing.Point(170, 113);
+            this.chkBoxUseGPU.Name = "chkBoxUseGPU";
+            this.chkBoxUseGPU.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkBoxUseGPU.Size = new System.Drawing.Size(78, 17);
+            this.chkBoxUseGPU.TabIndex = 34;
+            this.chkBoxUseGPU.Text = "Use CUDA";
+            this.chkBoxUseGPU.UseVisualStyleBackColor = true;
             // 
             // groupBox2
             // 
@@ -382,7 +395,7 @@
             this.panel1.Controls.Add(this.lblIntro);
             this.panel1.Location = new System.Drawing.Point(6, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(401, 226);
+            this.panel1.Size = new System.Drawing.Size(401, 230);
             this.panel1.TabIndex = 37;
             // 
             // panel2
@@ -406,16 +419,16 @@
             this.panel2.Size = new System.Drawing.Size(835, 197);
             this.panel2.TabIndex = 38;
             // 
-            // chkBoxUseGPU
+            // chkBoxFuzzy
             // 
-            this.chkBoxUseGPU.AutoSize = true;
-            this.chkBoxUseGPU.Location = new System.Drawing.Point(170, 113);
-            this.chkBoxUseGPU.Name = "chkBoxUseGPU";
-            this.chkBoxUseGPU.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkBoxUseGPU.Size = new System.Drawing.Size(78, 17);
-            this.chkBoxUseGPU.TabIndex = 34;
-            this.chkBoxUseGPU.Text = "Use CUDA";
-            this.chkBoxUseGPU.UseVisualStyleBackColor = true;
+            this.chkBoxFuzzy.AutoSize = true;
+            this.chkBoxFuzzy.Location = new System.Drawing.Point(73, 113);
+            this.chkBoxFuzzy.Name = "chkBoxFuzzy";
+            this.chkBoxFuzzy.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkBoxFuzzy.Size = new System.Drawing.Size(78, 17);
+            this.chkBoxFuzzy.TabIndex = 35;
+            this.chkBoxFuzzy.Text = "Fuzzy DTA";
+            this.chkBoxFuzzy.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -481,6 +494,7 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.CheckBox chkBoxUseGPU;
+        private System.Windows.Forms.CheckBox chkBoxFuzzy;
     }
 }
 

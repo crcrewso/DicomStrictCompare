@@ -54,21 +54,20 @@ namespace DicomStrictCompare
 
         /// <summary>
         /// This will only save PDD's 
-        /// TODO increase font 
         /// </summary>
         /// <param name="sourcePDD"></param>
         /// <param name="targetPDD"></param>
         /// <param name="filename"></param>
         /// <param name="title"></param>
         /// <param name="note"></param>
-        public void Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
+        public string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
         {
             double maxDose = 0;
             foreach (DoseValue dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
             if (sourcePDD.Count != targetPDD.Count)
             {
-                throw new ArgumentOutOfRangeException("The two lists don't have the same length!!!!");
+                throw new ArgumentOutOfRangeException("The two lists don't have the same length!!!!\n" + chartTitleString);
             }
             if (sourcePDD.Count == 0 || targetPDD.Count == 0)
             {
@@ -85,7 +84,12 @@ namespace DicomStrictCompare
             List<double> doses0 = new List<double>(); // the list of doubles to plot for dose0
             List<double> doses1 = new List<double>(); // the list of doubles to plot for dose1
 
-
+            // index of z to use to report the percent of peak metrics 
+            var sourcePercent80 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 80).Y - sourcePDD[0].Y;
+            var sourcePercent50 = ProfileTools.DepthToPercentOfPeak(sourcePDD, 50).Y - sourcePDD[0].Y;
+            var targetPercent80 = ProfileTools.DepthToPercentOfPeak(targetPDD, 80).Y - targetPDD[0].Y;
+            var targetPercent50 = ProfileTools.DepthToPercentOfPeak(targetPDD, 50).Y - targetPDD[0].Y;
+            
             //converts List<DoseValue> to List<double> for plotting
             // sets the x locations of each data point
             foreach (DoseValue item in sourcePDD)
@@ -111,7 +115,11 @@ namespace DicomStrictCompare
                     doses1[i] = 0;
                 }
             }
-
+            string strFormat = "0.00";
+            string titleText = "";
+            titleText += "\t \t \t \t 80% \t \t \t 50%";
+            titleText += "\n" + SourceAlias + " \t"+sourcePercent80.ToString(strFormat) + " \t" + sourcePercent50.ToString(strFormat);
+            titleText += "\n" + TargetAlias + " \t"+targetPercent80.ToString(strFormat) + " \t" + targetPercent50.ToString(strFormat);
 
             //produces the list of differences to plot
             List<double> doseDiff = new List<double>();
@@ -133,8 +141,17 @@ namespace DicomStrictCompare
             Font subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
             Chart chart = new Chart();
             chart.Size = new Size(3200, 1800);
+            //chart title
             Title chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black);
+            chartTitle.Docking = Docking.Top;
+            chartTitle.IsDockedInsideChartArea = false;
             chart.Titles.Add(chartTitle);
+
+            //textbox for Percent depth metrics
+            Title DepthMetricsBox = new Title(titleText, Docking.Top, subtitleFont, Color.Black);
+            DepthMetricsBox.IsDockedInsideChartArea = true;
+            DepthMetricsBox.Docking = Docking.Top;
+            chart.Titles.Add(DepthMetricsBox);
             ChartArea chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
             chartArea.AxisY.MajorGrid.LineColor = Color.Black;
@@ -230,6 +247,7 @@ namespace DicomStrictCompare
             chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
             Debug.WriteLine("Finished saving " + filename);
+            return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }
 
 

@@ -1,7 +1,10 @@
-﻿namespace DicomStrictCompare
+﻿using System.Linq;
+
+namespace DicomStrictCompare
 {
     public abstract class IMathematics
     {
+        public static double fuzzyScale = 0.5;
         /// <summary>
         /// Compares the two provided dose arrays voxel to voxel. Dose difference is calculated as % of source dose
         /// </summary>
@@ -10,12 +13,12 @@
         /// <param name="tolerance">Less than this percent difference is a pass</param>
         /// <param name="epsilon">Threshold percent of max dose below which comparison will not be evaluated</param>
         /// <returns></returns>
-        public abstract System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon);
-        public abstract System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon);
+        public abstract System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false);
+        public abstract System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false);
 
-        public virtual System.Tuple<int, int> CompareAbsolute(EvilDICOM.RT.DoseMatrix source, EvilDICOM.RT.DoseMatrix target, double tolerance, double epsilon)
+        public virtual System.Tuple<int, int> CompareAbsolute(EvilDICOM.RT.DoseMatrix source, EvilDICOM.RT.DoseMatrix target, double tolerance, double epsilon, bool fuzzy = false)
         {
-
+            //Fuzzy scale should always be +/- 1/4 of resolution
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
             double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
             double xRes = (source.XRes > target.XRes) ? source.XRes : target.XRes;
@@ -46,7 +49,29 @@
                             double sourceLow = (1.0 - tolerance) * sourcei;
                             double sourceHigh = (1.0 + tolerance) * sourcei;
                             if (targeti < sourceLow || targeti > sourceHigh)
-                                failed++;
+                            {
+                                if (!fuzzy)
+                                {
+                                    failed++;
+                                }
+                                else
+                                {
+                                    System.Collections.Generic.List<double> neighbouringDoses = new System.Collections.Generic.List<double>();
+                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - (xRes * fuzzyScale), y, z).Dose); }
+                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + (xRes * fuzzyScale), y, z).Dose); }
+                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - (yRes * fuzzyScale), z).Dose); }
+                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + (yRes * fuzzyScale), z).Dose); }
+                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - (zRes * fuzzyScale)).Dose); }
+                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + (yRes * fuzzyScale)).Dose); }
+                                    double low = neighbouringDoses.Min();
+                                    double high = neighbouringDoses.Max();
+                                    if (targeti < low || targeti > high)
+                                    {
+                                        failed++;
+                                    }
+
+                                }
+                            }
                         }
 
                     }
@@ -56,7 +81,7 @@
             System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
             return ret;
         }
-        public virtual System.Tuple<int, int> CompareAbsolute(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, double tolerance, double epsilon)
+        public virtual System.Tuple<int, int> CompareAbsolute(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, double tolerance, double epsilon, bool fuzzy = false)
         {
 
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
@@ -90,7 +115,27 @@
                             double sourceLow = (1.0 - tolerance) * sourcei;
                             double sourceHigh = (1.0 + tolerance) * sourcei;
                             if (targeti < sourceLow || targeti > sourceHigh)
-                                failed++;
+                                if (!fuzzy)
+                                {
+                                    failed++;
+                                }
+                                else
+                                {
+                                    System.Collections.Generic.List<double> neighbouringDoses = new System.Collections.Generic.List<double>();
+                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - (xRes * fuzzyScale), y, z).Dose); }
+                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + (xRes * fuzzyScale), y, z).Dose); }
+                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - (yRes * fuzzyScale), z).Dose); }
+                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + (yRes * fuzzyScale), z).Dose); }
+                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - (zRes * fuzzyScale)).Dose); }
+                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + (yRes * fuzzyScale)).Dose); }
+                                    double low = neighbouringDoses.Min();
+                                    double high = neighbouringDoses.Max();
+                                    if (targeti < low || targeti > high)
+                                    {
+                                        failed++;
+                                    }
+
+                                }
                         }
 
                     }
@@ -100,9 +145,8 @@
             System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
             return ret;
         }
-        public virtual System.Tuple<int, int> CompareRelative(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, double tolerance, double epsilon)
+        public virtual System.Tuple<int, int> CompareRelative(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, double tolerance, double epsilon, bool fuzzy = false)
         {
-
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
             double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
             double xRes = (source.XRes > target.XRes) ? source.XRes : target.XRes;
@@ -136,7 +180,27 @@
                             double sourceLow = sourcei - sourceVariance;
                             double sourceHigh = sourcei + sourceVariance;
                             if (targeti < sourceLow || targeti > sourceHigh)
-                                failed++;
+                                if (!fuzzy)
+                                {
+                                    failed++;
+                                }
+                                else
+                                {
+                                    System.Collections.Generic.List<double> neighbouringDoses = new System.Collections.Generic.List<double>();
+                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - (xRes * fuzzyScale), y, z).Dose); }
+                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + (xRes * fuzzyScale), y, z).Dose); }
+                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - (yRes * fuzzyScale), z).Dose); }
+                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + (yRes * fuzzyScale), z).Dose); }
+                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - (zRes * fuzzyScale)).Dose); }
+                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + (yRes * fuzzyScale)).Dose); }
+                                    double low = neighbouringDoses.Min();
+                                    double high = neighbouringDoses.Max();
+                                    if (targeti < low || targeti > high)
+                                    {
+                                        failed++;
+                                    }
+
+                                }
                         }
 
                     }

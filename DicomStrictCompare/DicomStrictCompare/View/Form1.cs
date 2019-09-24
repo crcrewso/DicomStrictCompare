@@ -203,14 +203,9 @@ namespace DSC
                 _dataHandler.TightTol = TightTol / 100.0;
                 _dataHandler.SourceAliasName = SourceAliasName;
                 _dataHandler.TargetAliasName = TargetAliasName;
-                if (chkBoxUseGPU.Checked == true)
-                {
-                    _dataHandler.UseGPU = true;
-                }
-                else
-                {
-                    _dataHandler.UseGPU = false;
-                }
+                _dataHandler.UseGPU = chkBoxUseGPU.Checked;
+                _dataHandler.fuzzy = chkBoxFuzzy.Checked;
+                
 
 
                 if (tested == false)

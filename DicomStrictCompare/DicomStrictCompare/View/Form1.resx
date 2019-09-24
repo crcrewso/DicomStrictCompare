@@ -132,6 +132,8 @@ Save - Directory you want to save the csv files to.
 Save Name - Save Name of the Exel csv file containing the summary information.
  
 Tight Tolerance - Nominally 1%
-Main Tolerance - Must be larger than Tight, nominally 2%</value>
+Main Tolerance - Must be larger than Tight, nominally 2%
+
+Fuzzy dta will use a dta of +/- 0.25 * resolution for each axis</value>
   </data>
 </root>

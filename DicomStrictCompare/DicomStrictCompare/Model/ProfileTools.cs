@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using EvilDICOM.RT;
 using System;
+using MathNet.Numerics;
 
 namespace DicomStrictCompare
 {
@@ -140,6 +141,66 @@ namespace DicomStrictCompare
 
 
         }
+
+        /// <summary>
+        /// Calculates the depth from surface that a PDD will drop below the percent provided. percent=50 would yield the depth at which the profile falls to below 0.5*Peak 
+        /// </summary>
+        /// <param name="doseValues">PDD Profile data</param>
+        /// <param name="percent">Integer representing percent of depth of interest </param>
+        /// <returns>The index of the furthest voxel from the surface that has a dose value above the percent of interest</returns>
+        ///<exception cref="ArgumentOutOfRangeException">Thrown when the profile does not drop below the sought percent</exception>
+        public static DoseValue DepthToPercentOfPeak(List<DoseValue> doseValues, int percent)
+        {
+            // finding value and location of maximum
+            double max = 0;
+            int indexMax = 0;
+            for(int i = 0; i < doseValues.Count; i++)
+            {
+                if (doseValues[i].Dose > max)
+                {
+                    max = doseValues[i].Dose;
+                    indexMax = i;
+                }
+            }
+            // I have the location and value of max
+            double threshold = max * (double)percent / 100.0;
+            for(int i = indexMax; i < doseValues.Count-5; i++)
+            {
+                if (doseValues[i].Dose < threshold)
+                {
+                    double[] x = new double[5], y = new double[5], z = new double[5], dose = new double[5];
+                    int k = 0;
+                    for (int j = i -2; j <= i+2; j++)
+                    {
+                        x[k] = doseValues[j].X;
+                        y[k] = doseValues[j].Y;
+                        z[k] = doseValues[j].Z;
+                        dose[k] = doseValues[j].Dose;
+                        k++;
+                    }
+                    if (x[0] != x[1])
+                    {
+                        var retTuple = Fit.Line(x, dose);
+                        var retX = (threshold - retTuple.Item1) / retTuple.Item2;
+                        return new DoseValue(retX, y[0], z[0], threshold);
+                    }
+                    else if (y[0] != y[1])
+                    {
+                        var retTuple = Fit.Line(y, dose);
+                        var retY = (threshold - retTuple.Item1) / retTuple.Item2;
+                        return new DoseValue(x[0], retY, z[0], threshold);
+                    }
+                    else
+                    {
+                        var retTuple = Fit.Line(z, dose);
+                        var retZ = (threshold - retTuple.Item1) / retTuple.Item2;
+                        return new DoseValue(x[0], y[0], retZ, threshold);
+                    }
+                }
+            }
+            return new DoseValue(-1, -1, -1, 0);
+        }
+
 
     }
 
