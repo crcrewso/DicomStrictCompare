@@ -131,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller\DscDataHandler.cs" />
+    <Compile Include="Controller\settings.cs" />
     <Compile Include="File Handling\FileHandler.cs" />
     <Compile Include="Model\CudaMathematics.cs" />
     <Compile Include="Model\DoseMatrixOptimal.cs" />
