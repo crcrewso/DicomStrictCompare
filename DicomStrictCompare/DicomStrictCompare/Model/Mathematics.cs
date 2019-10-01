@@ -13,11 +13,17 @@ namespace DicomStrictCompare
         /// <param name="tolerance">Less than this percent difference is a pass</param>
         /// <param name="epsilon">Threshold percent of max dose below which comparison will not be evaluated</param>
         /// <returns></returns>
+        /// 
+
+        static bool trimmed = true;
+        static int trimWidth = 3;
         public abstract System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false);
         public abstract System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false);
 
         public virtual System.Tuple<int, int> CompareAbsolute(EvilDICOM.RT.DoseMatrix source, EvilDICOM.RT.DoseMatrix target, double tolerance, double epsilon, bool fuzzy = false)
         {
+
+
             //Fuzzy scale should always be +/- 1/4 of resolution
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
             double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
@@ -28,6 +34,18 @@ namespace DicomStrictCompare
             double zMin = (source.Z0 > target.Z0) ? source.Z0 : target.Z0;
             double zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
             double zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
+
+            if (trimmed)
+            {
+                xMin += trimWidth * xRes;
+                xMax -= trimWidth * xRes;
+                yMin += trimWidth * yRes;
+                yMax -= trimWidth * yRes;
+                zMin += trimWidth * zRes;
+                zMax -= trimWidth * zRes;
+            }
+
+
             int TotalCompared = 0;
             int failed = 0;
             int ComparedToPoint = 0;
@@ -94,6 +112,17 @@ namespace DicomStrictCompare
             double zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
             double zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
 
+            if (trimmed)
+            {
+                xMin += trimWidth * xRes;
+                xMax -= trimWidth * xRes;
+                yMin += trimWidth * yRes;
+                yMax -= trimWidth * yRes;
+                zMin += trimWidth * zRes;
+                zMax -= trimWidth * zRes;
+            }
+
+
             int TotalCompared = 0;
             int failed = 0;
             int ComparedToPoint = 0;
@@ -156,6 +185,17 @@ namespace DicomStrictCompare
             double zMin = (source.Z0 > target.Z0) ? source.Z0 : target.Z0;
             double zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
             double zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
+
+            if (trimmed)
+            {
+                xMin += trimWidth * xRes;
+                xMax -= trimWidth * xRes;
+                yMin += trimWidth * yRes;
+                yMax -= trimWidth * yRes;
+                zMin += trimWidth * zRes;
+                zMax -= trimWidth * zRes;
+            }
+
 
             int TotalCompared = 0;
             int failed = 0;

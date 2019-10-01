@@ -106,7 +106,7 @@ namespace DicomStrictCompare
             foreach (DoseValue dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
             tolerance = maxDose * percent / 100;
-            threshold = 5 * tolerance;
+            threshold = 10 * tolerance;
 
             for (int i = 0; i < profile.Count; i++)
             {
