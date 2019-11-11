@@ -14,9 +14,9 @@ namespace DicomStrictCompare
         /// <param name="epsilon">Threshold percent of max dose below which comparison will not be evaluated</param>
         /// <returns></returns>
         /// 
-
+            
         static bool trimmed = true;
-        static int trimWidth = 3;
+        static int trimWidth = 15;
         public abstract System.Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false);
         public abstract System.Tuple<int, int> CompareRelative(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false);
 

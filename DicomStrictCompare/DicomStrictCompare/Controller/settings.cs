@@ -29,7 +29,8 @@ namespace DicomStrictCompare.Controller
         bool Trimmed { get; }
         float TrimWidth { get; }
         bool UseGPU { get; }
-        double[] Tolerances { get; }
+        double[] Tolerances3D { get; }
+        double[] Tolerances2D { get; }
         double[] Depths { get; }
         double Threshhold { get;  }
         bool RunDoseComparisons { get;  }
@@ -41,6 +42,7 @@ namespace DicomStrictCompare.Controller
         {
             CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
         }
+
 
     }
 }
