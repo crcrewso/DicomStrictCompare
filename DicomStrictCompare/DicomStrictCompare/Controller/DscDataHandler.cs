@@ -14,8 +14,8 @@ namespace DicomStrictCompare
     /// </summary>
     class DscDataHandler
     {
+        public Controller.Settings Settings { get; set; }
 
-        public bool fuzzy = false;
         public string SourceDirectory { get; private set; }
         public string SourceAliasName { get; set; }
         public string TargetAliasName { get; set; }
@@ -44,11 +44,6 @@ namespace DicomStrictCompare
         /// </summary>
         public ConcurrentBag<MatchedDosePair> DosePairsList { get; private set; }
 
-        public double ThresholdTol { get; set; }
-        public double TightTol { get; set; }
-        public double MainTol { get; set; }
-        public bool UseGPU { get; set; } = false;
-
         private IMathematics mathematics;
 
         /// <summary>
@@ -56,9 +51,18 @@ namespace DicomStrictCompare
         /// includes error messages for matches that didn't work. 
         /// </summary>
         public string ResultMessage { get; private set; }
+        bool MessageHeaderSet = false;
 
         public DscDataHandler()
         {
+            DosePairsList = new ConcurrentBag<MatchedDosePair>();
+            mathematics = new X86Mathematics();
+        }
+
+
+        public DscDataHandler(DicomStrictCompare.Controller.Settings settings)
+        {
+            this.Settings = settings;
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
             mathematics = new X86Mathematics();
         }
@@ -86,22 +90,16 @@ namespace DicomStrictCompare
         {
             // Maximum number of CPU threads
             ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
+            //ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1 };
+
             ParallelOptions parallel = cpuParallel;
-            // I'm only going to code this for 1 GPU
-            ParallelOptions gpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1};
 
 
             // Sets the system to use the correct resources without doubling down on GPU
-            if (UseGPU)
-            {
-                mathematics = new CudaMathematics();
-                parallel = gpuParallel;
-            }
-            else
-            {
-                mathematics = new X86Mathematics();
-                parallel = cpuParallel;
-            }
+
+            mathematics = new X86Mathematics();
+            parallel = cpuParallel;
+
 
             double progress = 0;
             #region safetyChecks
@@ -145,10 +143,6 @@ namespace DicomStrictCompare
 
 
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
-            ResultMessage = "Tight Tolerance, " + (100 * TightTol).ToString();
-            ResultMessage += "\nMain Tolerance, " + (100 * MainTol).ToString();
-            ResultMessage += "\nThreshold, " + (100 * ThresholdTol).ToString() + "\n";
-            ResultMessage += MatchedDosePair.ResultHeader;
 
             progress += 5;
 
@@ -179,10 +173,9 @@ namespace DicomStrictCompare
                   if (sourceDose != null)
                   {
                       Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
-                      DosePairsList.Add(new MatchedDosePair(sourceDose, dose, this.ThresholdTol, this.TightTol,
-                          this.MainTol));
+                      DosePairsList.Add(new MatchedDosePair(sourceDose, dose, Settings));
                   }
-                
+
               });
             if (DosePairsList.Count <= 0)
                 return;
@@ -211,44 +204,45 @@ namespace DicomStrictCompare
                         Debug.WriteLine("Failed to save " + pair.ChartTitle);
                     }
                 });
-             progress = 69;
+                progress = 69;
 
-            //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
-            if (runDoseComparisons)
-            {
+                //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
+                if (runDoseComparisons)
+                {
 
 
-                ProgressIncrimentor = 30.0 / DosePairsList.Count;
-                _ = Parallel.ForEach(DosePairsList, parallel, pair =>
-                  {
-                      progress += ProgressIncrimentor;
-                      progress %= 100;
-                      (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
-                      try
+                    ProgressIncrimentor = 30.0 / DosePairsList.Count;
+                    ResultMessage += MatchedDosePair.StaticResultHeader(Settings.Dtas);
+                    _ = Parallel.ForEach(DosePairsList, parallel, pair =>
                       {
-                          pair.Evaluate(mathematics, fuzzy);
-                          ResultMessage += pair.ResultString + '\n';
-                      }
-                    // Will catch array misalignment problems
-                    catch (Exception e)
-                      {
-                          string temp = pair.Name + ",Was not Evaluated ,\n";
-                          ResultMessage += temp;
-                          Debug.WriteLine(temp);
-                          Debug.WriteLine(e.Message.ToString());
-                          Debug.Write(e.StackTrace.ToString());
+                          progress += ProgressIncrimentor;
+                          progress %= 100;
+                          (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
+                          try
+                          {
+                              pair.Evaluate(mathematics, Settings.Fuzzy);
+                              ResultMessage += pair.ResultString + '\n';
+                          }
+                      // Will catch array misalignment problems
+                      catch (Exception e)
+                          {
+                              string temp = pair.Name + ",Was not Evaluated ,\n";
+                              ResultMessage += temp;
+                              Debug.WriteLine(temp);
+                              Debug.WriteLine(e.Message.ToString());
+                              Debug.Write(e.StackTrace.ToString());
 
-                      }
+                          }
 
 
-                  });
+                      });
+                }
+
+
+
+
             }
 
-           
-
-
-            }
-            
         }
 
 

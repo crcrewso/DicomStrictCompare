@@ -15,32 +15,47 @@ namespace DicomStrictCompare.Controller
         /// <summary>
         /// Simple dta algorithm for fractional DTA adjustment
         /// </summary>
-        bool Fuzzy { get; }
+        public bool Fuzzy { get; }
         /// <summary>
         /// distance to agreement in voxels, nominally 0 or 0.5
         /// </summary>
-        float FuzzyWidth { get; }
-        bool Gamma { get;  }
-        bool DTA { get; }
-        /// <summary>
-        /// Distance in cm for distance to agreement algorithm, useful for gamma 
-        /// </summary>
-        float DTAWidth { get; }
-        bool Trimmed { get; }
-        float TrimWidth { get; }
-        bool UseGPU { get; }
-        double[] Tolerances3D { get; }
-        double[] Tolerances2D { get; }
-        double[] Depths { get; }
-        double Threshhold { get;  }
-        bool RunDoseComparisons { get;  }
-        bool RunPDDComparisons { get; }
-        bool RunProfileComparisons { get; }
+        public float FuzzyWidth { get; }
+        public bool Gamma { get;  }
+        public bool Trimmed { get; }
+        public float TrimWidth { get; }
+        public Model.Dta[] Dtas { get; }
+        public bool RunDoseComparisons { get;  }
+        public bool RunPDDComparisons { get; }
+        public bool RunProfileComparisons { get; }
         public int CpuParallel { get; private set; } = 1;
-        public int GpuParallel { get; } = 0;
-        public void SetCPUParallel(int coresIn)
+        void SetCPUParallel(int coresIn)
         {
             CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
+        }
+
+        public Settings(
+            bool fuzzy
+            , float fuzzyWidth
+            , bool gamma
+            , bool trimmed
+            , float trimWidth
+            , bool useGPU
+            , DicomStrictCompare.Model.Dta[] dtas
+            , double threshhold
+            , bool runDoseComparisons
+            , bool runPDDComparisons
+            , bool runProfileComparisons
+            )
+        {
+            Fuzzy = fuzzy;
+            FuzzyWidth = fuzzyWidth;
+            Gamma = gamma;
+            Trimmed = trimmed;
+            TrimWidth = trimWidth;
+            Dtas = dtas;
+            RunDoseComparisons = runDoseComparisons;
+            RunPDDComparisons = runPDDComparisons;
+            RunProfileComparisons = runProfileComparisons;
         }
 
 

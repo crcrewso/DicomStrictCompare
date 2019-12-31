@@ -32,10 +32,6 @@
             this.lblIntro = new System.Windows.Forms.Label();
             this.tbxSource = new System.Windows.Forms.TextBox();
             this.tbxTarget = new System.Windows.Forms.TextBox();
-            this.lblTightTol = new System.Windows.Forms.Label();
-            this.lblMainTol = new System.Windows.Forms.Label();
-            this.tbxTightTol = new System.Windows.Forms.TextBox();
-            this.tbxMainTol = new System.Windows.Forms.TextBox();
             this.btnExecute = new System.Windows.Forms.Button();
             this.btnSourceDir = new System.Windows.Forms.Button();
             this.btnTargetDir = new System.Windows.Forms.Button();
@@ -43,8 +39,6 @@
             this.lblTargetFilesFoundText = new System.Windows.Forms.Label();
             this.lblSourceFilesFound = new System.Windows.Forms.Label();
             this.lblTargetFilesFound = new System.Windows.Forms.Label();
-            this.tbxThreshholdTol = new System.Windows.Forms.TextBox();
-            this.lblthreshhold = new System.Windows.Forms.Label();
             this.btnSaveDir = new System.Windows.Forms.Button();
             this.tbxSaveDir = new System.Windows.Forms.TextBox();
             this.tbxSaveName = new System.Windows.Forms.TextBox();
@@ -59,15 +53,25 @@
             this.lblSourceRefName = new System.Windows.Forms.Label();
             this.lblRunStatus = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkBoxFuzzy = new System.Windows.Forms.CheckBox();
             this.chkBoxUseGPU = new System.Windows.Forms.CheckBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.chkBoxFuzzy = new System.Windows.Forms.CheckBox();
+            this.dtaListPairs = new System.Windows.Forms.ListBox();
+            this.addDTAs = new System.Windows.Forms.GroupBox();
+            this.units = new System.Windows.Forms.ListBox();
+            this.btnDAadd = new System.Windows.Forms.Button();
+            this.chkBoxDArel = new System.Windows.Forms.CheckBox();
+            this.txtBoxDAdta = new System.Windows.Forms.TextBox();
+            this.lblDAdta = new System.Windows.Forms.Label();
+            this.txtBoxDAthres = new System.Windows.Forms.TextBox();
+            this.lblDAthresh = new System.Windows.Forms.Label();
+            this.txtBoxDAtol = new System.Windows.Forms.TextBox();
+            this.lblDAtol = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.addDTAs.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblIntro
@@ -100,40 +104,6 @@
             this.tbxTarget.Size = new System.Drawing.Size(742, 20);
             this.tbxTarget.TabIndex = 6;
             this.tbxTarget.TextChanged += new System.EventHandler(this.TbxTarget_TextChanged);
-            // 
-            // lblTightTol
-            // 
-            this.lblTightTol.AutoSize = true;
-            this.lblTightTol.Location = new System.Drawing.Point(5, 22);
-            this.lblTightTol.Name = "lblTightTol";
-            this.lblTightTol.Size = new System.Drawing.Size(99, 13);
-            this.lblTightTol.TabIndex = 5;
-            this.lblTightTol.Text = "Tight Tolerance (%)";
-            // 
-            // lblMainTol
-            // 
-            this.lblMainTol.AutoSize = true;
-            this.lblMainTol.Location = new System.Drawing.Point(2, 51);
-            this.lblMainTol.Name = "lblMainTol";
-            this.lblMainTol.Size = new System.Drawing.Size(98, 13);
-            this.lblMainTol.TabIndex = 6;
-            this.lblMainTol.Text = "Main Tolerance (%)";
-            // 
-            // tbxTightTol
-            // 
-            this.tbxTightTol.Location = new System.Drawing.Point(106, 19);
-            this.tbxTightTol.Name = "tbxTightTol";
-            this.tbxTightTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxTightTol.TabIndex = 0;
-            this.tbxTightTol.TextChanged += new System.EventHandler(this.TbxTightTol_TextChanged);
-            // 
-            // tbxMainTol
-            // 
-            this.tbxMainTol.Location = new System.Drawing.Point(106, 48);
-            this.tbxMainTol.Name = "tbxMainTol";
-            this.tbxMainTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxMainTol.TabIndex = 1;
-            this.tbxMainTol.TextChanged += new System.EventHandler(this.TbxMainTol_TextChanged);
             // 
             // btnExecute
             // 
@@ -200,23 +170,6 @@
             this.lblTargetFilesFound.Size = new System.Drawing.Size(14, 13);
             this.lblTargetFilesFound.TabIndex = 15;
             this.lblTargetFilesFound.Text = "#";
-            // 
-            // tbxThreshholdTol
-            // 
-            this.tbxThreshholdTol.Location = new System.Drawing.Point(106, 77);
-            this.tbxThreshholdTol.Name = "tbxThreshholdTol";
-            this.tbxThreshholdTol.Size = new System.Drawing.Size(53, 20);
-            this.tbxThreshholdTol.TabIndex = 2;
-            this.tbxThreshholdTol.TextChanged += new System.EventHandler(this.ThreshBox_TextChanged);
-            // 
-            // lblthreshhold
-            // 
-            this.lblthreshhold.AutoSize = true;
-            this.lblthreshhold.Location = new System.Drawing.Point(23, 80);
-            this.lblthreshhold.Name = "lblthreshhold";
-            this.lblthreshhold.Size = new System.Drawing.Size(77, 13);
-            this.lblthreshhold.TabIndex = 16;
-            this.lblthreshhold.Text = "Threshhold (%)";
             // 
             // btnSaveDir
             // 
@@ -336,7 +289,7 @@
             // lblRunStatus
             // 
             this.lblRunStatus.AutoSize = true;
-            this.lblRunStatus.Location = new System.Drawing.Point(554, 180);
+            this.lblRunStatus.Location = new System.Drawing.Point(413, 169);
             this.lblRunStatus.Name = "lblRunStatus";
             this.lblRunStatus.Size = new System.Drawing.Size(37, 13);
             this.lblRunStatus.TabIndex = 33;
@@ -357,10 +310,21 @@
             this.groupBox1.Controls.Add(this.btnExecute);
             this.groupBox1.Location = new System.Drawing.Point(587, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(254, 149);
+            this.groupBox1.Size = new System.Drawing.Size(254, 163);
             this.groupBox1.TabIndex = 35;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "groupBox1";
+            // 
+            // chkBoxFuzzy
+            // 
+            this.chkBoxFuzzy.AutoSize = true;
+            this.chkBoxFuzzy.Location = new System.Drawing.Point(73, 113);
+            this.chkBoxFuzzy.Name = "chkBoxFuzzy";
+            this.chkBoxFuzzy.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkBoxFuzzy.Size = new System.Drawing.Size(78, 17);
+            this.chkBoxFuzzy.TabIndex = 35;
+            this.chkBoxFuzzy.Text = "Fuzzy DTA";
+            this.chkBoxFuzzy.UseVisualStyleBackColor = true;
             // 
             // chkBoxUseGPU
             // 
@@ -372,22 +336,6 @@
             this.chkBoxUseGPU.TabIndex = 34;
             this.chkBoxUseGPU.Text = "Use CUDA";
             this.chkBoxUseGPU.UseVisualStyleBackColor = true;
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.AutoSize = true;
-            this.groupBox2.Controls.Add(this.tbxThreshholdTol);
-            this.groupBox2.Controls.Add(this.lblthreshhold);
-            this.groupBox2.Controls.Add(this.tbxMainTol);
-            this.groupBox2.Controls.Add(this.tbxTightTol);
-            this.groupBox2.Controls.Add(this.lblMainTol);
-            this.groupBox2.Controls.Add(this.lblTightTol);
-            this.groupBox2.Location = new System.Drawing.Point(413, 3);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(168, 116);
-            this.groupBox2.TabIndex = 36;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "groupBox2";
             // 
             // panel1
             // 
@@ -419,27 +367,124 @@
             this.panel2.Size = new System.Drawing.Size(835, 197);
             this.panel2.TabIndex = 38;
             // 
-            // chkBoxFuzzy
+            // dtaListPairs
             // 
-            this.chkBoxFuzzy.AutoSize = true;
-            this.chkBoxFuzzy.Location = new System.Drawing.Point(73, 113);
-            this.chkBoxFuzzy.Name = "chkBoxFuzzy";
-            this.chkBoxFuzzy.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkBoxFuzzy.Size = new System.Drawing.Size(78, 17);
-            this.chkBoxFuzzy.TabIndex = 35;
-            this.chkBoxFuzzy.Text = "Fuzzy DTA";
-            this.chkBoxFuzzy.UseVisualStyleBackColor = true;
+            this.dtaListPairs.FormattingEnabled = true;
+            this.dtaListPairs.Location = new System.Drawing.Point(9, 454);
+            this.dtaListPairs.Name = "dtaListPairs";
+            this.dtaListPairs.Size = new System.Drawing.Size(673, 160);
+            this.dtaListPairs.TabIndex = 39;
+            this.dtaListPairs.SelectedIndexChanged += new System.EventHandler(this.dtaListPairs_SelectedIndexChanged);
+            // 
+            // addDTAs
+            // 
+            this.addDTAs.Controls.Add(this.units);
+            this.addDTAs.Controls.Add(this.btnDAadd);
+            this.addDTAs.Controls.Add(this.chkBoxDArel);
+            this.addDTAs.Controls.Add(this.txtBoxDAdta);
+            this.addDTAs.Controls.Add(this.lblDAdta);
+            this.addDTAs.Controls.Add(this.txtBoxDAthres);
+            this.addDTAs.Controls.Add(this.lblDAthresh);
+            this.addDTAs.Controls.Add(this.txtBoxDAtol);
+            this.addDTAs.Controls.Add(this.lblDAtol);
+            this.addDTAs.Location = new System.Drawing.Point(413, 3);
+            this.addDTAs.Name = "addDTAs";
+            this.addDTAs.Size = new System.Drawing.Size(153, 163);
+            this.addDTAs.TabIndex = 40;
+            this.addDTAs.TabStop = false;
+            this.addDTAs.Text = "Add DTA\'s";
+            // 
+            // units
+            // 
+            this.units.FormattingEnabled = true;
+            this.units.Items.AddRange(new object[] {
+            "mm",
+            "Voxels"});
+            this.units.Location = new System.Drawing.Point(89, 39);
+            this.units.Name = "units";
+            this.units.Size = new System.Drawing.Size(55, 30);
+            this.units.TabIndex = 25;
+            // 
+            // btnDAadd
+            // 
+            this.btnDAadd.Location = new System.Drawing.Point(41, 128);
+            this.btnDAadd.Name = "btnDAadd";
+            this.btnDAadd.Size = new System.Drawing.Size(75, 23);
+            this.btnDAadd.TabIndex = 24;
+            this.btnDAadd.Text = "Add";
+            this.btnDAadd.UseVisualStyleBackColor = true;
+            this.btnDAadd.Click += new System.EventHandler(this.btnDAadd_Click);
+            // 
+            // chkBoxDArel
+            // 
+            this.chkBoxDArel.AutoSize = true;
+            this.chkBoxDArel.Location = new System.Drawing.Point(10, 105);
+            this.chkBoxDArel.Name = "chkBoxDArel";
+            this.chkBoxDArel.Size = new System.Drawing.Size(134, 17);
+            this.chkBoxDArel.TabIndex = 23;
+            this.chkBoxDArel.Text = "Relative to Max Dose?";
+            this.chkBoxDArel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.chkBoxDArel.UseVisualStyleBackColor = true;
+            // 
+            // txtBoxDAdta
+            // 
+            this.txtBoxDAdta.Location = new System.Drawing.Point(41, 45);
+            this.txtBoxDAdta.Name = "txtBoxDAdta";
+            this.txtBoxDAdta.Size = new System.Drawing.Size(42, 20);
+            this.txtBoxDAdta.TabIndex = 20;
+            // 
+            // lblDAdta
+            // 
+            this.lblDAdta.AutoSize = true;
+            this.lblDAdta.Location = new System.Drawing.Point(6, 48);
+            this.lblDAdta.Name = "lblDAdta";
+            this.lblDAdta.Size = new System.Drawing.Size(29, 13);
+            this.lblDAdta.TabIndex = 21;
+            this.lblDAdta.Text = "DTA";
+            // 
+            // txtBoxDAthres
+            // 
+            this.txtBoxDAthres.Location = new System.Drawing.Point(89, 75);
+            this.txtBoxDAthres.Name = "txtBoxDAthres";
+            this.txtBoxDAthres.Size = new System.Drawing.Size(55, 20);
+            this.txtBoxDAthres.TabIndex = 17;
+            // 
+            // lblDAthresh
+            // 
+            this.lblDAthresh.AutoSize = true;
+            this.lblDAthresh.Location = new System.Drawing.Point(6, 78);
+            this.lblDAthresh.Name = "lblDAthresh";
+            this.lblDAthresh.Size = new System.Drawing.Size(77, 13);
+            this.lblDAthresh.TabIndex = 18;
+            this.lblDAthresh.Text = "Threshhold (%)";
+            // 
+            // txtBoxDAtol
+            // 
+            this.txtBoxDAtol.Location = new System.Drawing.Point(89, 13);
+            this.txtBoxDAtol.Name = "txtBoxDAtol";
+            this.txtBoxDAtol.Size = new System.Drawing.Size(55, 20);
+            this.txtBoxDAtol.TabIndex = 6;
+            // 
+            // lblDAtol
+            // 
+            this.lblDAtol.AutoSize = true;
+            this.lblDAtol.Location = new System.Drawing.Point(6, 16);
+            this.lblDAtol.Name = "lblDAtol";
+            this.lblDAtol.Size = new System.Drawing.Size(72, 13);
+            this.lblDAtol.TabIndex = 7;
+            this.lblDAtol.Text = "Tolerance (%)";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(846, 437);
+            this.ClientSize = new System.Drawing.Size(846, 638);
+            this.Controls.Add(this.addDTAs);
+            this.Controls.Add(this.dtaListPairs);
             this.Controls.Add(this.lblRunStatus);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
-            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.MinimumSize = new System.Drawing.Size(862, 476);
             this.Name = "Form1";
@@ -447,12 +492,12 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.addDTAs.ResumeLayout(false);
+            this.addDTAs.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -463,10 +508,6 @@
         private System.Windows.Forms.Label lblIntro;
         private System.Windows.Forms.TextBox tbxSource;
         private System.Windows.Forms.TextBox tbxTarget;
-        private System.Windows.Forms.Label lblTightTol;
-        private System.Windows.Forms.Label lblMainTol;
-        private System.Windows.Forms.TextBox tbxTightTol;
-        private System.Windows.Forms.TextBox tbxMainTol;
         private System.Windows.Forms.Button btnExecute;
         private System.Windows.Forms.Button btnSourceDir;
         private System.Windows.Forms.Button btnTargetDir;
@@ -474,8 +515,6 @@
         private System.Windows.Forms.Label lblTargetFilesFoundText;
         private System.Windows.Forms.Label lblSourceFilesFound;
         private System.Windows.Forms.Label lblTargetFilesFound;
-        private System.Windows.Forms.TextBox tbxThreshholdTol;
-        private System.Windows.Forms.Label lblthreshhold;
         private System.Windows.Forms.Button btnSaveDir;
         private System.Windows.Forms.TextBox tbxSaveDir;
         private System.Windows.Forms.TextBox tbxSaveName;
@@ -490,11 +529,21 @@
         private System.Windows.Forms.Label lblSourceRefName;
         private System.Windows.Forms.Label lblRunStatus;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.CheckBox chkBoxUseGPU;
         private System.Windows.Forms.CheckBox chkBoxFuzzy;
+        private System.Windows.Forms.ListBox dtaListPairs;
+        private System.Windows.Forms.GroupBox addDTAs;
+        private System.Windows.Forms.TextBox txtBoxDAthres;
+        private System.Windows.Forms.Label lblDAthresh;
+        private System.Windows.Forms.TextBox txtBoxDAtol;
+        private System.Windows.Forms.Label lblDAtol;
+        private System.Windows.Forms.TextBox txtBoxDAdta;
+        private System.Windows.Forms.Label lblDAdta;
+        private System.Windows.Forms.Button btnDAadd;
+        private System.Windows.Forms.CheckBox chkBoxDArel;
+        private System.Windows.Forms.ListBox units;
     }
 }
 

@@ -25,6 +25,8 @@ namespace DSC
         public string SourceAliasName { get; private set; } = "Reference";
         public string TargetAliasName { get; private set; } = "New Model";
 
+        public BindingList<DicomStrictCompare.Model.Dta> Dtas { get; private set; }
+
         private readonly DscDataHandler _dataHandler;
 
         private readonly BackgroundWorker worker;
@@ -33,9 +35,8 @@ namespace DSC
         public Form1()
         {
             InitializeComponent();
-            tbxTightTol.Text = TightTol.ToString();
-            tbxMainTol.Text = MainTol.ToString();
-            tbxThreshholdTol.Text = Threshold.ToString();
+            Dtas = new BindingList<DicomStrictCompare.Model.Dta>();
+            this.dtaListPairs.DataSource = Dtas;
             tbxSourceLabel.Text = SourceAliasName.ToString();
             tbxTargetLabel.Text = TargetAliasName.ToString();
             _dataHandler = new DscDataHandler();
@@ -194,17 +195,17 @@ namespace DSC
         /// <param name="e"></param>
         private void BtnExecute_Click(object sender, EventArgs e)
         {
+            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(
+                chkBoxFuzzy.Checked, (float)0.25,  false, false, 1, chkBoxUseGPU.Checked, Dtas.ToArray(), Threshold, chkDoseCompare.Checked, chkPDDCompare.Checked, true );
+                /// TODO make Fuzzy res width gui configurable  
+                /// TODO Impliment gamma
+            
 
             if (!_isRunning)
             {
-
-                _dataHandler.ThresholdTol = Threshold / 100.0;
-                _dataHandler.MainTol = MainTol / 100.0;
-                _dataHandler.TightTol = TightTol / 100.0;
+                _dataHandler.Settings = settings;
                 _dataHandler.SourceAliasName = SourceAliasName;
                 _dataHandler.TargetAliasName = TargetAliasName;
-                _dataHandler.UseGPU = chkBoxUseGPU.Checked;
-                _dataHandler.fuzzy = chkBoxFuzzy.Checked;
                 
 
 
@@ -298,38 +299,46 @@ namespace DSC
                 _ = System.Windows.Forms.MessageBox.Show("One of the directory fields is either empty or invalid");
                 return;
             }
-
-            try
-            {
-                TightTol = float.Parse(tbxTightTol.Text);
-                TightTol = Math.Abs(TightTol);
-                tbxTightTol.Text = TightTol.ToString();
-
-                MainTol = float.Parse(tbxMainTol.Text);
-                MainTol = Math.Abs(MainTol);
-                tbxMainTol.Text = MainTol.ToString();
-
-                if (TightTol > MainTol)
-                {
-                    _ = System.Windows.Forms.MessageBox.Show("Your tight tolerance is greater than your main tolerance. This does not make sense");
-                    return;
-                }
-
-                Threshold = float.Parse(tbxThreshholdTol.Text);
-                Threshold = Math.Abs(Threshold);
-                tbxThreshholdTol.Text = Threshold.ToString();
-            }
-            catch (FormatException)
-            {
-                _ = System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
-                return;
-            }
-            catch (ArgumentNullException)
-            {
-                _ = System.Windows.Forms.MessageBox.Show("One of the tolerance fields is either empty or invalid");
-                return;
-            }
             tested = true;
+        }
+
+        private void dtaListPairs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDAadd_Click(object sender, EventArgs e)
+        {
+            double distance = 0;
+            if (txtBoxDAdta.TextLength > 0)
+            {
+                distance = Convert.ToDouble(txtBoxDAdta.Text);
+            }
+
+            bool isMM;
+
+            if(units.SelectedItem == null)
+            {
+                isMM = false;
+            }
+            else
+            {
+                isMM = units.SelectedItem.ToString() == "mm" ? true : false;
+            }
+
+
+            var temp = new DicomStrictCompare.Model.Dta( isMM
+                , Convert.ToDouble(txtBoxDAthres.Text)/100
+                , Convert.ToDouble(txtBoxDAtol.Text)/100
+                , distance, chkBoxDArel.Checked);
+            Dtas.Add(temp);
+
+            txtBoxDAdta.Clear();
+            txtBoxDAthres.Clear();
+            txtBoxDAtol.Clear();
+            units.ClearSelected();
+            chkBoxDArel.Checked = false ;
+
         }
     }
 }
