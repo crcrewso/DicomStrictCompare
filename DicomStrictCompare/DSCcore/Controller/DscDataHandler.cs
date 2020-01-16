@@ -47,7 +47,6 @@ namespace DicomStrictCompare
         public double ThresholdTol { get; set; }
         public double TightTol { get; set; }
         public double MainTol { get; set; }
-        public bool UseGPU { get; set; } = false;
 
         private IMathematics mathematics;
 
@@ -89,19 +88,8 @@ namespace DicomStrictCompare
             ParallelOptions parallel = cpuParallel;
             // I'm only going to code this for 1 GPU
             ParallelOptions gpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1};
+            mathematics = new X86Mathematics();
 
-
-            // Sets the system to use the correct resources without doubling down on GPU
-            if (UseGPU)
-            {
-                mathematics = new X86Mathematics();
-                parallel = gpuParallel;
-            }
-            else
-            {
-                mathematics = new X86Mathematics();
-                parallel = cpuParallel;
-            }
 
             double progress = 0;
             #region safetyChecks

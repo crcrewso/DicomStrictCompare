@@ -11,9 +11,7 @@ namespace DicomStrictCompare
 
         public CudaMathematics()
         {
-            if (Alea.DeviceArch.Default.Major < 2)
-                throw new SystemException("I do not have a gpu");
-            
+            throw new MissingMethodException("GPGPU functionality is currently in rewrite");
         }
 
         public override Tuple<int, int> CompareAbsolute(double[] source, double[] target, double tolerance, double epsilon, bool fuzzy = false)

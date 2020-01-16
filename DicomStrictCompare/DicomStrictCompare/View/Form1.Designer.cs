@@ -54,7 +54,6 @@
             this.lblRunStatus = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkBoxFuzzy = new System.Windows.Forms.CheckBox();
-            this.chkBoxUseGPU = new System.Windows.Forms.CheckBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.dtaListPairs = new System.Windows.Forms.ListBox();
@@ -299,7 +298,6 @@
             // 
             this.groupBox1.AutoSize = true;
             this.groupBox1.Controls.Add(this.chkBoxFuzzy);
-            this.groupBox1.Controls.Add(this.chkBoxUseGPU);
             this.groupBox1.Controls.Add(this.testDirectories);
             this.groupBox1.Controls.Add(this.chkDoseCompare);
             this.groupBox1.Controls.Add(this.chkPDDCompare);
@@ -325,17 +323,6 @@
             this.chkBoxFuzzy.TabIndex = 35;
             this.chkBoxFuzzy.Text = "Fuzzy DTA";
             this.chkBoxFuzzy.UseVisualStyleBackColor = true;
-            // 
-            // chkBoxUseGPU
-            // 
-            this.chkBoxUseGPU.AutoSize = true;
-            this.chkBoxUseGPU.Location = new System.Drawing.Point(170, 113);
-            this.chkBoxUseGPU.Name = "chkBoxUseGPU";
-            this.chkBoxUseGPU.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkBoxUseGPU.Size = new System.Drawing.Size(78, 17);
-            this.chkBoxUseGPU.TabIndex = 34;
-            this.chkBoxUseGPU.Text = "Use CUDA";
-            this.chkBoxUseGPU.UseVisualStyleBackColor = true;
             // 
             // panel1
             // 
@@ -531,7 +518,6 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.CheckBox chkBoxUseGPU;
         private System.Windows.Forms.CheckBox chkBoxFuzzy;
         private System.Windows.Forms.ListBox dtaListPairs;
         private System.Windows.Forms.GroupBox addDTAs;

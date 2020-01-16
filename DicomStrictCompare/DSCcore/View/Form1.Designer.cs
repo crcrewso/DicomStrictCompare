@@ -59,7 +59,6 @@
             this.lblSourceRefName = new System.Windows.Forms.Label();
             this.lblRunStatus = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.chkBoxUseGPU = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -346,7 +345,6 @@
             // 
             this.groupBox1.AutoSize = true;
             this.groupBox1.Controls.Add(this.chkBoxFuzzy);
-            this.groupBox1.Controls.Add(this.chkBoxUseGPU);
             this.groupBox1.Controls.Add(this.testDirectories);
             this.groupBox1.Controls.Add(this.chkDoseCompare);
             this.groupBox1.Controls.Add(this.chkPDDCompare);
@@ -361,17 +359,6 @@
             this.groupBox1.TabIndex = 35;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "groupBox1";
-            // 
-            // chkBoxUseGPU
-            // 
-            this.chkBoxUseGPU.AutoSize = true;
-            this.chkBoxUseGPU.Location = new System.Drawing.Point(170, 113);
-            this.chkBoxUseGPU.Name = "chkBoxUseGPU";
-            this.chkBoxUseGPU.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkBoxUseGPU.Size = new System.Drawing.Size(78, 17);
-            this.chkBoxUseGPU.TabIndex = 34;
-            this.chkBoxUseGPU.Text = "Use CUDA";
-            this.chkBoxUseGPU.UseVisualStyleBackColor = true;
             // 
             // groupBox2
             // 
@@ -493,7 +480,6 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.CheckBox chkBoxUseGPU;
         private System.Windows.Forms.CheckBox chkBoxFuzzy;
     }
 }
