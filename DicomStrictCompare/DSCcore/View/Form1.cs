@@ -203,7 +203,6 @@ namespace DSCcore
                 _dataHandler.TightTol = TightTol / 100.0;
                 _dataHandler.SourceAliasName = SourceAliasName;
                 _dataHandler.TargetAliasName = TargetAliasName;
-                _dataHandler.UseGPU = chkBoxUseGPU.Checked;
                 _dataHandler.fuzzy = chkBoxFuzzy.Checked;
                 
 

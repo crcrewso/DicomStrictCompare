@@ -67,6 +67,8 @@
             this.lblDAthresh = new System.Windows.Forms.Label();
             this.txtBoxDAtol = new System.Windows.Forms.TextBox();
             this.lblDAtol = new System.Windows.Forms.Label();
+            this.txtBxTrim = new System.Windows.Forms.TextBox();
+            this.lblTrim = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -288,7 +290,7 @@
             // lblRunStatus
             // 
             this.lblRunStatus.AutoSize = true;
-            this.lblRunStatus.Location = new System.Drawing.Point(413, 169);
+            this.lblRunStatus.Location = new System.Drawing.Point(597, 169);
             this.lblRunStatus.Name = "lblRunStatus";
             this.lblRunStatus.Size = new System.Drawing.Size(37, 13);
             this.lblRunStatus.TabIndex = 33;
@@ -365,6 +367,8 @@
             // 
             // addDTAs
             // 
+            this.addDTAs.Controls.Add(this.txtBxTrim);
+            this.addDTAs.Controls.Add(this.lblTrim);
             this.addDTAs.Controls.Add(this.units);
             this.addDTAs.Controls.Add(this.btnDAadd);
             this.addDTAs.Controls.Add(this.chkBoxDArel);
@@ -376,7 +380,7 @@
             this.addDTAs.Controls.Add(this.lblDAtol);
             this.addDTAs.Location = new System.Drawing.Point(413, 3);
             this.addDTAs.Name = "addDTAs";
-            this.addDTAs.Size = new System.Drawing.Size(153, 163);
+            this.addDTAs.Size = new System.Drawing.Size(153, 226);
             this.addDTAs.TabIndex = 40;
             this.addDTAs.TabStop = false;
             this.addDTAs.Text = "Add DTA\'s";
@@ -394,7 +398,7 @@
             // 
             // btnDAadd
             // 
-            this.btnDAadd.Location = new System.Drawing.Point(41, 128);
+            this.btnDAadd.Location = new System.Drawing.Point(40, 169);
             this.btnDAadd.Name = "btnDAadd";
             this.btnDAadd.Size = new System.Drawing.Size(75, 23);
             this.btnDAadd.TabIndex = 24;
@@ -405,7 +409,7 @@
             // chkBoxDArel
             // 
             this.chkBoxDArel.AutoSize = true;
-            this.chkBoxDArel.Location = new System.Drawing.Point(10, 105);
+            this.chkBoxDArel.Location = new System.Drawing.Point(9, 146);
             this.chkBoxDArel.Name = "chkBoxDArel";
             this.chkBoxDArel.Size = new System.Drawing.Size(134, 17);
             this.chkBoxDArel.TabIndex = 23;
@@ -460,6 +464,22 @@
             this.lblDAtol.Size = new System.Drawing.Size(72, 13);
             this.lblDAtol.TabIndex = 7;
             this.lblDAtol.Text = "Tolerance (%)";
+            // 
+            // txtBxTrim
+            // 
+            this.txtBxTrim.Location = new System.Drawing.Point(89, 103);
+            this.txtBxTrim.Name = "txtBxTrim";
+            this.txtBxTrim.Size = new System.Drawing.Size(55, 20);
+            this.txtBxTrim.TabIndex = 26;
+            // 
+            // lblTrim
+            // 
+            this.lblTrim.AutoSize = true;
+            this.lblTrim.Location = new System.Drawing.Point(7, 106);
+            this.lblTrim.Name = "lblTrim";
+            this.lblTrim.Size = new System.Drawing.Size(60, 13);
+            this.lblTrim.TabIndex = 27;
+            this.lblTrim.Text = "Trim voxels";
             // 
             // Form1
             // 
@@ -530,6 +550,8 @@
         private System.Windows.Forms.Button btnDAadd;
         private System.Windows.Forms.CheckBox chkBoxDArel;
         private System.Windows.Forms.ListBox units;
+        private System.Windows.Forms.TextBox txtBxTrim;
+        private System.Windows.Forms.Label lblTrim;
     }
 }
 

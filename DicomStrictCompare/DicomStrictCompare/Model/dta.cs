@@ -32,6 +32,8 @@ namespace DicomStrictCompare.Model
         /// </summary>
         public bool Relative { get; }
 
+        public int TrimWidth { get;  }
+
 
         List<string> summary => new List<string> { (Tolerance*100).ToString("0.0"), Distance.ToString("0.00"), (Threshhold*100).ToString("0.0"), Relative.ToString(), UseMM ? "mm" : "voxel" };
 
@@ -43,13 +45,14 @@ namespace DicomStrictCompare.Model
         /// <param name="tolerance"></param>
         /// <param name="distance"></param>
         /// <param name="relative"></param>
-        public Dta (bool useMM, double threshhold, double tolerance, double distance = 0, bool relative = true)
+        public Dta (bool useMM, double threshhold, double tolerance, double distance = 0, bool relative = true, int trim = 0)
         {
             UseMM = useMM; 
             Threshhold = threshhold; 
             Tolerance = tolerance; 
             Distance = distance; 
-            Relative = relative;  
+            Relative = relative;
+            TrimWidth = trim;
         }
 
         public Dta (string fromDtaToString)

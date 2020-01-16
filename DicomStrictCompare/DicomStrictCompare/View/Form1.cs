@@ -330,7 +330,7 @@ namespace DSC
             var temp = new DicomStrictCompare.Model.Dta( isMM
                 , Convert.ToDouble(txtBoxDAthres.Text)/100
                 , Convert.ToDouble(txtBoxDAtol.Text)/100
-                , distance, chkBoxDArel.Checked);
+                , distance, chkBoxDArel.Checked, Convert.ToInt32(txtBxTrim.Text));
             Dtas.Add(temp);
 
             txtBoxDAdta.Clear();
