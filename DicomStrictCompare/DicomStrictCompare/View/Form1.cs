@@ -312,7 +312,7 @@ namespace DSC
             double distance = 0;
             if (txtBoxDAdta.TextLength > 0)
             {
-                distance = Convert.ToDouble(txtBoxDAdta.Text);
+                distance = Math.Abs(Convert.ToDouble(txtBoxDAdta.Text));
             }
 
             bool isMM;
@@ -328,14 +328,15 @@ namespace DSC
 
 
             var temp = new DicomStrictCompare.Model.Dta( isMM
-                , Convert.ToDouble(txtBoxDAthres.Text)/100
-                , Convert.ToDouble(txtBoxDAtol.Text)/100
-                , distance, chkBoxDArel.Checked, Convert.ToInt32(txtBxTrim.Text));
+                , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text)/100)
+                , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text)/100)
+                , distance, chkBoxDArel.Checked, Math.Abs(Convert.ToInt32(txtBxTrim.Text)));
             Dtas.Add(temp);
 
             txtBoxDAdta.Clear();
             txtBoxDAthres.Clear();
             txtBoxDAtol.Clear();
+            txtBxTrim.Clear();
             units.ClearSelected();
             chkBoxDArel.Checked = false ;
 

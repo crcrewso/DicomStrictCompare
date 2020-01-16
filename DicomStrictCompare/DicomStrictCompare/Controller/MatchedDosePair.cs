@@ -185,10 +185,10 @@ namespace DicomStrictCompare
             {
                 if (_dtas[i].Relative)
                 {
-                    ret = mathematics.CompareRelative(sourceDose, targetDose, _dtas[i].Tolerance, _dtas[i].Threshhold, fuzzy);
+                    ret = mathematics.CompareRelative(sourceDose, targetDose, _dtas[i]);
                 }
                 else
-                    ret = mathematics.CompareAbsolute(sourceDose, targetDose, _dtas[i].Tolerance, _dtas[i].Threshhold, fuzzy);
+                    ret = mathematics.CompareAbsolute(sourceDose, targetDose, _dtas[i]);
                 _comparisons[i] = new Controller.SingleComparison();
                 _comparisons[i].TotalCompared = ret.Item2;
                 _comparisons[i].TotalFailed = ret.Item1;
