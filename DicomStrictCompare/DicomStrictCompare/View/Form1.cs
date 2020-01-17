@@ -195,8 +195,7 @@ namespace DSC
         /// <param name="e"></param>
         private void BtnExecute_Click(object sender, EventArgs e)
         {
-            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(
-                chkBoxFuzzy.Checked, (float)0.25,  false, false, 1, false, Dtas.ToArray(), Threshold, chkDoseCompare.Checked, chkPDDCompare.Checked, true );
+            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings( Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false );
                 /// TODO make Fuzzy res width gui configurable  
                 /// TODO Impliment gamma
             
@@ -327,7 +326,7 @@ namespace DSC
             }
 
 
-            var temp = new DicomStrictCompare.Model.Dta( isMM
+             var temp = new DicomStrictCompare.Model.Dta( isMM
                 , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text)/100)
                 , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text)/100)
                 , distance, chkBoxDArel.Checked, Math.Abs(Convert.ToInt32(txtBxTrim.Text)));

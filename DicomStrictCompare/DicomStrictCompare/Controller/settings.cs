@@ -15,14 +15,8 @@ namespace DicomStrictCompare.Controller
         /// <summary>
         /// Simple dta algorithm for fractional DTA adjustment
         /// </summary>
-        public bool Fuzzy { get; }
-        /// <summary>
-        /// distance to agreement in voxels, nominally 0 or 0.5
-        /// </summary>
-        public float FuzzyWidth { get; }
-        public bool Gamma { get;  }
-        public bool Trimmed { get; }
-        public float TrimWidth { get; }
+
+
         public Model.Dta[] Dtas { get; }
         public bool RunDoseComparisons { get;  }
         public bool RunPDDComparisons { get; }
@@ -34,24 +28,12 @@ namespace DicomStrictCompare.Controller
         }
 
         public Settings(
-            bool fuzzy
-            , float fuzzyWidth
-            , bool gamma
-            , bool trimmed
-            , float trimWidth
-            , bool useGPU
-            , DicomStrictCompare.Model.Dta[] dtas
-            , double threshhold
+            DicomStrictCompare.Model.Dta[] dtas
             , bool runDoseComparisons
             , bool runPDDComparisons
             , bool runProfileComparisons
             )
         {
-            Fuzzy = fuzzy;
-            FuzzyWidth = fuzzyWidth;
-            Gamma = gamma;
-            Trimmed = trimmed;
-            TrimWidth = trimWidth;
             Dtas = dtas;
             RunDoseComparisons = runDoseComparisons;
             RunPDDComparisons = runPDDComparisons;

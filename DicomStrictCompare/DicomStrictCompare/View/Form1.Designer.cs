@@ -53,11 +53,12 @@
             this.lblSourceRefName = new System.Windows.Forms.Label();
             this.lblRunStatus = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.chkBoxFuzzy = new System.Windows.Forms.CheckBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.dtaListPairs = new System.Windows.Forms.ListBox();
             this.addDTAs = new System.Windows.Forms.GroupBox();
+            this.txtBxTrim = new System.Windows.Forms.TextBox();
+            this.lblTrim = new System.Windows.Forms.Label();
             this.units = new System.Windows.Forms.ListBox();
             this.btnDAadd = new System.Windows.Forms.Button();
             this.chkBoxDArel = new System.Windows.Forms.CheckBox();
@@ -67,8 +68,6 @@
             this.lblDAthresh = new System.Windows.Forms.Label();
             this.txtBoxDAtol = new System.Windows.Forms.TextBox();
             this.lblDAtol = new System.Windows.Forms.Label();
-            this.txtBxTrim = new System.Windows.Forms.TextBox();
-            this.lblTrim = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -299,7 +298,6 @@
             // groupBox1
             // 
             this.groupBox1.AutoSize = true;
-            this.groupBox1.Controls.Add(this.chkBoxFuzzy);
             this.groupBox1.Controls.Add(this.testDirectories);
             this.groupBox1.Controls.Add(this.chkDoseCompare);
             this.groupBox1.Controls.Add(this.chkPDDCompare);
@@ -314,17 +312,6 @@
             this.groupBox1.TabIndex = 35;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "groupBox1";
-            // 
-            // chkBoxFuzzy
-            // 
-            this.chkBoxFuzzy.AutoSize = true;
-            this.chkBoxFuzzy.Location = new System.Drawing.Point(73, 113);
-            this.chkBoxFuzzy.Name = "chkBoxFuzzy";
-            this.chkBoxFuzzy.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkBoxFuzzy.Size = new System.Drawing.Size(78, 17);
-            this.chkBoxFuzzy.TabIndex = 35;
-            this.chkBoxFuzzy.Text = "Fuzzy DTA";
-            this.chkBoxFuzzy.UseVisualStyleBackColor = true;
             // 
             // panel1
             // 
@@ -384,6 +371,22 @@
             this.addDTAs.TabIndex = 40;
             this.addDTAs.TabStop = false;
             this.addDTAs.Text = "Add DTA\'s";
+            // 
+            // txtBxTrim
+            // 
+            this.txtBxTrim.Location = new System.Drawing.Point(89, 103);
+            this.txtBxTrim.Name = "txtBxTrim";
+            this.txtBxTrim.Size = new System.Drawing.Size(55, 20);
+            this.txtBxTrim.TabIndex = 26;
+            // 
+            // lblTrim
+            // 
+            this.lblTrim.AutoSize = true;
+            this.lblTrim.Location = new System.Drawing.Point(7, 106);
+            this.lblTrim.Name = "lblTrim";
+            this.lblTrim.Size = new System.Drawing.Size(60, 13);
+            this.lblTrim.TabIndex = 27;
+            this.lblTrim.Text = "Trim voxels";
             // 
             // units
             // 
@@ -465,22 +468,6 @@
             this.lblDAtol.TabIndex = 7;
             this.lblDAtol.Text = "Tolerance (%)";
             // 
-            // txtBxTrim
-            // 
-            this.txtBxTrim.Location = new System.Drawing.Point(89, 103);
-            this.txtBxTrim.Name = "txtBxTrim";
-            this.txtBxTrim.Size = new System.Drawing.Size(55, 20);
-            this.txtBxTrim.TabIndex = 26;
-            // 
-            // lblTrim
-            // 
-            this.lblTrim.AutoSize = true;
-            this.lblTrim.Location = new System.Drawing.Point(7, 106);
-            this.lblTrim.Name = "lblTrim";
-            this.lblTrim.Size = new System.Drawing.Size(60, 13);
-            this.lblTrim.TabIndex = 27;
-            this.lblTrim.Text = "Trim voxels";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -538,7 +525,6 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.CheckBox chkBoxFuzzy;
         private System.Windows.Forms.ListBox dtaListPairs;
         private System.Windows.Forms.GroupBox addDTAs;
         private System.Windows.Forms.TextBox txtBoxDAthres;
