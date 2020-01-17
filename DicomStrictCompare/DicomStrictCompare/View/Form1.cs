@@ -52,6 +52,11 @@ namespace DSC
 
         }
 
+        public new void Dispose() 
+        {
+            worker.Dispose();
+        }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -301,12 +306,12 @@ namespace DSC
             tested = true;
         }
 
-        private void dtaListPairs_SelectedIndexChanged(object sender, EventArgs e)
+        private void DtaListPairs_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }
 
-        private void btnDAadd_Click(object sender, EventArgs e)
+        private void BtnDAadd_Click(object sender, EventArgs e)
         {
             double distance = 0;
             if (txtBoxDAdta.TextLength > 0)

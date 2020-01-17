@@ -1,5 +1,4 @@
-﻿using Alea.Parallel;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using EvilDICOM.RT;
 

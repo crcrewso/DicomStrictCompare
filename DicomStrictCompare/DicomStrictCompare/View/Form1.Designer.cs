@@ -350,7 +350,7 @@
             this.dtaListPairs.Name = "dtaListPairs";
             this.dtaListPairs.Size = new System.Drawing.Size(673, 160);
             this.dtaListPairs.TabIndex = 39;
-            this.dtaListPairs.SelectedIndexChanged += new System.EventHandler(this.dtaListPairs_SelectedIndexChanged);
+            this.dtaListPairs.SelectedIndexChanged += new System.EventHandler(this.DtaListPairs_SelectedIndexChanged);
             // 
             // addDTAs
             // 
@@ -407,7 +407,7 @@
             this.btnDAadd.TabIndex = 24;
             this.btnDAadd.Text = "Add";
             this.btnDAadd.UseVisualStyleBackColor = true;
-            this.btnDAadd.Click += new System.EventHandler(this.btnDAadd_Click);
+            this.btnDAadd.Click += new System.EventHandler(this.BtnDAadd_Click);
             // 
             // chkBoxDArel
             // 
