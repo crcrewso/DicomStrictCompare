@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomStrictCompare.Tests
+namespace DicomStrictCompare.Model.Tests
 {
     [TestClass()]
     public class X86MathematicsTests: X86Mathematics

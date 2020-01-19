@@ -68,8 +68,10 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Model\DoseMatrixOptimalTests.cs" />
+    <Compile Include="Model\DtaTests.cs" />
+    <Compile Include="Model\X86MathematicsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="X86MathematicsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
