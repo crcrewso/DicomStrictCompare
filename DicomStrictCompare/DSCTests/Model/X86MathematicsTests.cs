@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomStrictCompare.Tests
+namespace DicomStrictCompare.Model.Tests
 {
     [TestClass()]
     public class X86MathematicsTests: X86Mathematics
@@ -24,8 +24,6 @@ namespace DicomStrictCompare.Tests
         {
             List<double> source = new List<double>();
             List<double> target = new List<double>();
-            double tolerance = 0.01;
-            double epsilon = 0.001;
 
 
             for (int i = 0; i < 10; i++)
@@ -37,8 +35,9 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
-            var retCompare = testing.LinearCompareAbslute(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare.Item1);
+            throw new MissingMethodException();
+            //var retCompare = testing.LinearCompareAbslute(sourceDoubles, targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -47,8 +46,6 @@ namespace DicomStrictCompare.Tests
         {
             List<double> source = new List<double>();
             List<double> target = new List<double>();
-            double tolerance = 0.01;
-            double epsilon = 0.001;
 
 
             for (int i = 0; i < 100000000; i++)
@@ -59,8 +56,9 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
-            var retCompare = testing.LinearCompareAbslute( sourceDoubles,  targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare.Item1);
+            throw new MissingMethodException();
+            //var retCompare = testing.LinearCompareAbslute( sourceDoubles,  targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -69,8 +67,6 @@ namespace DicomStrictCompare.Tests
         {
             List<double> source = new List<double>();
             List<double> target = new List<double>();
-            double tolerance = 0.01;
-            double epsilon = 0.001;
 
 
             for (int i = 0; i < 10; i++)
@@ -82,8 +78,9 @@ namespace DicomStrictCompare.Tests
             var testing = new X86Mathematics();
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
-            var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare.Item1);
+            throw new MissingMethodException();
+            //var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -92,8 +89,6 @@ namespace DicomStrictCompare.Tests
         {
             List<double> source = new List<double>();
             List<double> target = new List<double>();
-            double tolerance = 0.01;
-            double epsilon = 0.001;
 
 
             for (int i = 0; i < 100000000; i++)
@@ -105,8 +100,9 @@ namespace DicomStrictCompare.Tests
             var testing = new X86Mathematics();
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
-            var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare.Item1);
+            throw new MissingMethodException(); 
+            //var retCompare = testing.ParallelCompare(sourceDoubles, targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -130,8 +126,9 @@ namespace DicomStrictCompare.Tests
             var testing = new X86Mathematics();
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
-            var retCompare = testing.CompareAbsolute(sourceDoubles, targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(1, retCompare.Item1);
+            throw new MissingMethodException();
+            //var retCompare = testing.CompareAbsolute(sourceDoubles, targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(1, retCompare.Item1);
 
         }
 
@@ -155,8 +152,9 @@ namespace DicomStrictCompare.Tests
             var testing = new X86Mathematics();
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
-            var retCompare = testing.CompareAbsolute(sourceDoubles,  targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare.Item1);
+            throw new MissingMethodException();
+            //var retCompare = testing.CompareAbsolute(sourceDoubles,  targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(0, retCompare.Item1);
 
         }
 
@@ -166,7 +164,6 @@ namespace DicomStrictCompare.Tests
         {
             List<double> source = new List<double>();
             List<double> target = new List<double>();
-            double tolerance = 0.01;
             double epsilon = 0.001;
 
 
@@ -178,11 +175,12 @@ namespace DicomStrictCompare.Tests
             double[] sourceDoubles = source.ToArray();
             double[] targetDoubles = target.ToArray();
             var testing = new X86Mathematics();
-            var retCompare = testing.CompareAbsolute(sourceDoubles,  targetDoubles, tolerance, epsilon);
-            Assert.AreEqual(0, retCompare.Item1);
+            throw new MissingMethodException();
+            //var retCompare = testing.CompareAbsolute(sourceDoubles,  targetDoubles, tolerance, epsilon);
+            //Assert.AreEqual(0, retCompare.Item1);
 
         }
-
+        /*
         [TestMethod()]
         public void CompareSingleValueSame()
         {
@@ -200,6 +198,6 @@ namespace DicomStrictCompare.Tests
         {
             Assert.AreEqual(false, IsWithinTolerance(1.0, 1.1, 0.1));
         }
-
+        */
     }
 }

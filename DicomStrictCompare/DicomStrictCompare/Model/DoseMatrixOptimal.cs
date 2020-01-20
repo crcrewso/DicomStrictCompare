@@ -8,11 +8,14 @@ namespace DicomStrictCompare.Model
 {
     public class DoseMatrixOptimal
     {
-        public readonly int DimensionX, DimensionY, DimensionZ;
+        public int DimensionX { get; }
+        public int DimensionY { get; }
+        public int DimensionZ { get; }
+
         public readonly double[] DoseValues;
-        public readonly double Scaling;
+        public double Scaling { get; }
         public readonly double X0, Y0, Z0, XMax, YMax, ZMax, XRes, YRes, ZRes;
-        public readonly DoseValue MaxPointDose;
+        public DoseValue MaxPointDose { get; }
         public int Length { get; }
         public int Count { get; }
 
@@ -37,7 +40,10 @@ namespace DicomStrictCompare.Model
             MaxPointDose = doseMatrix.MaxPointDose;
         }
 
-        public bool IsInBounds(Vector3 pt) => pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
+        public bool IsInBounds(Vector3 pt)
+        {
+            return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
+        }
 
         public DoseValue GetPointDose(double x, double y, double z)
         {
@@ -123,6 +129,10 @@ namespace DicomStrictCompare.Model
 
         public bool CompareDimensions(in DoseMatrixOptimal y)
         {
+            if (y == null && this == null)
+                return true;
+            if (y == null)
+                return false;
             if (DoseValues.Length != y.DoseValues.Length)
                 return false;
             if (Scaling != y.Scaling)

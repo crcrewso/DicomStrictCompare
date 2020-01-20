@@ -173,7 +173,7 @@ namespace DicomStrictCompare
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out
         /// </summary>
-        public void Evaluate(IMathematics mathematics, bool fuzzy)
+        public void Evaluate(IMathematics mathematics)
         {
             Model.DoseMatrixOptimal sourceDose = new Model.DoseMatrixOptimal(_source.DoseMatrix());
             Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());

@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSC", "DicomStrictCompare\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSCTests", "DSCTests\DSCTests.csproj", "{6967D44B-DE5A-4DF9-9614-5EEADAE5B4D2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DSCcore", "DSCcore\DSCcore.csproj", "{00F62653-72B9-499D-9D97-3452DBE05602}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -35,18 +33,6 @@ Global
 		{6967D44B-DE5A-4DF9-9614-5EEADAE5B4D2}.Release|ARM64.ActiveCfg = Release|x64
 		{6967D44B-DE5A-4DF9-9614-5EEADAE5B4D2}.Release|x64.ActiveCfg = Release|x64
 		{6967D44B-DE5A-4DF9-9614-5EEADAE5B4D2}.Release|x64.Build.0 = Release|x64
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Debug|ARM.Build.0 = Debug|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Debug|ARM64.ActiveCfg = Debug|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Debug|ARM64.Build.0 = Debug|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Debug|x64.Build.0 = Debug|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Release|ARM.ActiveCfg = Release|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Release|ARM.Build.0 = Release|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Release|ARM64.ActiveCfg = Release|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Release|ARM64.Build.0 = Release|Any CPU
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Release|x64.ActiveCfg = Release|x64
-		{00F62653-72B9-499D-9D97-3452DBE05602}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -220,7 +220,7 @@ namespace DicomStrictCompare
                           (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
                           try
                           {
-                              pair.Evaluate(mathematics, Settings.Fuzzy);
+                              pair.Evaluate(mathematics);
                               ResultMessage += pair.ResultString + '\n';
                           }
                       // Will catch array misalignment problems
