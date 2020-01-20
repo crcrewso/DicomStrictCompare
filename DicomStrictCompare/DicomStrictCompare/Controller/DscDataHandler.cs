@@ -93,7 +93,7 @@ namespace DicomStrictCompare
             //ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1 };
 
             ParallelOptions parallel = cpuParallel;
-
+            ResultMessage = "";
 
             // Sets the system to use the correct resources without doubling down on GPU
 
