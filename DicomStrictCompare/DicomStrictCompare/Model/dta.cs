@@ -66,7 +66,7 @@ namespace DicomStrictCompare.Model
         }
 
 
-        public string ShortToString() => Convert.ToInt32(Tolerance * 100).ToString() + "%" + Distance.ToString() + (UseMM ? "mm" : "voxels");
+        public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + " % " + Distance.ToString() + (UseMM ? " mm" : " voxels");
 
         public override string ToString() => String.Join(", ", summary);
         /// <summary>
