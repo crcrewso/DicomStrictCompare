@@ -8,7 +8,7 @@ namespace DicomStrictCompare.Controller
 {
     public class SingleComparison
     {
-        public Model.Dta _dta { get; set; }
+        public Model.Dta Dta { get; set; }
         public int TotalCount { get; set; }
         public int TotalCompared { get; set; }
         public int TotalFailed { get;  set; }

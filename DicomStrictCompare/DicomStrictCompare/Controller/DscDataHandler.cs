@@ -51,7 +51,6 @@ namespace DicomStrictCompare
         /// includes error messages for matches that didn't work. 
         /// </summary>
         public string ResultMessage { get; private set; }
-        bool MessageHeaderSet = false;
 
         public DscDataHandler()
         {

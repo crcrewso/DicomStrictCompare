@@ -9,7 +9,7 @@ namespace DicomStrictCompare.Controller
     /// <summary>
     /// Consolidated settings collection to undo feature creep spaghettification.  
     /// </summary>
-    class Settings
+    public class Settings
     {
 
         /// <summary>
@@ -22,22 +22,20 @@ namespace DicomStrictCompare.Controller
         public bool RunPDDComparisons { get; }
         public bool RunProfileComparisons { get; }
         public int CpuParallel { get; private set; } = 1;
-        void SetCPUParallel(int coresIn)
-        {
-            CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
-        }
 
         public Settings(
             DicomStrictCompare.Model.Dta[] dtas
             , bool runDoseComparisons
             , bool runPDDComparisons
             , bool runProfileComparisons
+            , int coresIn
             )
         {
             Dtas = dtas;
             RunDoseComparisons = runDoseComparisons;
             RunPDDComparisons = runPDDComparisons;
             RunProfileComparisons = runProfileComparisons;
+            CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
         }
 
 
