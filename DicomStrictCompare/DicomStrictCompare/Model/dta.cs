@@ -79,6 +79,24 @@ namespace DicomStrictCompare.Model
             string[] titles = new string[] { "Tolerance", "Distance", "Threshhold", "Relative to Max dose?", "Unit" };
             return String.Join(", ", titles);
         }
+
+        public bool Equals(Dta dta)
+        {
+            bool ret = true;
+            if (Distance != dta.Distance)
+                ret = false;
+            else if (Relative != dta.Relative)
+                ret = false;
+            else if (Threshhold != dta.Threshhold)
+                ret = false;
+            else if (Tolerance != dta.Tolerance)
+                ret = false;
+            else if (TrimWidth != dta.TrimWidth)
+                ret = false;
+            else if (UseMM != dta.UseMM)
+                ret = false;
+            return ret;
+        }
     }
 
 

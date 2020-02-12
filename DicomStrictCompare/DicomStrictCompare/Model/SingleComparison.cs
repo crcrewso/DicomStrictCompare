@@ -33,6 +33,23 @@ namespace DicomStrictCompare.Model
             TotalCompared = totalCompared;
             TotalFailed = totalFailed;
         }
+
+        public bool Equals( SingleComparison singleComparison)
+        {
+            if (null == singleComparison)
+                throw new ArgumentNullException(nameof(singleComparison));
+
+            bool ret = true;
+            if (Dta != singleComparison.Dta)
+                ret = false;
+            else if (TotalCount != singleComparison.TotalCount)
+                ret = false;
+            else if (TotalCompared != singleComparison.TotalCompared)
+                ret = false;
+            else if (TotalFailed != singleComparison.TotalFailed)
+                ret = false;
+            return ret;
+        }
     }
 
 

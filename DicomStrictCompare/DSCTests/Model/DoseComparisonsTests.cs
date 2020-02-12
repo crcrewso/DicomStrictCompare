@@ -38,10 +38,10 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
 
-            Assert.AreEqual(targetDose.Count, result.Item2); // confirm all voxels are compared 
-            Assert.AreEqual(expectedFail, result.Item1); //confirms the number of failed voxels is zero
+            Assert.AreEqual(targetDose.Count, result.TotalCompared); // confirm all voxels are compared 
+            Assert.AreEqual(expectedFail, result.TotalFailed); //confirms the number of failed voxels is zero
         }
 
         [TestMethod()]
@@ -52,11 +52,11 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result = mathematics.CompareRelative(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result = mathematics.CompareRelative(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
             int expectedFail = 0;
 
-            Assert.AreEqual(targetDose.Count, result.Item2); // confirm all voxels are compared 
-            Assert.AreEqual(expectedFail, result.Item1); //confirms the number of failed voxels is zero
+            Assert.AreEqual(targetDose.Count, result.TotalCompared); // confirm all voxels are compared 
+            Assert.AreEqual(expectedFail, result.TotalFailed); //confirms the number of failed voxels is zero
         }
 
         [TestMethod()]
@@ -67,11 +67,10 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            System.Tuple<int, int> result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMin, Type.absolute);
+            SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMin, Type.absolute);
 
-            Assert.AreEqual(result1.Item2, result2.Item2); // confirm all voxels are compared 
-            //Assert.AreEqual(result1.Item1, result2.Item1); //confirms the number of failed voxels is zero
+            Assert.AreEqual(result1, result2); // confirm all voxels are compared 
         }
 
         [TestMethod()]
@@ -82,10 +81,10 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            System.Tuple<int, int> result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
+            SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
 
-            Assert.AreEqual(result1.Item1, result2.Item1); //confirms the number of failed voxels is zero
+            Assert.AreEqual(result1, result2); //confirms the number of failed voxels is zero
         }
         [TestMethod()]
         public void CompareParallelVsAbsoluteThreadMax1_2()
@@ -95,10 +94,10 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            System.Tuple<int, int> result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
+            SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
 
-            Assert.AreEqual(result1.Item2, result2.Item2); // confirm all voxels are compared 
+            Assert.AreEqual(result1.TotalCompared, result2.TotalCompared); // confirm all voxels are compared 
         }
         [TestMethod()]
         public void CompareParallelVsAbsoluteThreadMax2()
@@ -108,11 +107,11 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            System.Tuple<int, int> result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
+            SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
 
-            Assert.AreEqual(result1.Item2, result2.Item2); // confirm all voxels are compared 
-            Assert.AreEqual(result1.Item1, result2.Item1); //confirms the number of failed voxels is zero
+            Assert.AreEqual(result1.TotalCompared, result2.TotalCompared); // confirm all voxels are compared 
+            Assert.AreEqual(result1.TotalFailed, result2.TotalFailed); //confirms the number of failed voxels is zero
         }
         [TestMethod()]
         public void CompareParallelVsAbsoluteThreadMax3()
@@ -122,11 +121,11 @@ namespace DicomStrictCompare.Model.Tests
 
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.DoseMatrix(EvilDICOM.Core.DICOMObject.Read(targetFile)));
-            System.Tuple<int, int> result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            System.Tuple<int, int> result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
+            SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax, Type.absolute);
 
-            Assert.AreEqual(result1.Item2, result2.Item2); // confirm all voxels are compared 
-            Assert.AreEqual(result1.Item1, result2.Item1); //confirms the number of failed voxels is zero
+            Assert.AreEqual(result1.TotalCompared, result2.TotalCompared); // confirm all voxels are compared 
+            Assert.AreEqual(result1.TotalFailed, result2.TotalFailed); //confirms the number of failed voxels is zero
         }
     }
 }
