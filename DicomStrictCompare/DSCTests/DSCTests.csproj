@@ -101,6 +101,32 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\RD.UnitTest.P1 2 mm.e-100A-10.0-02-3.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 2 mm.F-100A-10.0-0.2.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 2 mm.X-100A-10.0-0.2.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 5 mm.e-100A-10.0-5-13.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 5 mm.F-100A-10.0-5.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 5 mm.X-100A-10.0-5.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 Acuros.F-100X-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P1 Acuros.X-100X-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P1Ref.e-100A-10.0-1-13.dcm" />
+    <None Include="Resources\RD.UnitTest.P1Ref.F-100A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P1Ref.X-100A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P2 10.1.F-100X-10.1-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P2 10.1.X-100X-10.1-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P3 11.0.F-100X-10.1-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P3 11.0.X-100X-10.1-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P4 E 2D.e-100A-10.0-1-12.dcm" />
+    <None Include="Resources\RD.UnitTest.P4 E None.e-100A-10.0-1-N.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.e-095A-10.0-1-13.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.e-099A-10.0-1-13.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.e-101A-10.0-1-13.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.F-095A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.F-099A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.F-101A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.X-095A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.X-099A-10.0-1.dcm" />
+    <None Include="Resources\RD.UnitTest.P5 Varied MU.X-101A-10.0-1.dcm" />
     <None Include="Resources\TextFile1.txt" />
   </ItemGroup>
   <ItemGroup>

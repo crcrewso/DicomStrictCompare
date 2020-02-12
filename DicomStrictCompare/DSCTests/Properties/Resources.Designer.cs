@@ -61,6 +61,266 @@ namespace DSCTests.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_2_mm_e_100A_10_0_02_3 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_2_mm_e_100A_10_0_02_3", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_2_mm_F_100A_10_0_0_2 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_2_mm_F_100A_10_0_0_2", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_2_mm_X_100A_10_0_0_2 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_2_mm_X_100A_10_0_0_2", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_5_mm_e_100A_10_0_5_13 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_5_mm_e_100A_10_0_5_13", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_5_mm_F_100A_10_0_5 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_5_mm_F_100A_10_0_5", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_5_mm_X_100A_10_0_5 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_5_mm_X_100A_10_0_5", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_Acuros_F_100X_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_Acuros_F_100X_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1_Acuros_X_100X_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1_Acuros_X_100X_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1Ref_e_100A_10_0_1_13 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1Ref_e_100A_10_0_1_13", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1Ref_F_100A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1Ref_F_100A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P1Ref_X_100A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P1Ref_X_100A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P2_10_1_F_100X_10_1_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P2_10_1_F_100X_10_1_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P2_10_1_X_100X_10_1_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P2_10_1_X_100X_10_1_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P3_11_0_F_100X_10_1_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P3_11_0_F_100X_10_1_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P3_11_0_X_100X_10_1_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P3_11_0_X_100X_10_1_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P4_E_2D_e_100A_10_0_1_12 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P4_E_2D_e_100A_10_0_1_12", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P4_E_None_e_100A_10_0_1_N {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P4_E_None_e_100A_10_0_1_N", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_e_095A_10_0_1_13 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_e_095A_10_0_1_13", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_e_099A_10_0_1_13 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_e_099A_10_0_1_13", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_e_101A_10_0_1_13 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_e_101A_10_0_1_13", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_F_095A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_F_095A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_F_099A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_F_099A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_F_101A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_F_101A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_X_095A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_X_095A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_X_099A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_X_099A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RD_UnitTest_P5_Varied_MU_X_101A_10_0_1 {
+            get {
+                object obj = ResourceManager.GetObject("RD_UnitTest_P5_Varied_MU_X_101A_10_0_1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
         internal static string TextFile1 {
