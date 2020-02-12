@@ -201,7 +201,7 @@ namespace DicomStrictCompare
             return ret;
         }
 
-        public override System.Tuple<int, int> CompareParallel(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, Model.Dta dta, Controller.Settings settings, Type type)
+        public override System.Tuple<int, int> CompareParallel(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, Model.Dta dta, int cpuParallel, Type type)
         {
 
             double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
@@ -225,23 +225,23 @@ namespace DicomStrictCompare
             }
 
 
-            int[] TotalCompared = new int[settings.CpuParallel];
-            int[] failed = new int[settings.CpuParallel];
-            int[] ComparedToPoint = new int[settings.CpuParallel];
+            int[] TotalCompared = new int[cpuParallel];
+            int[] failed = new int[cpuParallel];
+            int[] ComparedToPoint = new int[cpuParallel];
             double MaxSource = source.MaxPointDose.Dose;
             double MinDoseEvaluated = MaxSource * dta.Threshhold;
             double sourceVariance = MaxSource * dta.Tolerance;
 
-            int zChunck = (int)System.Math.Floor((zMax - zMin) / zRes / settings.CpuParallel);
+            int zChunck = (int)System.Math.Floor((zMax - zMin) / zRes / cpuParallel);
 
-            double[] zBoundaries = new double[settings.CpuParallel + 1];
+            double[] zBoundaries = new double[cpuParallel + 1];
 
             for (int i = 0; i < TotalCompared.Length; i++)
                 zBoundaries[i] = i * zChunck * zRes;
             zBoundaries[zBoundaries.Length - 1] = zMax;
 
-            Task[] tasks = new Task[settings.CpuParallel];
-            for (int i = 0; i < settings.CpuParallel; i++)
+            Task[] tasks = new Task[cpuParallel];
+            for (int i = 0; i < cpuParallel; i++)
             {
                 tasks[i] = new Task(delegate () { portionCalculator(i); });
                 tasks[i].Start();
