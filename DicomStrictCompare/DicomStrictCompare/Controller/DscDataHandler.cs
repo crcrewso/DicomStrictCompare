@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using DicomStrictCompare.Model;
 
 namespace DicomStrictCompare
 {

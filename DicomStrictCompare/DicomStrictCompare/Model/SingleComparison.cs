@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomStrictCompare.Controller
+namespace DicomStrictCompare.Model
 {
     public class SingleComparison
     {
-        public Model.Dta Dta { get; set; }
-        public int TotalCount { get; set; }
-        public int TotalCompared { get; set; }
-        public int TotalFailed { get;  set; }
+        public Dta Dta { get; }
+        public int TotalCount { get;  }
+        public int TotalCompared { get;  }
+        public int TotalFailed { get;  }
         public double PercentFailed => PercentCalculator(TotalCompared, TotalFailed);
 
 
@@ -23,7 +23,15 @@ namespace DicomStrictCompare.Controller
         /// <returns></returns>
         private static double PercentCalculator(int total, int failed)
         {
-            return (failed == 0? 0:(double)failed / (double)total * 100.0);
+            return failed == 0 ? 0 : failed / (double)total * 100.0;
+        }
+
+        public SingleComparison(Dta dta, int totalCount, int totalCompared, int totalFailed)
+        {
+            Dta = dta;
+            TotalCount = totalCount;
+            TotalCompared = totalCompared;
+            TotalFailed = totalFailed;
         }
     }
 

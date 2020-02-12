@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using DicomStrictCompare.Model;
 using EvilDICOM.RT;
 
 namespace DicomStrictCompare
@@ -13,7 +14,7 @@ namespace DicomStrictCompare
     class MatchedDosePair
     {
         readonly Model.Dta[] _dtas;
-        readonly Controller.SingleComparison[] _comparisons;
+        readonly SingleComparison[] _comparisons;
         public int TotalCount { get; private set; }
         public int TotalCompared { get; private set; } = 0;
         public int TotalFailed { get; private set; }
@@ -155,7 +156,7 @@ namespace DicomStrictCompare
             _source = source;
             _target = target;
             _dtas = settings.Dtas;
-            _comparisons = new Controller.SingleComparison[_dtas.Length];
+            _comparisons = new SingleComparison[_dtas.Length];
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
             ChartFileName = _source.PlanID + @"\" + _source.FieldName;
         }
@@ -185,7 +186,7 @@ namespace DicomStrictCompare
             TotalCount = targetDose.Length;
             Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
             Debug.WriteLine("Max dose: Source - " + sourceDose.MaxPointDose.Dose + " Target - " + targetDose.MaxPointDose.Dose);
-            Tuple<int, int> ret;
+            Model.SingleComparison ret;
             for (int i = 0; i < _dtas.Length; i++)
             {
                 if (_dtas[i].Relative)
@@ -194,12 +195,7 @@ namespace DicomStrictCompare
                 }
                 else
                     ret = mathematics.CompareAbsolute(sourceDose, targetDose, _dtas[i]);
-                _comparisons[i] = new Controller.SingleComparison
-                {
-                    TotalCompared = ret.Item2,
-                    TotalFailed = ret.Item1,
-                    Dta = _dtas[0]
-                };
+                _comparisons[i] = ret;
             }
             IsEvaluated = true;
 

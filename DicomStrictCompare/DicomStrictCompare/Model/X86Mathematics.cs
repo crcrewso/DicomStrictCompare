@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using EvilDICOM.RT;
 
 
-namespace DicomStrictCompare
+namespace DicomStrictCompare.Model
 {
+
     public class X86Mathematics : IMathematics
     {
         public X86Mathematics()
@@ -12,18 +13,18 @@ namespace DicomStrictCompare
 
         }
 
-        public override System.Tuple<int, int> CompareAbsolute(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, Model.Dta dta)
+        public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta)
         {
 
-            double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
-            double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
-            double xRes = (source.XRes > target.XRes) ? source.XRes : target.XRes;
-            double yMin = (source.Y0 > target.Y0) ? source.Y0 : target.Y0;
-            double yMax = (source.YMax < target.YMax) ? source.YMax : target.YMax;
-            double yRes = (source.YRes > target.YRes) ? source.YRes : target.YRes;
-            double zMin = (source.Z0 > target.Z0) ? source.Z0 : target.Z0;
-            double zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
-            double zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
+            double xMin = source.X0 > target.X0 ? source.X0 : target.X0;
+            double xMax = source.XMax < target.XMax ? source.XMax : target.XMax;
+            double xRes = source.XRes > target.XRes ? source.XRes : target.XRes;
+            double yMin = source.Y0 > target.Y0 ? source.Y0 : target.Y0;
+            double yMax = source.YMax < target.YMax ? source.YMax : target.YMax;
+            double yRes = source.YRes > target.YRes ? source.YRes : target.YRes;
+            double zMin = source.Z0 > target.Z0 ? source.Z0 : target.Z0;
+            double zMax = source.ZMax < target.ZMax ? source.ZMax : target.ZMax;
+            double zRes = source.ZRes > target.ZRes ? source.ZRes : target.ZRes;
 
             if (dta.TrimWidth > 0)
             {
@@ -65,12 +66,12 @@ namespace DicomStrictCompare
                                 else if (dta.UseMM == false)
                                 {
                                     System.Collections.Generic.List<double> neighbouringDoses = new System.Collections.Generic.List<double>();
-                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - (xRes * dta.Distance), y, z).Dose); }
-                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + (xRes * dta.Distance), y, z).Dose); }
-                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - (yRes * dta.Distance), z).Dose); }
-                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + (yRes * dta.Distance), z).Dose); }
-                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - (zRes * dta.Distance)).Dose); }
-                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + (yRes * dta.Distance)).Dose); }
+                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - xRes * dta.Distance, y, z).Dose); }
+                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + xRes * dta.Distance, y, z).Dose); }
+                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - yRes * dta.Distance, z).Dose); }
+                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + yRes * dta.Distance, z).Dose); }
+                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - zRes * dta.Distance).Dose); }
+                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + yRes * dta.Distance).Dose); }
                                     double low = neighbouringDoses.Min();
                                     double high = neighbouringDoses.Max();
                                     if (targeti < low || targeti > high)
@@ -102,21 +103,23 @@ namespace DicomStrictCompare
                     }
                 }
             }
+            System.Diagnostics.Debug.WriteLine(new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().Name);
             System.Diagnostics.Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
-            System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
+            SingleComparison ret = new SingleComparison(dta, ComparedToPoint, TotalCompared, failed);
+
             return ret;
         }
-        public override System.Tuple<int, int> CompareRelative(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, Model.Dta dta)
+        public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta)
         {
-            double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
-            double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
-            double xRes = (source.XRes > target.XRes) ? source.XRes : target.XRes;
-            double yMin = (source.Y0 > target.Y0) ? source.Y0 : target.Y0;
-            double yMax = (source.YMax < target.YMax) ? source.YMax : target.YMax;
-            double yRes = (source.YRes > target.YRes) ? source.YRes : target.YRes;
-            double zMin = (source.Z0 > target.Z0) ? source.Z0 : target.Z0;
-            double zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
-            double zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
+            double xMin = source.X0 > target.X0 ? source.X0 : target.X0;
+            double xMax = source.XMax < target.XMax ? source.XMax : target.XMax;
+            double xRes = source.XRes > target.XRes ? source.XRes : target.XRes;
+            double yMin = source.Y0 > target.Y0 ? source.Y0 : target.Y0;
+            double yMax = source.YMax < target.YMax ? source.YMax : target.YMax;
+            double yRes = source.YRes > target.YRes ? source.YRes : target.YRes;
+            double zMin = source.Z0 > target.Z0 ? source.Z0 : target.Z0;
+            double zMax = source.ZMax < target.ZMax ? source.ZMax : target.ZMax;
+            double zRes = source.ZRes > target.ZRes ? source.ZRes : target.ZRes;
 
             if (dta.TrimWidth > 0)
             {
@@ -160,12 +163,12 @@ namespace DicomStrictCompare
                                 else if (dta.UseMM == false)
                                 {
                                     System.Collections.Generic.List<double> neighbouringDoses = new System.Collections.Generic.List<double>();
-                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - (xRes * dta.Distance), y, z).Dose); }
-                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + (xRes * dta.Distance), y, z).Dose); }
-                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - (yRes * dta.Distance), z).Dose); }
-                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + (yRes * dta.Distance), z).Dose); }
-                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - (zRes * dta.Distance)).Dose); }
-                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + (yRes * dta.Distance)).Dose); }
+                                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - xRes * dta.Distance, y, z).Dose); }
+                                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + xRes * dta.Distance, y, z).Dose); }
+                                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - yRes * dta.Distance, z).Dose); }
+                                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + yRes * dta.Distance, z).Dose); }
+                                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - zRes * dta.Distance).Dose); }
+                                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + yRes * dta.Distance).Dose); }
                                     double low = neighbouringDoses.Min();
                                     double high = neighbouringDoses.Max();
                                     if (targeti < low || targeti > high)
@@ -196,23 +199,24 @@ namespace DicomStrictCompare
                     }
                 }
             }
+            System.Diagnostics.Debug.WriteLine(new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().Name);
             System.Diagnostics.Debug.WriteLine("Failed: " + failed + " of " + TotalCompared);
-            System.Tuple<int, int> ret = new System.Tuple<int, int>(failed, TotalCompared);
+            SingleComparison ret = new SingleComparison(dta, ComparedToPoint, TotalCompared, failed);
             return ret;
         }
 
-        public override System.Tuple<int, int> CompareParallel(Model.DoseMatrixOptimal source, Model.DoseMatrixOptimal target, Model.Dta dta, int cpuParallel, Type type)
+        public override SingleComparison CompareParallel(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, int cpuParallel, Type type)
         {
 
-            double xMin = (source.X0 > target.X0) ? source.X0 : target.X0;
-            double xMax = (source.XMax < target.XMax) ? source.XMax : target.XMax;
-            double xRes = (source.XRes > target.XRes) ? source.XRes : target.XRes;
-            double yMin = (source.Y0 > target.Y0) ? source.Y0 : target.Y0;
-            double yMax = (source.YMax < target.YMax) ? source.YMax : target.YMax;
-            double yRes = (source.YRes > target.YRes) ? source.YRes : target.YRes;
-            double zMin = (source.Z0 > target.Z0) ? source.Z0 : target.Z0;
-            double zMax = (source.ZMax < target.ZMax) ? source.ZMax : target.ZMax;
-            double zRes = (source.ZRes > target.ZRes) ? source.ZRes : target.ZRes;
+            double xMin = source.X0 > target.X0 ? source.X0 : target.X0;
+            double xMax = source.XMax < target.XMax ? source.XMax : target.XMax;
+            double xRes = source.XRes > target.XRes ? source.XRes : target.XRes;
+            double yMin = source.Y0 > target.Y0 ? source.Y0 : target.Y0;
+            double yMax = source.YMax < target.YMax ? source.YMax : target.YMax;
+            double yRes = source.YRes > target.YRes ? source.YRes : target.YRes;
+            double zMin = source.Z0 > target.Z0 ? source.Z0 : target.Z0;
+            double zMax = source.ZMax < target.ZMax ? source.ZMax : target.ZMax;
+            double zRes = source.ZRes > target.ZRes ? source.ZRes : target.ZRes;
 
             if (dta.TrimWidth > 0)
             {
@@ -232,27 +236,36 @@ namespace DicomStrictCompare
             double MinDoseEvaluated = MaxSource * dta.Threshhold;
             double sourceVariance = MaxSource * dta.Tolerance;
 
-            int zChunck = (int)System.Math.Floor((zMax - zMin) / zRes / cpuParallel);
+            double zChunck = System.Math.Floor((zMax - zMin) / zRes / cpuParallel);
 
             double[] zBoundaries = new double[cpuParallel + 1];
 
             for (int i = 0; i < TotalCompared.Length; i++)
-                zBoundaries[i] = i * zChunck * zRes;
-            zBoundaries[zBoundaries.Length - 1] = zMax;
+                zBoundaries[i] = zMin + i * zChunck * zRes;
+            zBoundaries[zBoundaries.Length - 1] = zMax + 0.5 * zRes;
 
             Task[] tasks = new Task[cpuParallel];
             for (int i = 0; i < cpuParallel; i++)
             {
                 tasks[i] = new Task(delegate () { portionCalculator(i); });
                 tasks[i].Start();
-
+                System.Threading.Thread.Sleep(100);
+            }
+            try
+            {
+                Task.WaitAll(tasks);
+            }
+            catch (System.IndexOutOfRangeException e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+                System.Diagnostics.Debug.WriteLine(e.StackTrace);
+                System.Diagnostics.Debug.WriteLine(e.InnerException.Message);
             }
 
-            Task.WaitAll(tasks);
-
-
+            System.Diagnostics.Debug.WriteLine(new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().Name);
             System.Diagnostics.Debug.WriteLine("Failed: " + failed.Sum() + " of " + TotalCompared.Sum());
-            System.Tuple<int, int> ret = new System.Tuple<int, int>(failed.Sum(), TotalCompared.Sum());
+
+            SingleComparison ret = new SingleComparison(dta, ComparedToPoint.Sum(), TotalCompared.Sum(), failed.Sum());
             return ret;
 
             void comparison(int index, double x, double y, double z)
@@ -285,12 +298,12 @@ namespace DicomStrictCompare
                 else if (dta.UseMM == false)
                 {
                     System.Collections.Generic.List<double> neighbouringDoses = new System.Collections.Generic.List<double>();
-                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - (xRes * dta.Distance), y, z).Dose); }
-                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + (xRes * dta.Distance), y, z).Dose); }
-                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - (yRes * dta.Distance), z).Dose); }
-                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + (yRes * dta.Distance), z).Dose); }
-                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - (zRes * dta.Distance)).Dose); }
-                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + (yRes * dta.Distance)).Dose); }
+                    if (x > xMin) { neighbouringDoses.Add(source.GetPointDose(x - xRes * dta.Distance, y, z).Dose); }
+                    if (x < xMax) { neighbouringDoses.Add(source.GetPointDose(x + xRes * dta.Distance, y, z).Dose); }
+                    if (y > yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - yRes * dta.Distance, z).Dose); }
+                    if (y < yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + yRes * dta.Distance, z).Dose); }
+                    if (z > zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - zRes * dta.Distance).Dose); }
+                    if (z < zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + yRes * dta.Distance).Dose); }
                     double low = neighbouringDoses.Min();
                     double high = neighbouringDoses.Max();
                     if (targeti < low || targeti > high)
@@ -324,7 +337,11 @@ namespace DicomStrictCompare
                     {
                         for (double z = zBoundaries[index]; z < zBoundaries[index + 1]; z += zRes)
                         {
+
+
                             comparison(index, x, y, z);
+
+
 
                         }
                     }
