@@ -73,7 +73,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Model\DoseComparisons.cs" />
+    <Compile Include="Model\DoseComparisonsTests.cs" />
     <Compile Include="Model\DoseMatrixOptimalTests.cs" />
     <Compile Include="Model\DtaTests.cs" />
     <Compile Include="Model\X86MathematicsTests.cs" />

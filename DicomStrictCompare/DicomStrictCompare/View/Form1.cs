@@ -52,11 +52,6 @@ namespace DSC
 
         }
 
-        public new void Dispose() 
-        {
-            worker.Dispose();
-        }
-
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -266,6 +261,11 @@ namespace DSC
             {
                 _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
             }
+
+            BackgroundWorker worker = sender as BackgroundWorker;
+            worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(WorkerRunWorkerCompleted);
+            worker.DoWork -= new DoWorkEventHandler(Worker_DoWork);
+            worker.Dispose();
 
         }
 

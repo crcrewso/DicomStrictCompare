@@ -260,6 +260,7 @@ namespace DicomStrictCompare
             _ = System.IO.Directory.CreateDirectory(longDirectory);
             chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
+            chart.Dispose();
             Debug.WriteLine("Finished saving " + filename);
             return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }
