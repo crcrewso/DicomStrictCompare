@@ -205,8 +205,12 @@ namespace DicomStrictCompare.Model
             return ret;
         }
 
-        public override SingleComparison CompareParallel(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, int cpuParallel, Type type)
+        public override SingleComparison CompareParallel(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, int cpuParallel)
         {
+            if (source == null) throw new System.ArgumentNullException(nameof(source));
+            if (target == null) throw new System.ArgumentNullException(nameof(target));
+            if (dta == null) throw new System.ArgumentNullException(nameof(dta));
+            if (cpuParallel < 0) throw new System.ArgumentOutOfRangeException(nameof(cpuParallel));
 
             double xMin = source.X0 > target.X0 ? source.X0 : target.X0;
             double xMax = source.XMax < target.XMax ? source.XMax : target.XMax;
@@ -276,7 +280,7 @@ namespace DicomStrictCompare.Model
                 if (targeti < MinDoseEvaluated || sourcei < MinDoseEvaluated) { return; }
                 TotalCompared[index]++;
                 double sourceLow, sourceHigh;
-                if (type == Type.absolute)
+                if (Dta.calcType.relative == dta.Type)
                 {
                     sourceLow = (1.0 - dta.Tolerance) * sourcei;
                     sourceHigh = (1.0 + dta.Tolerance) * sourcei;
@@ -286,7 +290,7 @@ namespace DicomStrictCompare.Model
                     sourceLow = sourcei - sourceVariance;
                     sourceHigh = sourcei + sourceVariance;
                 }
-                if (targeti > sourceLow && targeti < sourceHigh)
+                if (targeti >= sourceLow && targeti <= sourceHigh)
                 {
                     return;
                 }
