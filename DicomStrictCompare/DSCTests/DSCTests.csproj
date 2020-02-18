@@ -129,6 +129,7 @@
     <None Include="Resources\RD.UnitTest.P5 Varied MU.X-095A-10.0-1.dcm" />
     <None Include="Resources\RD.UnitTest.P5 Varied MU.X-099A-10.0-1.dcm" />
     <None Include="Resources\RD.UnitTest.P5 Varied MU.X-101A-10.0-1.dcm" />
+    <None Include="Resources\SNC Patient Comparisons.csv" />
     <None Include="Resources\TextFile1.txt" />
   </ItemGroup>
   <ItemGroup>
