@@ -283,8 +283,8 @@ namespace DSC
             try
             {
                 SaveDirectory = tbxSaveDir.Text;
-                if (!Directory.Exists(SaveDirectory))
-                    SaveDirectory = null;
+//                if (!Directory.Exists(SaveDirectory))
+//                    SaveDirectory = null;
                 tbxSaveDir.Text = SaveDirectory;
 
                 TargetDirectory = tbxTarget.Text;
@@ -329,6 +329,11 @@ namespace DSC
             else
             {
                 isMM = units.SelectedItem.ToString() == "mm" ? true : false;
+            }
+
+            if (String.IsNullOrEmpty(txtBxTrim.Text))
+            {
+                txtBxTrim.Text = "0";
             }
 
 

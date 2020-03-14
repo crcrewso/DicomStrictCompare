@@ -19,10 +19,16 @@ namespace DicomStrictCompare
 
         public SaveFile(string FileName, string FileDirectory)
         {
-            if (Directory.Exists(FileDirectory))
+            if (Directory.Exists(FileDirectory) )
             {
                 SaveFileDir = FileDirectory;
             }
+            else
+            {
+                Directory.CreateDirectory(FileDirectory);
+                SaveFileDir = FileDirectory;
+            }
+
 
             if (!String.IsNullOrEmpty(SaveFileDir))
             {

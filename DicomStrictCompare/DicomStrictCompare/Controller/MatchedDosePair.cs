@@ -157,6 +157,7 @@ namespace DicomStrictCompare
             _target = target;
             _dtas = settings.Dtas;
             _comparisons = new SingleComparison[_dtas.Length];
+            PDDoutString = "PDD's not run";
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
             ChartFileName = _source.PlanID + @"\" + _source.FieldName;
         }

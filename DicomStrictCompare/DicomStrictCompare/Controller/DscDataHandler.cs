@@ -205,7 +205,7 @@ namespace DicomStrictCompare
                     }
                 });
                 progress = 69;
-
+            }
                 //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
                 if (runDoseComparisons)
                 {
@@ -241,7 +241,7 @@ namespace DicomStrictCompare
 
 
 
-            }
+            
 
         }
 
