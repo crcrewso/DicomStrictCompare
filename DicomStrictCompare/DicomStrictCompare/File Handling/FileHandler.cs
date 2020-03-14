@@ -25,7 +25,7 @@ namespace DicomStrictCompare
     /// 
     /// 
     /// </summary>
-    class FileHandler
+    public class FileHandler
     {
 
         
@@ -70,7 +70,7 @@ namespace DicomStrictCompare
     /// <summary>
     /// Parsses all of the MetaData from a dicom file, and if a dose file, allows access to the dose information through methods
     /// </summary>
-    class DoseFile
+    public class DoseFile
     {
         /// <summary>
         /// full filename including address
@@ -225,7 +225,7 @@ namespace DicomStrictCompare
 
     }
 
-    class DicomFile
+    public class DicomFile
     {
         public bool IsPlanFile { get; }
         public bool IsDoseFile { get; }
@@ -249,7 +249,7 @@ namespace DicomStrictCompare
         }
     }
 
-    class PlanFile
+    public class PlanFile
     {
         /// <summary>
         /// Contains the field name, field number and number of MU's 

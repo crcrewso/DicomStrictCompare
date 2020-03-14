@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using DicomStrictCompare.Model;
 
 namespace DicomStrictCompare
 {
@@ -51,7 +52,6 @@ namespace DicomStrictCompare
         /// includes error messages for matches that didn't work. 
         /// </summary>
         public string ResultMessage { get; private set; }
-        bool MessageHeaderSet = false;
 
         public DscDataHandler()
         {
@@ -205,7 +205,7 @@ namespace DicomStrictCompare
                     }
                 });
                 progress = 69;
-
+            }
                 //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
                 if (runDoseComparisons)
                 {
@@ -241,7 +241,7 @@ namespace DicomStrictCompare
 
 
 
-            }
+            
 
         }
 

@@ -111,7 +111,7 @@
   <ItemGroup>
     <Compile Include="Controller\DscDataHandler.cs" />
     <Compile Include="Controller\settings.cs" />
-    <Compile Include="Controller\SingleComparison.cs" />
+    <Compile Include="Model\SingleComparison.cs" />
     <Compile Include="File Handling\FileHandler.cs" />
     <Compile Include="Model\DoseMatrixOptimal.cs" />
     <Compile Include="Model\dta.cs" />

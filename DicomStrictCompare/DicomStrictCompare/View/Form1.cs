@@ -52,11 +52,6 @@ namespace DSC
 
         }
 
-        public new void Dispose() 
-        {
-            worker.Dispose();
-        }
-
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -200,7 +195,8 @@ namespace DSC
         /// <param name="e"></param>
         private void BtnExecute_Click(object sender, EventArgs e)
         {
-            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings( Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false );
+            // TODO impliment proper threadding request
+            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings( Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
                 /// TODO make Fuzzy res width gui configurable  
                 /// TODO Impliment gamma
             
@@ -266,6 +262,11 @@ namespace DSC
                 _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
             }
 
+            BackgroundWorker worker = sender as BackgroundWorker;
+            worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(WorkerRunWorkerCompleted);
+            worker.DoWork -= new DoWorkEventHandler(Worker_DoWork);
+            worker.Dispose();
+
         }
 
 
@@ -282,8 +283,8 @@ namespace DSC
             try
             {
                 SaveDirectory = tbxSaveDir.Text;
-                if (!Directory.Exists(SaveDirectory))
-                    SaveDirectory = null;
+//                if (!Directory.Exists(SaveDirectory))
+//                    SaveDirectory = null;
                 tbxSaveDir.Text = SaveDirectory;
 
                 TargetDirectory = tbxTarget.Text;
@@ -328,6 +329,11 @@ namespace DSC
             else
             {
                 isMM = units.SelectedItem.ToString() == "mm" ? true : false;
+            }
+
+            if (String.IsNullOrEmpty(txtBxTrim.Text))
+            {
+                txtBxTrim.Text = "0";
             }
 
 

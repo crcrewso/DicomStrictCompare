@@ -12,6 +12,12 @@ namespace DicomStrictCompare.Model.Tests
     public class DtaTests
     {
         [TestMethod()]
+        public void ExceptionInitializationTest()
+        {
+            Assert.ThrowsException<ArgumentNullException>(() => new Dta(null));
+        }
+
+        [TestMethod()]
         public void DtaTest()
         {
             Assert.Fail();

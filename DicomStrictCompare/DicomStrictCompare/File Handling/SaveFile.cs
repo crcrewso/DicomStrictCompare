@@ -19,10 +19,16 @@ namespace DicomStrictCompare
 
         public SaveFile(string FileName, string FileDirectory)
         {
-            if (Directory.Exists(FileDirectory))
+            if (Directory.Exists(FileDirectory) )
             {
                 SaveFileDir = FileDirectory;
             }
+            else
+            {
+                Directory.CreateDirectory(FileDirectory);
+                SaveFileDir = FileDirectory;
+            }
+
 
             if (!String.IsNullOrEmpty(SaveFileDir))
             {
@@ -260,6 +266,7 @@ namespace DicomStrictCompare
             _ = System.IO.Directory.CreateDirectory(longDirectory);
             chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
+            chart.Dispose();
             Debug.WriteLine("Finished saving " + filename);
             return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }

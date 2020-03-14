@@ -30,12 +30,17 @@ namespace DicomStrictCompare.Model
         /// If relative is true calculation is based off of max dose
         /// if not calculation is based off of source voxel dose. 
         /// </summary>
-        public bool Relative { get; }
+        public calcType Type { get; }
 
         public int TrimWidth { get;  }
 
+        public bool Relative => (Type == calcType.relative) ? true : false;
 
-        List<string> summary => new List<string> { (Tolerance*100).ToString("0.0"), Distance.ToString("0.00"), (Threshhold*100).ToString("0.0"), Relative.ToString(), UseMM ? "mm" : "voxel" };
+
+        public enum calcType { relative, absolute };
+
+
+        List<string> Summary => new List<string> { (Tolerance*100).ToString("0.0"), Distance.ToString("0.00"), (Threshhold*100).ToString("0.0"), Type.ToString(), UseMM ? "mm" : "voxel" };
 
         /// <summary>
         /// 
@@ -51,24 +56,25 @@ namespace DicomStrictCompare.Model
             Threshhold = threshhold; 
             Tolerance = tolerance; 
             Distance = distance; 
-            Relative = relative;
             TrimWidth = trim;
+            Type = relative ? calcType.relative : calcType.absolute;
         }
 
         public Dta (string fromDtaToString)
         {
+            if (fromDtaToString == null) throw new ArgumentNullException(nameof(fromDtaToString));
             string[] values = fromDtaToString.Replace(", ", "|").Split('|');
             Tolerance = Convert.ToDouble(values[0]);
             Distance = Convert.ToDouble(values[1]);
             Threshhold = Convert.ToDouble(values[2]);
-            Relative = Convert.ToBoolean(values[3]);
+            Type = Convert.ToBoolean(values[3]) ? calcType.relative: calcType.absolute;
             UseMM = (values[4] == "mm" ? true : false);
         }
 
 
         public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + " % " + Distance.ToString() + (UseMM ? " mm" : " voxels");
 
-        public override string ToString() => String.Join(", ", summary);
+        public override string ToString() => String.Join(", ", Summary);
         /// <summary>
         /// Returns the header for the ToString() function
         /// </summary>
@@ -78,6 +84,25 @@ namespace DicomStrictCompare.Model
         {
             string[] titles = new string[] { "Tolerance", "Distance", "Threshhold", "Relative to Max dose?", "Unit" };
             return String.Join(", ", titles);
+        }
+
+        public bool Equals(Dta dta)
+        {
+            if (dta == null) throw new ArgumentNullException(nameof(dta));
+            bool ret = true;
+            if (Distance != dta.Distance)
+                ret = false;
+            else if (Type != dta.Type)
+                ret = false;
+            else if (Threshhold != dta.Threshhold)
+                ret = false;
+            else if (Tolerance != dta.Tolerance)
+                ret = false;
+            else if (TrimWidth != dta.TrimWidth)
+                ret = false;
+            else if (UseMM != dta.UseMM)
+                ret = false;
+            return ret;
         }
     }
 
