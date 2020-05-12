@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using DicomStrictCompare.Model;
 using EvilDICOM.RT;
 
 namespace DicomStrictCompare
@@ -12,9 +13,8 @@ namespace DicomStrictCompare
     /// </summary>
     class MatchedDosePair
     {
-        Model.Dta[] _dtas;
-
-        Controller.SingleComparison[] _comparisons;
+        readonly Model.Dta[] _dtas;
+        readonly SingleComparison[] _comparisons;
         public int TotalCount { get; private set; }
         public int TotalCompared { get; private set; } = 0;
         public int TotalFailed { get; private set; }
@@ -38,12 +38,12 @@ namespace DicomStrictCompare
         /// </summary>
         public string FileNames => _source.ShortFileName + ',' + _target.ShortFileName;
 
-        public string ResultString => String.Join(",", resultArray());
-        public string ResultHeader => String.Join(",", resultArrayHeaderRow0()) + "\n" + String.Join(",", resultArrayHeaderRow1()) + "\n";
+        public string ResultString => String.Join(",", ResultArray());
+        public string ResultHeader => String.Join(",", ResultArrayHeaderRow0()) + "\n" + String.Join(",", ResultArrayHeaderRow1()) + "\n";
 
         public static string StaticResultHeader(Model.Dta[] dtas)
         {
-            return String.Join(",", resultArrayHeaderRow0(dtas)) + "\n" + String.Join(",", resultArrayHeaderRow1(dtas)) + "\n";
+            return String.Join(",", ResultArrayHeaderRow0(dtas)) + "\n" + String.Join(",", ResultArrayHeaderRow1(dtas)) + "\n";
         }
 
         private readonly DoseFile _source;
@@ -65,10 +65,12 @@ namespace DicomStrictCompare
             return (double)failed / (double)total * 100.0;
         }
 
-        string[] resultArray()
+        string[] ResultArray()
         {
-            List<string> ret = new List<string>();
-            ret.Add(Name);
+            List<string> ret = new List<string>
+            {
+                Name
+            };
             for (int i = 0; i < _dtas.Length; i++)
             {
                 ret.Add(_comparisons[i].PercentFailed.ToString("0.000"));
@@ -87,7 +89,7 @@ namespace DicomStrictCompare
             ret.Add(PDDoutString);
             return ret.ToArray();
         }
-        string[] resultArrayHeaderRow0()
+        string[] ResultArrayHeaderRow0()
         {
             List<string> ret = new List<string>();
             ret.AddRange(Enumerable.Repeat(" ", 2));
@@ -101,7 +103,7 @@ namespace DicomStrictCompare
 
             return ret.ToArray();
         }
-        static string[] resultArrayHeaderRow0(Model.Dta[] dtas)
+        static string[] ResultArrayHeaderRow0(Model.Dta[] dtas)
         {
             List<string> ret = new List<string>();
             ret.AddRange(Enumerable.Repeat(" ", 2));
@@ -115,11 +117,13 @@ namespace DicomStrictCompare
 
             return ret.ToArray();
         }
-        string[] resultArrayHeaderRow1()
+        string[] ResultArrayHeaderRow1()
         {
-            List<string> ret = new List<string>();
-            ret.Add("Plan Name");
-            ret.Add("Field Name");
+            List<string> ret = new List<string>
+            {
+                "Plan Name",
+                "Field Name"
+            };
             for (int i = 0; i < 3*_dtas.Length; i++)
             {
                 ret.Add(_dtas[i%_dtas.Length].ShortToString());
@@ -130,11 +134,13 @@ namespace DicomStrictCompare
             return ret.ToArray();
         }
 
-        static string[] resultArrayHeaderRow1(Model.Dta[] dtas)
+        static string[] ResultArrayHeaderRow1(Model.Dta[] dtas)
         {
-            List<string> ret = new List<string>();
-            ret.Add("Plan Name");
-            ret.Add("Field Name");
+            List<string> ret = new List<string>
+            {
+                "Plan Name",
+                "Field Name"
+            };
             for (int i = 0; i < 3 * dtas.Length; i++)
             {
                 ret.Add(dtas[i % dtas.Length].ShortToString());
@@ -150,7 +156,8 @@ namespace DicomStrictCompare
             _source = source;
             _target = target;
             _dtas = settings.Dtas;
-            _comparisons = new Controller.SingleComparison[_dtas.Length];
+            _comparisons = new SingleComparison[_dtas.Length];
+            PDDoutString = "PDD's not run";
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
             ChartFileName = _source.PlanID + @"\" + _source.FieldName;
         }
@@ -173,14 +180,14 @@ namespace DicomStrictCompare
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out
         /// </summary>
-        public void Evaluate(IMathematics mathematics, bool fuzzy)
+        public void Evaluate(IMathematics mathematics)
         {
             Model.DoseMatrixOptimal sourceDose = new Model.DoseMatrixOptimal(_source.DoseMatrix());
             Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());
             TotalCount = targetDose.Length;
             Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
             Debug.WriteLine("Max dose: Source - " + sourceDose.MaxPointDose.Dose + " Target - " + targetDose.MaxPointDose.Dose);
-            Tuple<int, int> ret;
+            Model.SingleComparison ret;
             for (int i = 0; i < _dtas.Length; i++)
             {
                 if (_dtas[i].Relative)
@@ -189,10 +196,7 @@ namespace DicomStrictCompare
                 }
                 else
                     ret = mathematics.CompareAbsolute(sourceDose, targetDose, _dtas[i]);
-                _comparisons[i] = new Controller.SingleComparison();
-                _comparisons[i].TotalCompared = ret.Item2;
-                _comparisons[i].TotalFailed = ret.Item1;
-                _comparisons[i]._dta = _dtas[0];
+                _comparisons[i] = ret;
             }
             IsEvaluated = true;
 

@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="RD_UnitTest_P1Ref_e_100A_10_0_1_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1ref.e-100a-10.0-1-13.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1Ref_F_100A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1ref.f-100a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1Ref_X_100A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1ref.x-100a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_2_mm_e_100A_10_0_02_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 2 mm.e-100a-10.0-02-3.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_2_mm_F_100A_10_0_0_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 2 mm.f-100a-10.0-0.2.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_2_mm_X_100A_10_0_0_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 2 mm.x-100a-10.0-0.2.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_5_mm_e_100A_10_0_5_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 5 mm.e-100a-10.0-5-13.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_5_mm_F_100A_10_0_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 5 mm.f-100a-10.0-5.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_5_mm_X_100A_10_0_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 5 mm.x-100a-10.0-5.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_Acuros_F_100X_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 acuros.f-100x-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P1_Acuros_X_100X_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p1 acuros.x-100x-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P2_10_1_F_100X_10_1_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p2 10.1.f-100x-10.1-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P2_10_1_X_100X_10_1_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p2 10.1.x-100x-10.1-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P3_11_0_F_100X_10_1_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p3 11.0.f-100x-10.1-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P3_11_0_X_100X_10_1_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p3 11.0.x-100x-10.1-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P4_E_2D_e_100A_10_0_1_12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p4 e 2d.e-100a-10.0-1-12.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P4_E_None_e_100A_10_0_1_N" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p4 e none.e-100a-10.0-1-n.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_e_095A_10_0_1_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.e-095a-10.0-1-13.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_e_099A_10_0_1_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.e-099a-10.0-1-13.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_e_101A_10_0_1_13" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.e-101a-10.0-1-13.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_F_095A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.f-095a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_F_099A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.f-099a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_F_101A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.f-101a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_X_095A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.x-095a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_X_099A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.x-099a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RD_UnitTest_P5_Varied_MU_X_101A_10_0_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rd.unittest.p5 varied mu.x-101a-10.0-1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P1Ref" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p1ref.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P1_2_mm" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p1 2 mm.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P1_5_mm" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p1 5 mm.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P1_Acuros" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p1 acuros.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P2_10_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p2 10.1.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P3_11_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p3 11.0.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P4_E_2D" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p4 e 2d.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P4_E_None" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p4 e none.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="RP_UnitTest_P5_Varied_MU" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\rp.unittest.p5 varied mu.dcm;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SNC_Patient_Comparisons" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\snc patient comparisons.csv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="TextFile1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\textfile1.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+</root>

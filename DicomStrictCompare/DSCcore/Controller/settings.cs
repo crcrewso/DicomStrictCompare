@@ -9,37 +9,32 @@ namespace DicomStrictCompare.Controller
     /// <summary>
     /// Consolidated settings collection to undo feature creep spaghettification.  
     /// </summary>
-    class Settings
+    public class Settings
     {
 
         /// <summary>
         /// Simple dta algorithm for fractional DTA adjustment
         /// </summary>
-        bool Fuzzy { get; }
-        /// <summary>
-        /// distance to agreement in voxels, nominally 0 or 0.5
-        /// </summary>
-        float FuzzyWidth { get; }
-        bool Gamma { get;  }
-        bool DTA { get; }
-        /// <summary>
-        /// Distance in cm for distance to agreement algorithm, useful for gamma 
-        /// </summary>
-        float DTAWidth { get; }
-        bool Trimmed { get; }
-        float TrimWidth { get; }
-        bool UseGPU { get; }
-        double[] Tolerances3D { get; }
-        double[] Tolerances2D { get; }
-        double[] Depths { get; }
-        double Threshhold { get;  }
-        bool RunDoseComparisons { get;  }
-        bool RunPDDComparisons { get; }
-        bool RunProfileComparisons { get; }
+
+
+        public Model.Dta[] Dtas { get; }
+        public bool RunDoseComparisons { get;  }
+        public bool RunPDDComparisons { get; }
+        public bool RunProfileComparisons { get; }
         public int CpuParallel { get; private set; } = 1;
-        public int GpuParallel { get; } = 0;
-        public void SetCPUParallel(int coresIn)
+
+        public Settings(
+            DicomStrictCompare.Model.Dta[] dtas
+            , bool runDoseComparisons
+            , bool runPDDComparisons
+            , bool runProfileComparisons
+            , int coresIn
+            )
         {
+            Dtas = dtas;
+            RunDoseComparisons = runDoseComparisons;
+            RunPDDComparisons = runPDDComparisons;
+            RunProfileComparisons = runProfileComparisons;
             CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
         }
 

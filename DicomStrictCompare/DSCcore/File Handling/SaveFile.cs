@@ -19,10 +19,16 @@ namespace DicomStrictCompare
 
         public SaveFile(string FileName, string FileDirectory)
         {
-            if (Directory.Exists(FileDirectory))
+            if (Directory.Exists(FileDirectory) )
             {
                 SaveFileDir = FileDirectory;
             }
+            else
+            {
+                Directory.CreateDirectory(FileDirectory);
+                SaveFileDir = FileDirectory;
+            }
+
 
             if (!String.IsNullOrEmpty(SaveFileDir))
             {
@@ -136,21 +142,27 @@ namespace DicomStrictCompare
             }
 
 
-            Font titleFont = new Font("Consolas", 36, FontStyle.Regular);
-            Font axesFont = new Font("Consolas", 20, FontStyle.Regular);
+            Font titleFont = new Font(familyName: "Consolas", 36, FontStyle.Regular);
+            Font axesFont = new Font(familyName: "Consolas", 20, FontStyle.Regular);
             Font subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
-            Chart chart = new Chart();
-            chart.Size = new Size(3200, 1800);
+            Chart chart = new Chart
+            {
+                Size = new Size(3200, 1800)
+            };
             //chart title
-            Title chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black);
-            chartTitle.Docking = Docking.Top;
-            chartTitle.IsDockedInsideChartArea = false;
+            Title chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black)
+            {
+                Docking = Docking.Top,
+                IsDockedInsideChartArea = false
+            };
             chart.Titles.Add(chartTitle);
 
             //textbox for Percent depth metrics
-            Title DepthMetricsBox = new Title(titleText, Docking.Top, subtitleFont, Color.Black);
-            DepthMetricsBox.IsDockedInsideChartArea = true;
-            DepthMetricsBox.Docking = Docking.Top;
+            Title DepthMetricsBox = new Title(titleText, Docking.Top, subtitleFont, Color.Black)
+            {
+                IsDockedInsideChartArea = true,
+                Docking = Docking.Top
+            };
             chart.Titles.Add(DepthMetricsBox);
             ChartArea chartArea = new ChartArea();
             chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
@@ -183,8 +195,10 @@ namespace DicomStrictCompare
             chartArea.AxisY.LabelStyle.Font = axesFont;
             chartArea.AxisY2.LabelStyle.Font = axesFont;
 
-            Title title2 = new Title("Results", Docking.Bottom, subtitleFont, Color.DarkBlue);
-            title2.Text = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count;
+            Title title2 = new Title("Results", Docking.Bottom, subtitleFont, Color.DarkBlue)
+            {
+                Text = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count
+            };
             chart.Titles.Add(title2);
             /*
              /// Old logic for when the dose diff could be large. not necessary for this project
@@ -203,31 +217,37 @@ namespace DicomStrictCompare
             */
 
 
-            Series series = new Series();
-            series.Name = SourceAlias;
-            series.ChartType = SeriesChartType.Line;
-            series.XValueType = ChartValueType.Double;
-            series.Color = Color.Blue;
-            series.MarkerSize = 5;
+            Series series = new Series
+            {
+                Name = SourceAlias,
+                ChartType = SeriesChartType.Line,
+                XValueType = ChartValueType.Double,
+                Color = Color.Blue,
+                MarkerSize = 5
+            };
             series.Points.DataBindXY(z, doses0);
             series.YAxisType = AxisType.Primary;
             chart.Series.Add(series);
             chart.ChartAreas[0].RecalculateAxesScale();
-            Series series1 = new Series();
-            series1.Name = TargetAlias;
-            series1.ChartType = SeriesChartType.Point;
-            series1.MarkerSize = 4;
-            series1.Color = Color.DarkGreen;
-            series1.XValueType = ChartValueType.Double;
+            Series series1 = new Series
+            {
+                Name = TargetAlias,
+                ChartType = SeriesChartType.Point,
+                MarkerSize = 4,
+                Color = Color.DarkGreen,
+                XValueType = ChartValueType.Double
+            };
             series1.Points.DataBindXY(z, doses1);
             series1.YAxisType = AxisType.Primary;
             chart.Series.Add(series1);
             chart.ChartAreas[0].RecalculateAxesScale();
-            Series series2 = new Series();
-            series2.Name = "Dose Difference (%)";
-            series2.ChartType = SeriesChartType.Line;
-            series2.XValueType = ChartValueType.Double;
-            series2.Color = Color.DarkRed;
+            Series series2 = new Series
+            {
+                Name = "Dose Difference (%)",
+                ChartType = SeriesChartType.Line,
+                XValueType = ChartValueType.Double,
+                Color = Color.DarkRed
+            };
             series2.Points.DataBindXY(z, doseDiff);
             series2.YAxisType = AxisType.Secondary;
             chart.Series.Add(series2);
@@ -246,6 +266,7 @@ namespace DicomStrictCompare
             _ = System.IO.Directory.CreateDirectory(longDirectory);
             chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
+            chart.Dispose();
             Debug.WriteLine("Finished saving " + filename);
             return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }

@@ -31,6 +31,8 @@ namespace DicomStrictCompare
 		/// <returns></returns>
 		public static double Comparison(List<DoseValue> reference, List<DoseValue> profile, int dta = 2, double percent = 2)
         {
+            if (reference == null) throw new ArgumentNullException(nameof(reference));
+            if (profile == null) throw new ArgumentNullException(nameof(profile));
             List<int> failed = new List<int>();
             double maxDose = 0;
             double ret = 0;
@@ -93,6 +95,8 @@ namespace DicomStrictCompare
 		/// <returns></returns>
 		public static int ComparisonRaw(List<DoseValue> reference, List<DoseValue> profile, int dta = 2, double percent = 2)
         {
+            if (reference == null) throw new ArgumentNullException(nameof(reference));
+            if (profile == null) throw new ArgumentNullException(nameof(profile));
             double maxDose = 0;
             double tolerance = 0; // the tolerance of dose matching in absolute units of the reference profile
             int pointsCompared = profile.Count;
@@ -151,6 +155,7 @@ namespace DicomStrictCompare
         ///<exception cref="ArgumentOutOfRangeException">Thrown when the profile does not drop below the sought percent</exception>
         public static DoseValue DepthToPercentOfPeak(List<DoseValue> doseValues, int percent)
         {
+            if (doseValues == null) throw new ArgumentNullException(nameof(doseValues));
             // finding value and location of maximum
             double max = 0;
             int indexMax = 0;

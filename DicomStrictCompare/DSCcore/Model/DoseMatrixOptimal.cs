@@ -8,16 +8,29 @@ namespace DicomStrictCompare.Model
 {
     public class DoseMatrixOptimal
     {
-        public readonly int DimensionX, DimensionY, DimensionZ;
+        public int DimensionX { get; }
+        public int DimensionY { get; }
+        public int DimensionZ { get; }
+
         public readonly double[] DoseValues;
-        public readonly double Scaling;
-        public readonly double X0, Y0, Z0, XMax, YMax, ZMax, XRes, YRes, ZRes;
-        public readonly DoseValue MaxPointDose;
+        public double Scaling { get; }
+        public double X0 { get; }
+        public double Y0 { get; }
+        public double Z0 { get; }
+        public double XMax { get; }
+        public double YMax { get; }
+        public double ZMax { get; }
+        public double XRes { get; }
+        public double YRes { get; }
+        public double ZRes { get; }
+        public DoseValue MaxPointDose { get; }
         public int Length { get; }
         public int Count { get; }
 
-        public DoseMatrixOptimal(DoseMatrix doseMatrix)
+        public DoseMatrixOptimal(EvilDICOM.RT.RTDose doseMatrix)
         {
+            if (doseMatrix == null)
+                throw new ArgumentNullException(nameof(doseMatrix));
             DimensionX = doseMatrix.DimensionX;
             DimensionY = doseMatrix.DimensionY;
             DimensionZ = doseMatrix.DimensionZ;
@@ -37,7 +50,12 @@ namespace DicomStrictCompare.Model
             MaxPointDose = doseMatrix.MaxPointDose;
         }
 
-        public bool IsInBounds(Vector3 pt) => pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
+        public bool IsInBounds(Vector3 pt)
+        {
+            if (null == pt)
+                throw new ArgumentNullException("pt");
+            return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
+        }
 
         public DoseValue GetPointDose(double x, double y, double z)
         {
@@ -102,6 +120,8 @@ namespace DicomStrictCompare.Model
 
         public DoseValue GetPointDose(Vector3 pt)
         {
+            if (pt == null)
+                throw new ArgumentNullException(nameof(pt));
             return GetPointDose(pt.X, pt.Y, pt.Z);
         }
 
@@ -123,6 +143,10 @@ namespace DicomStrictCompare.Model
 
         public bool CompareDimensions(in DoseMatrixOptimal y)
         {
+            if (y == null && this == null)
+                return true;
+            if (y == null)
+                return false;
             if (DoseValues.Length != y.DoseValues.Length)
                 return false;
             if (Scaling != y.Scaling)

@@ -25,7 +25,7 @@ namespace DicomStrictCompare
     /// 
     /// 
     /// </summary>
-    class FileHandler
+    public class FileHandler
     {
 
         
@@ -70,7 +70,7 @@ namespace DicomStrictCompare
     /// <summary>
     /// Parsses all of the MetaData from a dicom file, and if a dose file, allows access to the dose information through methods
     /// </summary>
-    class DoseFile
+    public class DoseFile
     {
         /// <summary>
         /// full filename including address
@@ -118,9 +118,14 @@ namespace DicomStrictCompare
         public int Y { get; private set; }
         public int Z { get; private set; }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileName"></param>
         public DoseFile(string fileName)
         {
+            if (fileName == null || fileName.Length < 1)
+                throw new ArgumentNullException(nameof(fileName));
             DICOMObject dcm1 = DICOMObject.Read(fileName);
             FileName = fileName;
             int slashindex = FileName.LastIndexOf(@"\");
@@ -151,6 +156,8 @@ namespace DicomStrictCompare
 
         public void SetFieldName(List<PlanFile> planFiles)
         {
+            if (planFiles == null)
+                throw new ArgumentNullException(nameof(planFiles));
             PlanFile match = planFiles.Find(X => X.SopInstanceId == SopInstanceId);
             if (match != null)
             {
@@ -225,7 +232,7 @@ namespace DicomStrictCompare
 
     }
 
-    class DicomFile
+    public class DicomFile
     {
         public bool IsPlanFile { get; }
         public bool IsDoseFile { get; }
@@ -249,7 +256,7 @@ namespace DicomStrictCompare
         }
     }
 
-    class PlanFile
+    public class PlanFile
     {
         /// <summary>
         /// Contains the field name, field number and number of MU's 
@@ -267,6 +274,7 @@ namespace DicomStrictCompare
 
         public PlanFile(string fileName)
         {
+            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
             FieldNumberToNameList = new List<Tuple<string, string, string>>();
             FileName = fileName;
             ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));

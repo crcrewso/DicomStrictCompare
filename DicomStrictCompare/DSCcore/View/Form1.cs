@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using DicomStrictCompare;
 
-namespace DSCcore
+namespace DSC
 {
     public partial class Form1 : Form
     {
-        public bool tested;
+        public bool Tested { get; private set; } = false;
         public float TightTol { get; private set; } = 1;
         public float MainTol { get; private set; } = 2;
         public float Threshold { get; private set; } = 10;
@@ -25,6 +25,8 @@ namespace DSCcore
         public string SourceAliasName { get; private set; } = "Reference";
         public string TargetAliasName { get; private set; } = "New Model";
 
+        public BindingList<DicomStrictCompare.Model.Dta> Dtas { get; private set; }
+
         private readonly DscDataHandler _dataHandler;
 
         private readonly BackgroundWorker worker;
@@ -33,13 +35,12 @@ namespace DSCcore
         public Form1()
         {
             InitializeComponent();
-            tbxTightTol.Text = TightTol.ToString();
-            tbxMainTol.Text = MainTol.ToString();
-            tbxThreshholdTol.Text = Threshold.ToString();
+            Dtas = new BindingList<DicomStrictCompare.Model.Dta>();
+            this.dtaListPairs.DataSource = Dtas;
             tbxSourceLabel.Text = SourceAliasName.ToString();
             tbxTargetLabel.Text = TargetAliasName.ToString();
             _dataHandler = new DscDataHandler();
-            tested = false;
+            Tested = false;
             worker = new BackgroundWorker
             {
                 WorkerReportsProgress = true, WorkerSupportsCancellation = true
@@ -54,7 +55,7 @@ namespace DSCcore
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
 
@@ -68,38 +69,38 @@ namespace DSCcore
         /// <param name="e"></param>
         private void TbxTightTol_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
         private void TbxMainTol_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
         private void ThreshBox_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
         private void TbxSource_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
         private void TbxTarget_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
 
         private void TbxSaveDir_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
         }
 
         private void TbxSourceLabel_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
             string temp = tbxSourceLabel.Text;
             SourceAliasName = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxSourceLabel.Text = SourceAliasName;
@@ -110,12 +111,12 @@ namespace DSCcore
             string temp = tbxTargetLabel.Text;
             TargetAliasName = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxTargetLabel.Text = TargetAliasName;
-            tested = false;
+            Tested = false;
         }
 
         private void TbxSaveName_TextChanged(object sender, EventArgs e)
         {
-            tested = false;
+            Tested = false;
             string temp = tbxSaveName.Text;
             SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxSaveName.Text = SaveNamePrefix;
@@ -194,24 +195,25 @@ namespace DSCcore
         /// <param name="e"></param>
         private void BtnExecute_Click(object sender, EventArgs e)
         {
+            // TODO impliment proper threadding request
+            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings( Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+                /// TODO make Fuzzy res width gui configurable  
+                /// TODO Impliment gamma
+            
 
             if (!_isRunning)
             {
-
-                _dataHandler.ThresholdTol = Threshold / 100.0;
-                _dataHandler.MainTol = MainTol / 100.0;
-                _dataHandler.TightTol = TightTol / 100.0;
+                _dataHandler.Settings = settings;
                 _dataHandler.SourceAliasName = SourceAliasName;
                 _dataHandler.TargetAliasName = TargetAliasName;
-                _dataHandler.fuzzy = chkBoxFuzzy.Checked;
                 
 
 
-                if (tested == false)
+                if (Tested == false)
                 {
                     TestDirectories_Click(sender, e);
                 }
-                if (tested == false)
+                if (Tested == false)
                 {
                     lblRunStatus.Text = "Tested text Fields, Please Rerun";
                     return;
@@ -260,15 +262,12 @@ namespace DSCcore
                 _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
             }
 
+            BackgroundWorker worker = sender as BackgroundWorker;
+            worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(WorkerRunWorkerCompleted);
+            worker.DoWork -= new DoWorkEventHandler(Worker_DoWork);
+            worker.Dispose();
+
         }
-
-
-
-
-
-
-
-
 
 
         private void TestDirectories_Click(object sender, EventArgs e)
@@ -276,8 +275,8 @@ namespace DSCcore
             try
             {
                 SaveDirectory = tbxSaveDir.Text;
-                if (!Directory.Exists(SaveDirectory))
-                    SaveDirectory = null;
+//                if (!Directory.Exists(SaveDirectory))
+//                    SaveDirectory = null;
                 tbxSaveDir.Text = SaveDirectory;
 
                 TargetDirectory = tbxTarget.Text;
@@ -297,38 +296,70 @@ namespace DSCcore
                 _ = System.Windows.Forms.MessageBox.Show("One of the directory fields is either empty or invalid");
                 return;
             }
+            Tested = true;
+        }
 
-            try
+        private void DtaListPairs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void BtnDAadd_Click(object sender, EventArgs e)
+        {
+            double distance = 0;
+            if (txtBoxDAdta.TextLength > 0)
             {
-                TightTol = float.Parse(tbxTightTol.Text);
-                TightTol = Math.Abs(TightTol);
-                tbxTightTol.Text = TightTol.ToString();
-
-                MainTol = float.Parse(tbxMainTol.Text);
-                MainTol = Math.Abs(MainTol);
-                tbxMainTol.Text = MainTol.ToString();
-
-                if (TightTol > MainTol)
-                {
-                    _ = System.Windows.Forms.MessageBox.Show("Your tight tolerance is greater than your main tolerance. This does not make sense");
-                    return;
-                }
-
-                Threshold = float.Parse(tbxThreshholdTol.Text);
-                Threshold = Math.Abs(Threshold);
-                tbxThreshholdTol.Text = Threshold.ToString();
+                distance = Math.Abs(Convert.ToDouble(txtBoxDAdta.Text));
             }
-            catch (FormatException)
+
+            bool isMM;
+
+            if(units.SelectedItem == null)
             {
-                _ = System.Windows.Forms.MessageBox.Show("Please enter a floating point number above zero");
-                return;
+                isMM = false;
             }
-            catch (ArgumentNullException)
+            else
             {
-                _ = System.Windows.Forms.MessageBox.Show("One of the tolerance fields is either empty or invalid");
-                return;
+                isMM = units.SelectedItem.ToString() == "mm" ? true : false;
             }
-            tested = true;
+
+            if (String.IsNullOrEmpty(txtBxTrim.Text))
+            {
+                txtBxTrim.Text = "0";
+            }
+
+
+             var temp = new DicomStrictCompare.Model.Dta( isMM
+                , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text)/100)
+                , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text)/100)
+                , distance, chkBoxDArel.Checked
+                , chkBoxGamma.Checked
+                , Math.Abs(Convert.ToInt32(txtBxTrim.Text)));
+            Dtas.Add(temp);
+
+            txtBoxDAdta.Clear();
+            txtBoxDAthres.Clear();
+            txtBoxDAtol.Clear();
+            txtBxTrim.Clear();
+            units.ClearSelected();
+            chkBoxDArel.Checked = false ;
+
+        }
+
+        private void lblIntro_Click(object sender, EventArgs e)
+        {
+            string boxMessage = "DTA Definitions"
+                + "\nTolerance\t- Percent Deviation of Target dose at each point to pass agreement"
+                + "\nDTA\t- Distance to agreement in units of mm or voxels, can be 0"
+                + "\nThreshhold - Percent of Max source below which comparisons will not be made"
+                + "\nTrim - Allows the user to remove a number of skin voxels from the phantom"
+                + "\n\t\tUseful if there is a known discrepancy in skin dose between two algorithims"
+                + "\n\t\tthat the user would like to remove from analysis"
+                + "\nGamma\t- if Checked a gamma calculation will be used for comparison,"
+                + "\n\t\tIf not software defaults to dta ";
+
+            System.Windows.Forms.MessageBox.Show(boxMessage);
+
         }
     }
 }

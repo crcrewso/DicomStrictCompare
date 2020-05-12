@@ -13,6 +13,7 @@ using EvilDICOM.Core.Element;
 using EvilDICOM.Core.Helpers;
 using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
+using EvilDICOM.CV;
 
 namespace DicomStrictCompare
 {
@@ -25,7 +26,7 @@ namespace DicomStrictCompare
     /// 
     /// 
     /// </summary>
-    class FileHandler
+    public class FileHandler
     {
 
         
@@ -70,7 +71,7 @@ namespace DicomStrictCompare
     /// <summary>
     /// Parsses all of the MetaData from a dicom file, and if a dose file, allows access to the dose information through methods
     /// </summary>
-    class DoseFile
+    public class DoseFile
     {
         /// <summary>
         /// full filename including address
@@ -118,9 +119,14 @@ namespace DicomStrictCompare
         public int Y { get; private set; }
         public int Z { get; private set; }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileName"></param>
         public DoseFile(string fileName)
         {
+            if (fileName == null || fileName.Length < 1)
+                throw new ArgumentNullException(nameof(fileName));
             DICOMObject dcm1 = DICOMObject.Read(fileName);
             FileName = fileName;
             int slashindex = FileName.LastIndexOf(@"\");
@@ -151,6 +157,8 @@ namespace DicomStrictCompare
 
         public void SetFieldName(List<PlanFile> planFiles)
         {
+            if (planFiles == null)
+                throw new ArgumentNullException(nameof(planFiles));
             PlanFile match = planFiles.Find(X => X.SopInstanceId == SopInstanceId);
             if (match != null)
             {
@@ -189,7 +197,7 @@ namespace DicomStrictCompare
             if (IsDoseFile)
             {
                 DICOMObject dcm1 = DICOMObject.Read(FileName);
-                DoseMatrix dcmMatrix = new DoseMatrix(dcm1);
+                RTDose dcmMatrix = new RTDose(dcm1);
                 X = dcmMatrix.DimensionX;
                 Y = dcmMatrix.DimensionY;
                 Z = dcmMatrix.DimensionZ;
@@ -206,12 +214,12 @@ namespace DicomStrictCompare
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Cannot call for dose on a Dicom file that is not a dose file</exception>
-        public DoseMatrix DoseMatrix()
+        public EvilDICOM.RT.RTDose DoseMatrix()
         {
             if (IsDoseFile)
             {
                 DICOMObject dcm1 = DICOMObject.Read(FileName);
-                DoseMatrix dcmMatrix = new DoseMatrix(dcm1);
+                EvilDICOM.RT.RTDose dcmMatrix = new EvilDICOM.RT.RTDose(dcm1);
                 X = dcmMatrix.DimensionX;
                 Y = dcmMatrix.DimensionY;
                 Z = dcmMatrix.DimensionZ;
@@ -225,7 +233,7 @@ namespace DicomStrictCompare
 
     }
 
-    class DicomFile
+    public class DicomFile
     {
         public bool IsPlanFile { get; }
         public bool IsDoseFile { get; }
@@ -249,7 +257,7 @@ namespace DicomStrictCompare
         }
     }
 
-    class PlanFile
+    public class PlanFile
     {
         /// <summary>
         /// Contains the field name, field number and number of MU's 
@@ -267,6 +275,7 @@ namespace DicomStrictCompare
 
         public PlanFile(string fileName)
         {
+            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
             FieldNumberToNameList = new List<Tuple<string, string, string>>();
             FileName = fileName;
             ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));

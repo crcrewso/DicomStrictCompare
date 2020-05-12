@@ -1,0 +1,342 @@
+{
+  "homepages": [],
+  "source_base_path": "C:/Users/its_g/Source/Repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DSC.Form1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DSC.Form1.html",
+          "hash": "KKn1bXAxMOOhEI8fyS3OjA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DSC.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DSC.html",
+          "hash": "9F7wEWnCiwmiEqQUyEr7Rw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Controller.Settings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Controller.Settings.html",
+          "hash": "PWmGCF6TI/w5V/iDiCuKiA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Controller.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Controller.html",
+          "hash": "sQ4Z6HBqnyJraxl8sNb7gw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.DicomFile.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.DicomFile.html",
+          "hash": "jdenvYbQ8UinacmWntc+TQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.DoseFile.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.DoseFile.html",
+          "hash": "OnqORfoNjvvMI55jL0wL3g=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.FileHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.FileHandler.html",
+          "hash": "lMsc2Tr3zgVJf6HscT5quw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.IMathematics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.IMathematics.html",
+          "hash": "AJEUETUVwb/d5lMWviUpiw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.DoseMatrixOptimal.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.DoseMatrixOptimal.html",
+          "hash": "m+QhDD6OGcSjjagX5U7hvg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.Dta.CalcAlgorithm.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.Dta.CalcAlgorithm.html",
+          "hash": "VLQIXBnjSEZcwt2TOUBVOA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.Dta.CalcType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.Dta.CalcType.html",
+          "hash": "DgcCDJ+Gtf+xhetppuCK+Q=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.Dta.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.Dta.html",
+          "hash": "r+xQ4ULkrEImCzvhX0hZJQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.SingleComparison.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.SingleComparison.html",
+          "hash": "Yh060SbJkMIdr2ySZkW74w=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.X86Mathematics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.X86Mathematics.html",
+          "hash": "0j5aHoCYFtC7mB8+vbMbkA=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.Model.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.Model.html",
+          "hash": "jgtZLbBJJXpL79cBn2CR/A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.PlanFile.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.PlanFile.html",
+          "hash": "nIJa3EQ15J0Bzyu12Re/zg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.ProfileTools.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.ProfileTools.html",
+          "hash": "8Lzcmgm3xqhvU43WD3UeiQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.html",
+          "hash": "rlOWtbsVLMLZXIiImdkywg=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "ssjrnnr8uFmxW0kuxeEt2A=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "EUwFIDdwyotq0SF2VotBiw=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/intro.html",
+          "hash": "tTYymf/lKmgrCCB2uklnww=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html",
+          "hash": "gB8AESyvNru97tzIZofEEg=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "WQauEkoDDTHXVy5hPAmWfw=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "+rHUkRZHZRi5gd1aTU6lJA=="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": true,
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {
+        "ConceptualDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 3,
+          "skipped_file_count": 3
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 18,
+          "skipped_file_count": 18
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": true,
+        "details": "Can support incremental post processing.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
