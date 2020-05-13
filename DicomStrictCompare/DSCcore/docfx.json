@@ -6,7 +6,8 @@
           "files": [
             "**.csproj"
           ],
-          "src": "C:\\Users\\its_g\\Source\\Repos\\crcrewso\\DicomStrictCompare\\DicomStrictCompare\\DSCcore"
+
+          "src": "./"
         }
       ],
       "dest": "api",

@@ -140,12 +140,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DicomStrictCompare\DSC.csproj">
-      <Project>{FA21EF2C-8DF0-4477-95EB-E6EDD19E96CC}</Project>
-      <Name>DSC</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

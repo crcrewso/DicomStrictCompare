@@ -13,7 +13,7 @@ namespace DicomStrictCompare
     /// <summary>
     /// Holds the user entered data and builds the file list for the file handler
     /// </summary>
-    class DscDataHandler
+    public class DscDataHandler
     {
         public Controller.Settings Settings { get; set; }
 
@@ -206,42 +206,37 @@ namespace DicomStrictCompare
                 });
                 progress = 69;
             }
-                //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
-                if (runDoseComparisons)
-                {
+            //fix for memory abuse is to limit the number of cores, Arbitrarily I have hard coded it to half the logical cores of the system.
+            if (runDoseComparisons)
+            {
 
 
-                    ProgressIncrimentor = 30.0 / DosePairsList.Count;
-                    ResultMessage += MatchedDosePair.StaticResultHeader(Settings.Dtas);
-                    _ = Parallel.ForEach(DosePairsList, parallel, pair =>
+                ProgressIncrimentor = 30.0 / DosePairsList.Count;
+                ResultMessage += MatchedDosePair.StaticResultHeader(Settings.Dtas);
+                _ = Parallel.ForEach(DosePairsList, parallel, pair =>
+                  {
+                      progress += ProgressIncrimentor;
+                      progress %= 100;
+                      (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
+                      try
                       {
-                          progress += ProgressIncrimentor;
-                          progress %= 100;
-                          (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
-                          try
-                          {
-                              pair.Evaluate(mathematics);
-                              ResultMessage += pair.ResultString + '\n';
-                          }
+                          pair.Evaluate(mathematics);
+                          ResultMessage += pair.ResultString + '\n';
+                      }
                       // Will catch array misalignment problems
                       catch (Exception e)
-                          {
-                              string temp = pair.Name + ",Was not Evaluated ,\n";
-                              ResultMessage += temp;
-                              Debug.WriteLine(temp);
-                              Debug.WriteLine(e.Message.ToString());
-                              Debug.Write(e.StackTrace.ToString());
+                      {
+                          string temp = pair.Name + ",Was not Evaluated ,\n";
+                          ResultMessage += temp;
+                          Debug.WriteLine(temp);
+                          Debug.WriteLine(e.Message.ToString());
+                          Debug.Write(e.StackTrace.ToString());
 
-                          }
-
-
-                      });
-                }
+                      }
 
 
-
-
-            
+                  });
+            }
 
         }
 
