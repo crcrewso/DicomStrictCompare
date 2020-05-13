@@ -149,7 +149,7 @@ namespace DicomStrictCompare.Model.Tests
         {
             // Compares algorithm result to SNC patient 
             // RD.UnitTest.P1Ref.X-100A-10.0-1	RD.UnitTest.P5 Varied MU.X-101A-10.0-1	29	15523	15552	DTA 	10	0.1	0	Abs
-            Dta dta = new Dta(false, 0.1, 0.001, 0, false, 0);
+            Dta dta = new Dta(false, 0.1, 0.001, 0, false, false, 0);
             sourceFile = DSCcoreTest.Properties.Resources.RD_UnitTest_P1Ref_X_100A_10_0_1;
             targetFile = DSCcoreTest.Properties.Resources.RD_UnitTest_P5_Varied_MU_X_101A_10_0_1;
             source = new DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(sourceFile)));

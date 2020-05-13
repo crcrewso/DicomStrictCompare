@@ -12,8 +12,7 @@ namespace DicomStrictCompare
         /// </summary>
         /// <param name="source">Reference dose array</param>
         /// <param name="target">Dose Array being verified</param>
-        /// <param name="tolerance">Less than this percent difference is a pass</param>
-        /// <param name="epsilon">Threshold percent of max dose below which comparison will not be evaluated</param>
+        /// <param name="dta">distance to agreement parameters</param>
         /// <returns> The total failed voxels and total number of voxels compared</returns>
         /// 
         public abstract SingleComparison CompareAbsolute(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, Model.Dta dta);

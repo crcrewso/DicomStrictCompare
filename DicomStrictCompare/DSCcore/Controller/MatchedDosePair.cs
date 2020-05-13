@@ -11,7 +11,7 @@ namespace DicomStrictCompare
     /// <summary>
     /// Will contain the evaluation of any stored pair of DoseFiles
     /// </summary>
-    class MatchedDosePair
+    public class MatchedDosePair
     {
         readonly Model.Dta[] _dtas;
         readonly SingleComparison[] _comparisons;

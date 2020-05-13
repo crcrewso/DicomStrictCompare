@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DicomStrictCompare;
+using DSCcore.Properties;
 
 namespace DSC
 {
@@ -43,7 +44,8 @@ namespace DSC
             Tested = false;
             worker = new BackgroundWorker
             {
-                WorkerReportsProgress = true, WorkerSupportsCancellation = true
+                WorkerReportsProgress = true,
+                WorkerSupportsCancellation = true
             };
             worker.DoWork += Worker_DoWork;
             worker.ProgressChanged += Worker_ProgressChanged;
@@ -128,51 +130,43 @@ namespace DSC
 
         private void BtnSourceDir_Click(object sender, EventArgs e)
         {
-            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
+            using FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = @"Select Source Dose Folder Location";
+            DialogResult result = fbd.ShowDialog();
+
+            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
             {
-                fbd.Description = @"Select Source Dose Folder Location";
-                DialogResult result = fbd.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
-                    SourceDirectory = fbd.SelectedPath;
-                    tbxSource.Text = SourceDirectory;
-                    lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
-                }
-
+                SourceDirectory = fbd.SelectedPath;
+                tbxSource.Text = SourceDirectory;
+                lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
             }
 
         }
 
         private void BtnTargetDir_Click(object sender, EventArgs e)
         {
-            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
-            {
-                fbd.Description = @"Select Source Dose Folder Location";
-                DialogResult result = fbd.ShowDialog();
+            using FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = @"Select Source Dose Folder Location";
+            DialogResult result = fbd.ShowDialog();
 
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
-                    TargetDirectory = fbd.SelectedPath;
-                    tbxTarget.Text = TargetDirectory;
-                    lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
-                }
+            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+            {
+                TargetDirectory = fbd.SelectedPath;
+                tbxTarget.Text = TargetDirectory;
+                lblTargetFilesFound.Text = _dataHandler.CreateTargetList(TargetDirectory).ToString();
             }
         }
 
         private void BtnSaveDir_Click(object sender, EventArgs e)
         {
-            using (FolderBrowserDialog fbd = new FolderBrowserDialog())
+            using FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = @"Select Source Dose Folder Location";
+            DialogResult result = fbd.ShowDialog();
+
+            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
             {
-                fbd.Description = @"Select Source Dose Folder Location";
-                DialogResult result = fbd.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
-                    SaveDirectory = fbd.SelectedPath;
-                    tbxSaveDir.Text = SaveDirectory;
-                }
-
+                SaveDirectory = fbd.SelectedPath;
+                tbxSaveDir.Text = SaveDirectory;
             }
         }
 
@@ -195,18 +189,18 @@ namespace DSC
         /// <param name="e"></param>
         private void BtnExecute_Click(object sender, EventArgs e)
         {
-            // TODO impliment proper threadding request
-            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings( Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
-                /// TODO make Fuzzy res width gui configurable  
-                /// TODO Impliment gamma
-            
+            //TODO: impliment proper threadding request
+            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+            //TODO: make Fuzzy res width gui configurable  
+            //TODO: Impliment gamma
+
 
             if (!_isRunning)
             {
                 _dataHandler.Settings = settings;
                 _dataHandler.SourceAliasName = SourceAliasName;
                 _dataHandler.TargetAliasName = TargetAliasName;
-                
+
 
 
                 if (Tested == false)
@@ -215,12 +209,12 @@ namespace DSC
                 }
                 if (Tested == false)
                 {
-                    lblRunStatus.Text = "Tested text Fields, Please Rerun";
+                    lblRunStatus.Text = Resources.paramTestFailed;
                     return;
                 }
                 if (!chkPDDCompare.Checked && !chkDoseCompare.Checked)
                 {
-                    lblRunStatus.Text = "Nothing to do";
+                    lblRunStatus.Text = Resources.zeroTasks;
                     return;
                 }
 
@@ -245,19 +239,19 @@ namespace DSC
             }
         }
 
-        void Worker_ProgressChanged (object sender, ProgressChangedEventArgs e)
+        void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             doseProgressBar.Value = e.ProgressPercentage;
             lblRunStatus.Text = e.UserState.ToString();
         }
 
-        void WorkerRunWorkerCompleted (object sender, RunWorkerCompletedEventArgs e)
+        void WorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             _isRunning = false;
-            lblRunStatus.Text = "Finished";
+            lblRunStatus.Text = Resources.finished;
             doseProgressBar.Value = doseProgressBar.Maximum;
 
-            if(e.Error != null)
+            if (e.Error != null)
             {
                 _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
             }
@@ -275,8 +269,8 @@ namespace DSC
             try
             {
                 SaveDirectory = tbxSaveDir.Text;
-//                if (!Directory.Exists(SaveDirectory))
-//                    SaveDirectory = null;
+                //                if (!Directory.Exists(SaveDirectory))
+                //                    SaveDirectory = null;
                 tbxSaveDir.Text = SaveDirectory;
 
                 TargetDirectory = tbxTarget.Text;
@@ -291,9 +285,9 @@ namespace DSC
                 tbxSource.Text = SourceDirectory;
                 lblSourceFilesFound.Text = _dataHandler.CreateSourceList(SourceDirectory).ToString();
             }
-            catch (ArgumentNullException )
+            catch (ArgumentNullException)
             {
-                _ = System.Windows.Forms.MessageBox.Show("One of the directory fields is either empty or invalid");
+                _ = System.Windows.Forms.MessageBox.Show(Resources.paramTestFailed);
                 return;
             }
             Tested = true;
@@ -314,7 +308,7 @@ namespace DSC
 
             bool isMM;
 
-            if(units.SelectedItem == null)
+            if (units.SelectedItem == null)
             {
                 isMM = false;
             }
@@ -325,16 +319,16 @@ namespace DSC
 
             if (String.IsNullOrEmpty(txtBxTrim.Text))
             {
-                txtBxTrim.Text = "0";
+                txtBxTrim.Text = DSCcore.Properties.Resources.minDTAtrim;
             }
 
 
-             var temp = new DicomStrictCompare.Model.Dta( isMM
-                , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text)/100)
-                , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text)/100)
-                , distance, chkBoxDArel.Checked
-                , chkBoxGamma.Checked
-                , Math.Abs(Convert.ToInt32(txtBxTrim.Text)));
+            var temp = new DicomStrictCompare.Model.Dta(isMM
+               , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text) / 100)
+               , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text) / 100)
+               , distance, chkBoxDArel.Checked
+               , chkBoxGamma.Checked
+               , Math.Abs(Convert.ToInt32(txtBxTrim.Text)));
             Dtas.Add(temp);
 
             txtBoxDAdta.Clear();
@@ -342,7 +336,7 @@ namespace DSC
             txtBoxDAtol.Clear();
             txtBxTrim.Clear();
             units.ClearSelected();
-            chkBoxDArel.Checked = false ;
+            chkBoxDArel.Checked = false;
 
         }
 

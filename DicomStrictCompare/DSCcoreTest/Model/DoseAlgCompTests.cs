@@ -8,20 +8,20 @@ namespace DicomStrictCompare.Model.Tests
     [TestClass()]
     public class DoseAlgCompTests: X86Mathematics
     {
-        int threadMin = 1;
-        int threadMax = System.Environment.ProcessorCount;
+        const int threadMin = 1;
+        int ThreadMax => System.Environment.ProcessorCount;
         X86Mathematics mathematics;
         enum DtaTypes { t0d0p0mm, t0d0p0vox, t10d0p0vox, t10d10p10vox, t10d10p10voxRel, t0d0p0mmTrim10, t0d0p0voxTrim10 };
 
         System.Collections.Generic.Dictionary<DtaTypes, Model.Dta> dtas =             
             new System.Collections.Generic.Dictionary<DtaTypes, Dta>{
-                [DtaTypes.t0d0p0mm] = new Model.Dta(true, 0, 0, 0, false, 0),
-                [DtaTypes.t0d0p0vox] = new Model.Dta(false, 0, 0, 0, false, 0),
-                [DtaTypes.t10d0p0vox] = new Model.Dta(false, 0.10, 0, 0, false, 0),
-                [DtaTypes.t10d10p10vox] = new Model.Dta(false, 0.10, 0.10, 0, false, 0),
-                [DtaTypes.t10d10p10voxRel] = new Model.Dta(false, 0.10, 0.10, 0, true, 0),
-                [DtaTypes.t0d0p0mmTrim10] = new Model.Dta(true, 0, 0, 0, false, 10),
-                [DtaTypes.t0d0p0voxTrim10] = new Model.Dta(false, 0, 0, 0, false, 10)
+                [DtaTypes.t0d0p0mm] = new Model.Dta(true, 0, 0, 0, false, false, 0),
+                [DtaTypes.t0d0p0vox] = new Model.Dta(false, 0, 0, 0, false, false, 0),
+                [DtaTypes.t10d0p0vox] = new Model.Dta(false, 0.10, 0, 0, false, false, 0),
+                [DtaTypes.t10d10p10vox] = new Model.Dta(false, 0.10, 0.10, 0, false, false, 0),
+                [DtaTypes.t10d10p10voxRel] = new Model.Dta(false, 0.10, 0.10, 0, true, false, 0),
+                [DtaTypes.t0d0p0mmTrim10] = new Model.Dta(true, 0, 0, 0, false, false, 10),
+                [DtaTypes.t0d0p0voxTrim10] = new Model.Dta(false, 0, 0, 0, false, false, 10)
             }; 
 
     Model.DoseMatrixOptimal refDose, targetDose;
@@ -101,7 +101,7 @@ namespace DicomStrictCompare.Model.Tests
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(targetFile)));
             SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], ThreadMax);
 
             System.Diagnostics.Debug.WriteLine("Count");
             Assert.AreEqual(result1.TotalCount, result2.TotalCount); // confirm all voxels are compared 
@@ -119,7 +119,7 @@ namespace DicomStrictCompare.Model.Tests
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(targetFile)));
             SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], ThreadMax);
             System.Diagnostics.Debug.WriteLine("Compared");
             Assert.AreEqual(result1.TotalCompared, result2.TotalCompared); // confirm all voxels are compared 
         }
@@ -132,7 +132,7 @@ namespace DicomStrictCompare.Model.Tests
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(targetFile)));
             SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], ThreadMax);
 
             System.Diagnostics.Debug.WriteLine("Compared");
             Assert.AreEqual(result1.TotalCompared, result2.TotalCompared); // confirm all voxels are compared 
@@ -148,7 +148,7 @@ namespace DicomStrictCompare.Model.Tests
             refDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(refFile)));
             targetDose = new Model.DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(targetFile)));
             SingleComparison result1 = mathematics.CompareAbsolute(refDose, targetDose, dtas[DtaTypes.t0d0p0mm]);
-            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], threadMax);
+            SingleComparison result2 = mathematics.CompareParallel(refDose, targetDose, dtas[DtaTypes.t0d0p0mm], ThreadMax);
 
             System.Diagnostics.Debug.WriteLine("Compared");
             Assert.AreEqual(result1.TotalCompared, result2.TotalCompared); // confirm all voxels are compared 

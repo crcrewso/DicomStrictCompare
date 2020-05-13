@@ -53,7 +53,7 @@ namespace DicomStrictCompare.Model
         public bool IsInBounds(Vector3 pt)
         {
             if (null == pt)
-                throw new ArgumentNullException("pt");
+                throw new ArgumentNullException(nameof(pt));
             return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
         }
 

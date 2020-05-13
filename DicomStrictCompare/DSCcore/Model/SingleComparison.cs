@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DSCcore.Properties;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,8 +34,7 @@ namespace DicomStrictCompare.Model
         /// <param name="totalCount">Total number of indicies able to be compared</param>
         /// <param name="totalCompared">Total number of comparisons made where the values of the source were above minimum restrictions</param>
         /// <param name="totalFailed">total number of comparisons that failed dta</param>
-        /// <exception cref="totalCount">Total count smaller than comparisons reported</exception>
-        /// <exception cref="totalCompared">Total comparisons smaller than failures reported</exception>
+        /// <exception cref="ArgumentException">Impossible number of failures or comparisons were made</exception>
         public SingleComparison(Dta dta, int totalCount, int totalCompared, int totalFailed)
         {
             Dta = dta ?? throw new ArgumentNullException(nameof(dta));
@@ -42,9 +42,9 @@ namespace DicomStrictCompare.Model
             TotalCompared = totalCompared;
             TotalFailed = totalFailed;
             if (TotalCount < TotalCompared)
-                throw new ArgumentException("totalCount less than comparisons made");
+                throw new ArgumentException(Resources.compMessageMalformedResult);
             if (TotalCompared < TotalFailed)
-                throw new ArgumentException("totalCompared less than failures");
+                throw new ArgumentException(Resources.compMessageMalformedResult);
         }
 
         /// <summary>
