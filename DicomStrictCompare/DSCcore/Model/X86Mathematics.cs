@@ -6,8 +6,14 @@ using EvilDICOM.RT;
 namespace DicomStrictCompare.Model
 {
 
+    /// <summary>
+    /// Impliments dose comparison functions for x86_64 CPUs only. 
+    /// </summary>
     public class X86Mathematics : IMathematics
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public X86Mathematics()
         {
 
@@ -211,6 +217,15 @@ namespace DicomStrictCompare.Model
             return ret;
         }
 
+        //TODO think about what to do for NUMA nodes 
+        /// <summary>
+        /// Safety checked to make sure that total threads created for comparison, set by cpuParallel, does not exceed total machine cores
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <param name="dta"></param>
+        /// <param name="cpuParallel"></param>
+        /// <returns></returns>
         public override SingleComparison CompareParallel(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, int cpuParallel)
         {
             if (source == null) throw new System.ArgumentNullException(nameof(source));

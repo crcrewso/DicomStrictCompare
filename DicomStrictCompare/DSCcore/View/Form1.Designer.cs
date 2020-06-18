@@ -54,7 +54,6 @@
             this.lblRunStatus = new System.Windows.Forms.Label();
             this.testAndRunBox = new System.Windows.Forms.GroupBox();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.dtaListPairs = new System.Windows.Forms.ListBox();
             this.addDTAs = new System.Windows.Forms.GroupBox();
             this.chkBoxGamma = new System.Windows.Forms.CheckBox();
             this.txtBxTrim = new System.Windows.Forms.TextBox();
@@ -68,6 +67,13 @@
             this.lblDAthresh = new System.Windows.Forms.Label();
             this.txtBoxDAtol = new System.Windows.Forms.TextBox();
             this.lblDAtol = new System.Windows.Forms.Label();
+            this.dtaListView = new System.Windows.Forms.ListView();
+            this.tol = new System.Windows.Forms.ColumnHeader();
+            this.dtaVal = new System.Windows.Forms.ColumnHeader();
+            this.thresh = new System.Windows.Forms.ColumnHeader();
+            this.trim = new System.Windows.Forms.ColumnHeader();
+            this.rel = new System.Windows.Forms.ColumnHeader();
+            this.gamma = new System.Windows.Forms.ColumnHeader();
             this.testAndRunBox.SuspendLayout();
             this.panel2.SuspendLayout();
             this.addDTAs.SuspendLayout();
@@ -76,7 +82,7 @@
             // lblIntro
             // 
             this.lblIntro.AutoSize = true;
-            this.lblIntro.Location = new System.Drawing.Point(5, 322);
+            this.lblIntro.Location = new System.Drawing.Point(11, 800);
             this.lblIntro.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblIntro.Name = "lblIntro";
             this.lblIntro.Size = new System.Drawing.Size(708, 475);
@@ -359,17 +365,6 @@
             this.panel2.Size = new System.Drawing.Size(877, 296);
             this.panel2.TabIndex = 38;
             // 
-            // dtaListPairs
-            // 
-            this.dtaListPairs.FormattingEnabled = true;
-            this.dtaListPairs.ItemHeight = 25;
-            this.dtaListPairs.Location = new System.Drawing.Point(721, 322);
-            this.dtaListPairs.Margin = new System.Windows.Forms.Padding(4);
-            this.dtaListPairs.Name = "dtaListPairs";
-            this.dtaListPairs.Size = new System.Drawing.Size(287, 329);
-            this.dtaListPairs.TabIndex = 39;
-            this.dtaListPairs.SelectedIndexChanged += new System.EventHandler(this.DtaListPairs_SelectedIndexChanged);
-            // 
             // addDTAs
             // 
             this.addDTAs.Controls.Add(this.chkBoxGamma);
@@ -384,7 +379,7 @@
             this.addDTAs.Controls.Add(this.lblDAthresh);
             this.addDTAs.Controls.Add(this.txtBoxDAtol);
             this.addDTAs.Controls.Add(this.lblDAtol);
-            this.addDTAs.Location = new System.Drawing.Point(1016, 322);
+            this.addDTAs.Location = new System.Drawing.Point(1016, 309);
             this.addDTAs.Margin = new System.Windows.Forms.Padding(4);
             this.addDTAs.Name = "addDTAs";
             this.addDTAs.Padding = new System.Windows.Forms.Padding(4);
@@ -513,16 +508,73 @@
             this.lblDAtol.TabIndex = 7;
             this.lblDAtol.Text = "Tolerance (%)";
             // 
+            // dtaListView
+            // 
+            this.dtaListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.tol,
+            this.dtaVal,
+            this.thresh,
+            this.trim,
+            this.rel,
+            this.gamma});
+            this.dtaListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.dtaListView.HideSelection = false;
+            this.dtaListView.Location = new System.Drawing.Point(384, 321);
+            this.dtaListView.Name = "dtaListView";
+            this.dtaListView.Size = new System.Drawing.Size(625, 476);
+            this.dtaListView.Sorting = System.Windows.Forms.SortOrder.Ascending;
+            this.dtaListView.TabIndex = 41;
+            this.dtaListView.UseCompatibleStateImageBehavior = false;
+            this.dtaListView.View = System.Windows.Forms.View.Details;
+            // 
+            // tol
+            // 
+            this.tol.Name = "tol";
+            this.tol.Text = "Tolerance (%)";
+            this.tol.Width = 120;
+            // 
+            // dtaVal
+            // 
+            this.dtaVal.Name = "dtaVal";
+            this.dtaVal.Text = "DTA";
+            this.dtaVal.Width = 70;
+            // 
+            // thresh
+            // 
+            this.thresh.Name = "thresh";
+            this.thresh.Text = "Threshhold (%)";
+            this.thresh.Width = 130;
+            // 
+            // trim
+            // 
+            this.trim.Name = "trim";
+            this.trim.Text = "Trim (voxels)";
+            this.trim.Width = 110;
+            // 
+            // rel
+            // 
+            this.rel.Name = "rel";
+            this.rel.Text = "Relative";
+            this.rel.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.rel.Width = 80;
+            // 
+            // gamma
+            // 
+            this.gamma.Name = "gamma";
+            this.gamma.Text = "Gamma";
+            this.gamma.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.gamma.Width = 80;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(144F, 144F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(1264, 804);
+            this.ClientSize = new System.Drawing.Size(1264, 1284);
+            this.Controls.Add(this.dtaListView);
             this.Controls.Add(this.lblIntro);
             this.Controls.Add(this.addDTAs);
-            this.Controls.Add(this.dtaListPairs);
             this.Controls.Add(this.lblRunStatus);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.testAndRunBox);
@@ -569,7 +621,6 @@
         private System.Windows.Forms.Label lblRunStatus;
         private System.Windows.Forms.GroupBox testAndRunBox;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.ListBox dtaListPairs;
         private System.Windows.Forms.GroupBox addDTAs;
         private System.Windows.Forms.TextBox txtBoxDAthres;
         private System.Windows.Forms.Label lblDAthresh;
@@ -583,6 +634,13 @@
         private System.Windows.Forms.TextBox txtBxTrim;
         private System.Windows.Forms.Label lblTrim;
         private System.Windows.Forms.CheckBox chkBoxGamma;
+        private System.Windows.Forms.ListView dtaListView;
+        private System.Windows.Forms.ColumnHeader tol;
+        private System.Windows.Forms.ColumnHeader dtaVal;
+        private System.Windows.Forms.ColumnHeader thresh;
+        private System.Windows.Forms.ColumnHeader trim;
+        private System.Windows.Forms.ColumnHeader rel;
+        private System.Windows.Forms.ColumnHeader gamma;
     }
 }
 

@@ -6,6 +6,9 @@ using EvilDICOM.RT;
 
 namespace DicomStrictCompare.Model
 {
+    /// <summary>
+    /// Stores the Matrix of doses from the 3D dose file, and associated settings, in a format optimal for this code base 
+    /// </summary>
     public class DoseMatrixOptimal
     {
         public int DimensionX { get; }
@@ -24,9 +27,20 @@ namespace DicomStrictCompare.Model
         public double YRes { get; }
         public double ZRes { get; }
         public DoseValue MaxPointDose { get; }
-        public int Length { get; }
-        public int Count { get; }
 
+        /// <summary>
+        /// Number of dose values in the array
+        /// </summary>
+        public int Length { get; }
+        /// <summary>
+        /// Number of dose values in the object
+        /// </summary>
+        public int Count => Length;
+
+        /// <summary>
+        /// Creates a new object from an EvilDICOM RTDose object 
+        /// </summary>
+        /// <param name="doseMatrix"></param>
         public DoseMatrixOptimal(EvilDICOM.RT.RTDose doseMatrix)
         {
             if (doseMatrix == null)
@@ -46,7 +60,6 @@ namespace DicomStrictCompare.Model
             YRes = doseMatrix.YRes;
             ZRes = doseMatrix.ZRes;
             Length = DoseValues.Length;
-            Count = Length;
             MaxPointDose = doseMatrix.MaxPointDose;
         }
 
@@ -57,6 +70,14 @@ namespace DicomStrictCompare.Model
             return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
         }
 
+        /// <summary>
+        /// Gets the dose at a geometric point within this object. if point is not an explicit voxel of this object the dose 
+        /// is calculated using a trilinear interpolation algorithm 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public DoseValue GetPointDose(double x, double y, double z)
         {
             //From method at http://en.wikipedia.org/wiki/Trilinear_interpolation
@@ -118,6 +139,12 @@ namespace DicomStrictCompare.Model
 
         }
 
+        /// <summary>
+        /// Gets the dose within this object 
+        /// </summary>
+        /// <param name="pt">Point of interest within phantom</param>
+        /// <exception cref="ArgumentNullException"> Cannot be called on a null point</exception>
+        /// <returns>Dose</returns>
         public DoseValue GetPointDose(Vector3 pt)
         {
             if (pt == null)
@@ -141,6 +168,11 @@ namespace DicomStrictCompare.Model
             return x + y * dimX + z * dimX * dimY;
         }
 
+        /// <summary>
+        /// If true the phantoms and each of their voxels are identically geometrically defined
+        /// </summary>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public bool CompareDimensions(in DoseMatrixOptimal y)
         {
             if (y == null && this == null)

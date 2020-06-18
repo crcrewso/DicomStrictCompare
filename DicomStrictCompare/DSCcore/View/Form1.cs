@@ -9,7 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DicomStrictCompare;
+using DicomStrictCompare.Model;
 using DSCcore.Properties;
+using DSCcore.View;
 
 namespace DSC
 {
@@ -26,7 +28,7 @@ namespace DSC
         public string SourceAliasName { get; private set; } = "Reference";
         public string TargetAliasName { get; private set; } = "New Model";
 
-        public BindingList<DicomStrictCompare.Model.Dta> Dtas { get; private set; }
+        public List<DicomStrictCompare.Model.Dta> Dtas { get; private set; }
 
         private readonly DscDataHandler _dataHandler;
 
@@ -36,8 +38,7 @@ namespace DSC
         public Form1()
         {
             InitializeComponent();
-            Dtas = new BindingList<DicomStrictCompare.Model.Dta>();
-            this.dtaListPairs.DataSource = Dtas;
+            Dtas = new List<DicomStrictCompare.Model.Dta>();
             tbxSourceLabel.Text = SourceAliasName.ToString();
             tbxTargetLabel.Text = TargetAliasName.ToString();
             _dataHandler = new DscDataHandler();
@@ -181,14 +182,18 @@ namespace DSC
 
 
 
-
+        //TODO add error checking here!
         /// <summary>
-        /// TODO add error checking here!
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void BtnExecute_Click(object sender, EventArgs e)
         {
+            foreach (ListViewItem dtaItem in dtaListView.SelectedItems)
+            {
+                Dtas.Add(viewSupport.listViewToDta(dtaItem));
+            }
+
             //TODO: impliment proper threadding request
             DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
             //TODO: make Fuzzy res width gui configurable  
@@ -290,6 +295,12 @@ namespace DSC
                 _ = System.Windows.Forms.MessageBox.Show(Resources.paramTestFailed);
                 return;
             }
+            foreach (ListViewItem dtaItem in dtaListView.SelectedItems)
+            {
+                Dtas.Add(viewSupport.listViewToDta(dtaItem));
+            }
+            if (Dtas.Count != dtaListView.SelectedItems.Count)
+                throw new Exception();
             Tested = true;
         }
 
@@ -322,14 +333,15 @@ namespace DSC
                 txtBxTrim.Text = DSCcore.Properties.Resources.minDTAtrim;
             }
 
+            dtaListView.Items.Add(new ListViewItem(new string[] {
+                txtBoxDAtol.Text
+                , txtBoxDAdta.Text + ' '+ ((units.SelectedItem == null) ? "voxels": "mm")
+                , txtBoxDAthres.Text
+                , txtBxTrim.Text
+                , chkBoxDArel.Checked ? "y": "n"
+                , chkBoxGamma.Checked ? "y": "n"
+                }));
 
-            var temp = new DicomStrictCompare.Model.Dta(isMM
-               , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text) / 100)
-               , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text) / 100)
-               , distance, chkBoxDArel.Checked
-               , chkBoxGamma.Checked
-               , Math.Abs(Convert.ToInt32(txtBxTrim.Text)));
-            Dtas.Add(temp);
 
             txtBoxDAdta.Clear();
             txtBoxDAthres.Clear();
@@ -337,6 +349,7 @@ namespace DSC
             txtBxTrim.Clear();
             units.ClearSelected();
             chkBoxDArel.Checked = false;
+            chkBoxGamma.Checked = false;
 
         }
 
@@ -355,5 +368,7 @@ namespace DSC
             System.Windows.Forms.MessageBox.Show(boxMessage);
 
         }
+
+
     }
 }

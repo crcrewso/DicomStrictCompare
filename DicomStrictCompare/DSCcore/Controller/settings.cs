@@ -1,8 +1,11 @@
-﻿using System;
+﻿using DicomStrictCompare.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DicomStrictCompare.Controller
 {
@@ -24,7 +27,7 @@ namespace DicomStrictCompare.Controller
         public int CpuParallel { get; private set; } = 1;
 
         public Settings(
-            DicomStrictCompare.Model.Dta[] dtas
+            Dta[] dtas
             , bool runDoseComparisons
             , bool runPDDComparisons
             , bool runProfileComparisons
@@ -37,7 +40,6 @@ namespace DicomStrictCompare.Controller
             RunProfileComparisons = runProfileComparisons;
             CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
         }
-
 
     }
 }

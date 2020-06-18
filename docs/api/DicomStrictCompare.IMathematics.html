@@ -73,7 +73,9 @@
   
   <h1 id="DicomStrictCompare_IMathematics" data-uid="DicomStrictCompare.IMathematics" class="text-break">Class IMathematics
   </h1>
-  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 summary"><p>Functions to compare dose arrays
+Implimented as an interface to allow for GPGPU or non C# implimentations in the future</p>
+</div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
@@ -115,14 +117,15 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/crcrewso/DicomStrictCompare/new/master/apiSpec/new?filename=DicomStrictCompare_IMathematics_CompareAbsolute_DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_Dta_.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics.CompareAbsolute(DicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.Dta)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/crcrewso/DicomStrictCompare/new/guiImprovements/apiSpec/new?filename=DicomStrictCompare_IMathematics_CompareAbsolute_DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_Dta_.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics.CompareAbsolute(DicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.Dta)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/master/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L19">View Source</a>
+    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/guiImprovements/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L22">View Source</a>
   </span>
   <a id="DicomStrictCompare_IMathematics_CompareAbsolute_" data-uid="DicomStrictCompare.IMathematics.CompareAbsolute*"></a>
   <h4 id="DicomStrictCompare_IMathematics_CompareAbsolute_DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_Dta_" data-uid="DicomStrictCompare.IMathematics.CompareAbsolute(DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.Dta)">CompareAbsolute(DoseMatrixOptimal, DoseMatrixOptimal, Dta)</h4>
-  <div class="markdown level1 summary"><p>Compares the two provided dose arrays voxel to voxel. Dose difference is calculated as % of source dose</p>
+  <div class="markdown level1 summary"><p>Compares target to source based on the DTA settings provided, using local percent arithmetic
+Single threaded</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -154,7 +157,8 @@
       <tr>
         <td><a class="xref" href="DicomStrictCompare.Model.Dta.html">Dta</a></td>
         <td><span class="parametername">dta</span></td>
-        <td></td>
+        <td><p>distance to agreement parameters</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -176,14 +180,15 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/crcrewso/DicomStrictCompare/new/master/apiSpec/new?filename=DicomStrictCompare_IMathematics_CompareParallel_DicomStrictCompare_Model_DoseMatrixOptimal_DicomStrictCompare_Model_DoseMatrixOptimal_DicomStrictCompare_Model_Dta_System_Int32_.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics.CompareParallel(DicomStrictCompare.Model.DoseMatrixOptimal%2CDicomStrictCompare.Model.DoseMatrixOptimal%2CDicomStrictCompare.Model.Dta%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/crcrewso/DicomStrictCompare/new/guiImprovements/apiSpec/new?filename=DicomStrictCompare_IMathematics_CompareParallel_DicomStrictCompare_Model_DoseMatrixOptimal_DicomStrictCompare_Model_DoseMatrixOptimal_DicomStrictCompare_Model_Dta_System_Int32_.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics.CompareParallel(DicomStrictCompare.Model.DoseMatrixOptimal%2CDicomStrictCompare.Model.DoseMatrixOptimal%2CDicomStrictCompare.Model.Dta%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/master/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L21">View Source</a>
+    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/guiImprovements/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L40">View Source</a>
   </span>
   <a id="DicomStrictCompare_IMathematics_CompareParallel_" data-uid="DicomStrictCompare.IMathematics.CompareParallel*"></a>
   <h4 id="DicomStrictCompare_IMathematics_CompareParallel_DicomStrictCompare_Model_DoseMatrixOptimal_DicomStrictCompare_Model_DoseMatrixOptimal_DicomStrictCompare_Model_Dta_System_Int32_" data-uid="DicomStrictCompare.IMathematics.CompareParallel(DicomStrictCompare.Model.DoseMatrixOptimal,DicomStrictCompare.Model.DoseMatrixOptimal,DicomStrictCompare.Model.Dta,System.Int32)">CompareParallel(DoseMatrixOptimal, DoseMatrixOptimal, Dta, Int32)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Compares target to source, based on the DTA settings provided, using the number of cores up to max</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -217,7 +222,8 @@
       <tr>
         <td><span class="xref">System.Int32</span></td>
         <td><span class="parametername">cpuParallel</span></td>
-        <td></td>
+        <td><p>Up to this many parallel comparison threads will be generated.</p>
+</td>
       </tr>
     </tbody>
   </table>
@@ -238,14 +244,15 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/crcrewso/DicomStrictCompare/new/master/apiSpec/new?filename=DicomStrictCompare_IMathematics_CompareRelative_DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_Dta_.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics.CompareRelative(DicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.Dta)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/crcrewso/DicomStrictCompare/new/guiImprovements/apiSpec/new?filename=DicomStrictCompare_IMathematics_CompareRelative_DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_Dta_.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics.CompareRelative(DicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.DoseMatrixOptimal%40%2CDicomStrictCompare.Model.Dta)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/master/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L20">View Source</a>
+    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/guiImprovements/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L30">View Source</a>
   </span>
   <a id="DicomStrictCompare_IMathematics_CompareRelative_" data-uid="DicomStrictCompare.IMathematics.CompareRelative*"></a>
   <h4 id="DicomStrictCompare_IMathematics_CompareRelative_DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_DoseMatrixOptimal__DicomStrictCompare_Model_Dta_" data-uid="DicomStrictCompare.IMathematics.CompareRelative(DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.Dta)">CompareRelative(DoseMatrixOptimal, DoseMatrixOptimal, Dta)</h4>
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Compares target to source based on the DTA settings provided, comparisons relative to source dmax Single threaded</p>
+</div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
@@ -301,10 +308,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/crcrewso/DicomStrictCompare/new/master/apiSpec/new?filename=DicomStrictCompare_IMathematics.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/crcrewso/DicomStrictCompare/new/guiImprovements/apiSpec/new?filename=DicomStrictCompare_IMathematics.md&amp;value=---%0Auid%3A%20DicomStrictCompare.IMathematics%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/master/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L6" class="contribution-link">View Source</a>
+                    <a href="https://github.com/crcrewso/DicomStrictCompare/blob/guiImprovements/DicomStrictCompare/DSCcore/Model/Mathematics.cs/#L10" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
