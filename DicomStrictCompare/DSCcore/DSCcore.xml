@@ -197,6 +197,45 @@
             <param name="title"></param>
             <param name="note"></param>
         </member>
+        <member name="T:DicomStrictCompare.Model.DoseMatrixOptimal">
+            <summary>
+            Stores the Matrix of doses from the 3D dose file, and associated settings, in a format optimal for this code base 
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.Length">
+            <summary>
+            Number of dose values in the array
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.Count">
+            <summary>
+            Number of dose values in the object
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.#ctor(EvilDICOM.RT.RTDose)">
+            <summary>
+            Creates a new object from an EvilDICOM RTDose object 
+            </summary>
+            <param name="doseMatrix"></param>
+        </member>
+        <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.GetPointDose(System.Double,System.Double,System.Double)">
+            <summary>
+            Gets the dose at a geometric point within this object. if point is not an explicit voxel of this object the dose 
+            is calculated using a trilinear interpolation algorithm 
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <param name="z"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.GetPointDose(EvilDICOM.Core.Helpers.Vector3)">
+            <summary>
+            Gets the dose within this object 
+            </summary>
+            <param name="pt">Point of interest within phantom</param>
+            <exception cref="T:System.ArgumentNullException"> Cannot be called on a null point</exception>
+            <returns>Dose</returns>
+        </member>
         <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.LatticeXYZToIndex(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
             <summary>
             Converts X,Y,Z coordinates in a 3D pixel lattice to a 1D index
@@ -208,9 +247,23 @@
             <param name="dimY">the height of the lattice in the Y direction</param>
             <returns>the index of the pixel in the 3D lattice</returns>
         </member>
+        <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.CompareDimensions(DicomStrictCompare.Model.DoseMatrixOptimal@)">
+            <summary>
+            If true the phantoms and each of their voxels are identically geometrically defined
+            </summary>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
         <member name="T:DicomStrictCompare.Model.Dta">
             <summary>
             Holds all information needed for a single comparison set
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.Dta.UseMM">
+            <summary>
+            Setting to keep track of unit of distance for dta 
+            if true unit of distance is in mm
+            if false unit of distance in voxels
             </summary>
         </member>
         <member name="P:DicomStrictCompare.Model.Dta.Threshhold">
@@ -230,8 +283,59 @@
         </member>
         <member name="P:DicomStrictCompare.Model.Dta.Type">
             <summary>
-            If relative is true calculation is based off of max dose
+            If relative is true calculation is based off of max Source dose
             if not calculation is based off of source voxel dose. 
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.Dta.Algorithm">
+            <summary>
+            Algorithm of use, DTA being simple, Gamma being weighted complex and expensive but more commonly used
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.Dta.TrimWidth">
+            <summary>
+            skin depth removed from source phantom before matching
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.Dta.Relative">
+            <summary>
+            Backwards compatable placeholder for logic
+            </summary>
+        </member>
+        <member name="T:DicomStrictCompare.Model.Dta.CalcType">
+            <summary>
+            lists the possible scope limit techniques for voxel to voxel comparison. 
+            </summary>
+        </member>
+        <member name="F:DicomStrictCompare.Model.Dta.CalcType.relative">
+            <summary>
+            perccent difference is taken to mean that pass or fail is based on the difference between source and target based on the fraction of source dmax 
+            </summary>
+        </member>
+        <member name="F:DicomStrictCompare.Model.Dta.CalcType.absolute">
+            <summary>
+            percent difference conditions are based solely on the source and target doses at the point of inspection
+            </summary>
+        </member>
+        <member name="T:DicomStrictCompare.Model.Dta.CalcAlgorithm">
+            <summary>
+            list of supported comparison algorithms 
+            </summary>
+        </member>
+        <member name="F:DicomStrictCompare.Model.Dta.CalcAlgorithm.dta">
+            <summary>
+            first the relative dose difference at the point in question is analyzed, if failed then 
+            if its possible for the target to match the source within the distance window provided
+            </summary>
+        </member>
+        <member name="F:DicomStrictCompare.Model.Dta.CalcAlgorithm.gamma">
+            <summary>
+            impliments gamma evaluation function
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.Dta.Summary">
+            <summary>
+            Results summary
             </summary>
         </member>
         <member name="M:DicomStrictCompare.Model.Dta.#ctor(System.Boolean,System.Double,System.Double,System.Double,System.Boolean,System.Boolean,System.Int32)">
@@ -242,14 +346,40 @@
             <param name="threshhold">minimum percent of Dmax for the dose to be calculated</param>
             <param name="tolerance">fractional diference from source that will return a pass</param>
             <param name="distance">distance for dta algorithm</param>
-            <param name="relative"></param>
+            <param name="relative">dose comparison tolerance condition</param>
+            <param name="gamma">dose comparison algorithm</param>
+            <param name="trim">depth of voxels to remove from surface of phantoms</param>
+        </member>
+        <member name="M:DicomStrictCompare.Model.Dta.#ctor(System.String)">
+            <summary>
+            String constructor
+            </summary>
+            <param name="fromDtaToString"></param>
+        </member>
+        <member name="M:DicomStrictCompare.Model.Dta.ShortToString">
+            <summary>
+            Shorter Summary 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DicomStrictCompare.Model.Dta.ToString">
+            <summary>
+            Impliments standard tostring with comma. old way of reporting results
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:DicomStrictCompare.Model.Dta.Titles">
             <summary>
             Returns the header for the ToString() function
             </summary>
-            <returns>String</returns>
-            
+            <returns>String</returns> 
+        </member>
+        <member name="M:DicomStrictCompare.Model.Dta.Equals(DicomStrictCompare.Model.Dta)">
+            <summary>
+            Tests equivalency 
+            </summary>
+            <param name="dta"></param>
+            <returns></returns>
         </member>
         <member name="M:DicomStrictCompare.Model.SingleComparison.PercentCalculator(System.Int32,System.Int32)">
             <summary>
@@ -267,8 +397,7 @@
             <param name="totalCount">Total number of indicies able to be compared</param>
             <param name="totalCompared">Total number of comparisons made where the values of the source were above minimum restrictions</param>
             <param name="totalFailed">total number of comparisons that failed dta</param>
-            <exception cref="!:totalCount">Total count smaller than comparisons reported</exception>
-            <exception cref="!:totalCompared">Total comparisons smaller than failures reported</exception>
+            <exception cref="T:System.ArgumentException">Impossible number of failures or comparisons were made</exception>
         </member>
         <member name="M:DicomStrictCompare.Model.SingleComparison.Equals(DicomStrictCompare.Model.SingleComparison)">
             <summary>
@@ -277,16 +406,60 @@
             <param name="singleComparison"></param>
             <returns>true iff all elements of the comparisons match. </returns>
         </member>
+        <member name="T:DicomStrictCompare.Model.X86Mathematics">
+            <summary>
+            Impliments dose comparison functions for x86_64 CPUs only. 
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.Model.X86Mathematics.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.Model.X86Mathematics.CompareParallel(DicomStrictCompare.Model.DoseMatrixOptimal,DicomStrictCompare.Model.DoseMatrixOptimal,DicomStrictCompare.Model.Dta,System.Int32)">
+            <summary>
+            Safety checked to make sure that total threads created for comparison, set by cpuParallel, does not exceed total machine cores
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+            <param name="dta"></param>
+            <param name="cpuParallel"></param>
+            <returns></returns>
+        </member>
+        <member name="T:DicomStrictCompare.IMathematics">
+            <summary>
+            Functions to compare dose arrays 
+            Implimented as an interface to allow for GPGPU or non C# implimentations in the future 
+            </summary>
+        </member>
         <member name="M:DicomStrictCompare.IMathematics.CompareAbsolute(DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.Dta)">
             <summary>
-            Compares the two provided dose arrays voxel to voxel. Dose difference is calculated as % of source dose
+            Compares target to source based on the DTA settings provided, using local percent arithmetic
+            Single threaded 
             </summary>
             <param name="source">Reference dose array</param>
             <param name="target">Dose Array being verified</param>
-            <param name="tolerance">Less than this percent difference is a pass</param>
-            <param name="epsilon">Threshold percent of max dose below which comparison will not be evaluated</param>
+            <param name="dta">distance to agreement parameters</param>
             <returns> The total failed voxels and total number of voxels compared</returns>
-            
+        </member>
+        <member name="M:DicomStrictCompare.IMathematics.CompareRelative(DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.DoseMatrixOptimal@,DicomStrictCompare.Model.Dta)">
+            <summary>
+            Compares target to source based on the DTA settings provided, comparisons relative to source dmax Single threaded
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+            <param name="dta"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DicomStrictCompare.IMathematics.CompareParallel(DicomStrictCompare.Model.DoseMatrixOptimal,DicomStrictCompare.Model.DoseMatrixOptimal,DicomStrictCompare.Model.Dta,System.Int32)">
+            <summary>
+            Compares target to source, based on the DTA settings provided, using the number of cores up to max 
+            </summary>
+            <param name="source"></param>
+            <param name="target"></param>
+            <param name="dta"></param>
+            <param name="cpuParallel">Up to this many parallel comparison threads will be generated. </param>
+            <returns></returns>
         </member>
         <member name="M:DicomStrictCompare.ProfileTools.Distance(EvilDICOM.RT.DoseValue,EvilDICOM.RT.DoseValue)">
             <summary>
@@ -344,7 +517,6 @@
         </member>
         <member name="M:DSC.Form1.BtnExecute_Click(System.Object,System.EventArgs)">
             <summary>
-            TODO add error checking here!
             </summary>
             <param name="sender"></param>
             <param name="e"></param>
@@ -364,6 +536,57 @@
             <summary>
             Required method for Designer support - do not modify
             the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:DSCcore.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.compMessageMalformedResult">
+            <summary>
+              Looks up a localized string similar to Comparison algorithm failed spectacularily .
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.finished">
+            <summary>
+              Looks up a localized string similar to Finished.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.minDTAdistance">
+            <summary>
+              Looks up a localized string similar to 0.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.minDTApercent">
+            <summary>
+              Looks up a localized string similar to 0.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.minDTAtrim">
+            <summary>
+              Looks up a localized string similar to 0.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.paramTestFailed">
+            <summary>
+              Looks up a localized string similar to Test failed please check for empty settings boxes.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.zeroTasks">
+            <summary>
+              Looks up a localized string similar to You have not asked me to do anything, please check something.
             </summary>
         </member>
     </members>
