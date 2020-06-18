@@ -117,10 +117,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.MatchedDosePair.html",
-          "hash": "sNtdBPINtWABqQqxgy0tWQ=="
+          "hash": "OfuIYhM5kWS7T1oH60gq7g=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -240,7 +240,7 @@
           "hash": "HaWNvHKh31m3EfXYqBi6Ig=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -335,7 +335,7 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 20,
-          "skipped_file_count": 20
+          "skipped_file_count": 19
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

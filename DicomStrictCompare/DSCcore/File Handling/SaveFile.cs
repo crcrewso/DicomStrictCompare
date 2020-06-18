@@ -6,6 +6,7 @@ using System.Linq;
 using System.Drawing;
 using System.Windows.Forms.DataVisualization.Charting;
 using EvilDICOM.RT;
+using DSCcore.Properties;
 
 namespace DicomStrictCompare
 {
@@ -66,7 +67,7 @@ namespace DicomStrictCompare
         /// <param name="filename"></param>
         /// <param name="title"></param>
         /// <param name="note"></param>
-        public string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
+        public static string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
         {
             double maxDose = 0;
             foreach (DoseValue dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
@@ -77,7 +78,7 @@ namespace DicomStrictCompare
             }
             if (sourcePDD.Count == 0 || targetPDD.Count == 0)
             {
-                throw new ArgumentException("the lists are empty");
+                throw new ArgumentException(Resources.EmptyList);
             }
 
 

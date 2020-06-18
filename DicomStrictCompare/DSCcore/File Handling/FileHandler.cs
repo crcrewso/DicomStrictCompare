@@ -14,6 +14,7 @@ using EvilDICOM.Core.Helpers;
 using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
 using EvilDICOM.CV;
+using DSCcore.Properties;
 
 namespace DicomStrictCompare
 {
@@ -205,7 +206,7 @@ namespace DicomStrictCompare
             }
             else
             {
-                throw new InvalidOperationException("Cannot call for dose on a Dicom file that is not a dose file");
+                throw new InvalidOperationException(Resources.notDoseFile);
             }
         }
 
@@ -227,7 +228,7 @@ namespace DicomStrictCompare
             }
             else
             {
-                throw new InvalidOperationException("Cannot call for dose on a Dicom file that is not a dose file");
+                throw new InvalidOperationException(Resources.notDoseFile);
             }
         }
 

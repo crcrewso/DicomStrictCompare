@@ -120,6 +120,9 @@
   <data name="compMessageMalformedResult" xml:space="preserve">
     <value>Comparison algorithm failed spectacularily </value>
   </data>
+  <data name="EmptyList" xml:space="preserve">
+    <value>Lists are empty</value>
+  </data>
   <data name="finished" xml:space="preserve">
     <value>Finished</value>
   </data>
@@ -134,6 +137,9 @@
   <data name="minDTAtrim" xml:space="preserve">
     <value>0</value>
     <comment>minimum depth of skin to remove from phantoms</comment>
+  </data>
+  <data name="notDoseFile" xml:space="preserve">
+    <value>Cannot call for dose on a Dicom file that is not a dose file</value>
   </data>
   <data name="paramTestFailed" xml:space="preserve">
     <value>Test failed please check for empty settings boxes</value>

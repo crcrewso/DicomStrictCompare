@@ -63,6 +63,7 @@ namespace DSC
 
 
 
+
         #region textBoxesChanged
 
         /// <summary>
@@ -124,6 +125,8 @@ namespace DSC
             SaveNamePrefix = Path.GetInvalidFileNameChars().Aggregate(temp, (current, c) => current.Replace(c.ToString(), string.Empty));
             tbxSaveName.Text = SaveNamePrefix;
         }
+
+
         #endregion
 
 
@@ -170,17 +173,6 @@ namespace DSC
                 tbxSaveDir.Text = SaveDirectory;
             }
         }
-
-
-        #endregion
-
-
-
-
-
-
-
-
 
         //TODO add error checking here!
         /// <summary>
@@ -232,43 +224,6 @@ namespace DSC
                 worker.CancelAsync();
         }
 
-        void Worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            _isRunning = true;
-            _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
-
-            if (chkDoseCompare.Checked == true)
-            {
-                SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
-                saveFile.Save(_dataHandler.ResultMessage);
-            }
-        }
-
-        void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            doseProgressBar.Value = e.ProgressPercentage;
-            lblRunStatus.Text = e.UserState.ToString();
-        }
-
-        void WorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            _isRunning = false;
-            lblRunStatus.Text = Resources.finished;
-            doseProgressBar.Value = doseProgressBar.Maximum;
-
-            if (e.Error != null)
-            {
-                _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
-            }
-
-            BackgroundWorker worker = sender as BackgroundWorker;
-            worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(WorkerRunWorkerCompleted);
-            worker.DoWork -= new DoWorkEventHandler(Worker_DoWork);
-            worker.Dispose();
-
-        }
-
-
         private void TestDirectories_Click(object sender, EventArgs e)
         {
             try
@@ -304,10 +259,7 @@ namespace DSC
             Tested = true;
         }
 
-        private void DtaListPairs_SelectedIndexChanged(object sender, EventArgs e)
-        {
 
-        }
 
         private void BtnDAadd_Click(object sender, EventArgs e)
         {
@@ -368,6 +320,57 @@ namespace DSC
             System.Windows.Forms.MessageBox.Show(boxMessage);
 
         }
+
+        #endregion
+
+
+        #region Worker 
+
+
+
+
+
+
+
+
+        void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            _isRunning = true;
+            _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
+
+            if (chkDoseCompare.Checked == true)
+            {
+                SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
+                saveFile.Save(_dataHandler.ResultMessage);
+            }
+        }
+
+        void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            doseProgressBar.Value = e.ProgressPercentage;
+            lblRunStatus.Text = e.UserState.ToString();
+        }
+
+        void WorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            _isRunning = false;
+            lblRunStatus.Text = Resources.finished;
+            doseProgressBar.Value = doseProgressBar.Maximum;
+
+            if (e.Error != null)
+            {
+                _ = System.Windows.Forms.MessageBox.Show(e.Error.ToString());
+            }
+
+            BackgroundWorker worker = sender as BackgroundWorker;
+            worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(WorkerRunWorkerCompleted);
+            worker.DoWork -= new DoWorkEventHandler(Worker_DoWork);
+            worker.Dispose();
+
+        }
+        #endregion
+
+
 
 
     }

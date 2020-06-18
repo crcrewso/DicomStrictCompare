@@ -70,6 +70,15 @@ namespace DSCcore.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Lists are empty.
+        /// </summary>
+        internal static string EmptyList {
+            get {
+                return ResourceManager.GetString("EmptyList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished.
         /// </summary>
         internal static string finished {
@@ -102,6 +111,15 @@ namespace DSCcore.Properties {
         internal static string minDTAtrim {
             get {
                 return ResourceManager.GetString("minDTAtrim", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot call for dose on a Dicom file that is not a dose file.
+        /// </summary>
+        internal static string notDoseFile {
+            get {
+                return ResourceManager.GetString("notDoseFile", resourceCulture);
             }
         }
         

@@ -43,6 +43,7 @@ namespace DicomStrictCompare
 
         public static string StaticResultHeader(Model.Dta[] dtas)
         {
+            if (dtas == null) throw new ArgumentNullException(nameof(dtas));
             return String.Join(",", ResultArrayHeaderRow0(dtas)) + "\n" + String.Join(",", ResultArrayHeaderRow1(dtas)) + "\n";
         }
 
@@ -153,9 +154,10 @@ namespace DicomStrictCompare
 
         public MatchedDosePair(DoseFile source, DoseFile target, Controller.Settings settings)
         {
-            _source = source;
-            _target = target;
-            _dtas = settings.Dtas;
+            if(settings == null) throw new ArgumentNullException(nameof(settings));
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+            _target = target ?? throw new ArgumentNullException(nameof(target));
+            _dtas = settings.Dtas; 
             _comparisons = new SingleComparison[_dtas.Length];
             PDDoutString = "PDD's not run";
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
@@ -182,6 +184,7 @@ namespace DicomStrictCompare
         /// </summary>
         public void Evaluate(IMathematics mathematics)
         {
+            if (mathematics == null) throw new ArgumentNullException(nameof(mathematics));
             Model.DoseMatrixOptimal sourceDose = new Model.DoseMatrixOptimal(_source.DoseMatrix());
             Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());
             TotalCount = targetDose.Length;

@@ -88,6 +88,11 @@ namespace DicomStrictCompare
 
         public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, object sender)
         {
+            if (SaveDirectory == null)
+                throw new ArgumentNullException(nameof(SaveDirectory));
+            if (sender == null)
+                throw new ArgumentNullException(nameof(sender));
+
             // Maximum number of CPU threads
             ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
             //ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1 };
@@ -194,8 +199,8 @@ namespace DicomStrictCompare
                     Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
                     try
                     {
-                        SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                        pair.PDDoutString = saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
+                        //SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
+                        pair.PDDoutString = SaveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
 
                     }
                     catch (Exception)
