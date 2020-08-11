@@ -51,7 +51,7 @@ namespace DicomStrictCompare
             }
             if (String.IsNullOrEmpty(csvMessage))
             {
-                throw new ArgumentNullException("I have no data to save");
+                throw new ArgumentNullException(nameof(csvMessage));
             }
             StreamWriter outfile = new StreamWriter(SaveFileName);
             outfile.Write(csvMessage);

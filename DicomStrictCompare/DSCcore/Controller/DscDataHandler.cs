@@ -15,13 +15,34 @@ namespace DicomStrictCompare
     /// </summary>
     public class DscDataHandler
     {
-        public Controller.Settings Settings { get; set; }
-
+        /// <summary>
+        /// Global immutable object specifying all settings parameters the user entered. 
+        /// </summary>
+        public Controller.DSCUserSettings Settings { get; set; }
+        /// <summary>
+        /// Directory containing reference or source files. Subdirectories will be searched
+        /// </summary>
         public string SourceDirectory { get; private set; }
+        /// <summary>
+        /// Human Readable identifier user specifies for outputs
+        /// </summary>
         public string SourceAliasName { get; set; }
+        /// <summary>
+        /// Human Readable identifier user specifies for outputs
+        /// </summary>
         public string TargetAliasName { get; set; }
+        /// <summary>
+        /// Directory containing target files. Subdirectories will be searched
+        /// </summary>
         public string TargetDirectory { get; private set; }
+        /// <summary>
+        /// List of all Dicom Files in source director
+        /// </summary>
         public string[] SourceListStrings { get; private set; }
+
+        /// <summary>
+        /// List of all Dicom Files in target directory
+        /// </summary>
         public string[] TargetListStrings { get; private set; }
 
         /// <summary>
@@ -53,14 +74,20 @@ namespace DicomStrictCompare
         /// </summary>
         public string ResultMessage { get; private set; }
 
+        /// <summary>
+        /// Argument Free constructor
+        /// </summary>
         public DscDataHandler()
         {
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
             mathematics = new X86Mathematics();
         }
 
-
-        public DscDataHandler(DicomStrictCompare.Controller.Settings settings)
+        /// <summary>
+        /// Constructor that accepts settings file and prepares accordingly
+        /// </summary>
+        /// <param name="settings"></param>
+        public DscDataHandler(DicomStrictCompare.Controller.DSCUserSettings settings)
         {
             this.Settings = settings;
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
@@ -69,7 +96,11 @@ namespace DicomStrictCompare
 
 
 
-
+        /// <summary>
+        /// Generates the list of DICOM files to examine from the 'Source' location
+        /// </summary>
+        /// <param name="folder">Global location, all subfolders will be examined</param>
+        /// <returns>The number of Files successfully identified</returns>
         public int CreateSourceList(string folder)
         {
             SourceDirectory = folder;
@@ -77,6 +108,12 @@ namespace DicomStrictCompare
             return SourceListStrings.Length;
         }
 
+
+        /// <summary>
+        /// Generates the list of DICOM files to examine from the 'Target' location
+        /// </summary>
+        /// <param name="folder">Global location, all subfolders will be examined</param>
+        /// <returns>The number of Files successfully identified</returns>
         public int CreateTargetList(string folder)
         {
             TargetDirectory = folder;
@@ -85,7 +122,13 @@ namespace DicomStrictCompare
         }
 
 
-
+        /// <summary>
+        /// Runner function
+        /// </summary>
+        /// <param name="runDoseComparisons">True if User would like 3D Dose comparisons</param>
+        /// <param name="runPDDComparisons">True if User would like PDD plots with comparisons</param>
+        /// <param name="SaveDirectory">Location of all output files, some results will be nested into subfolders, data will be overwritten</param>
+        /// <param name="sender"></param>
         public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, object sender)
         {
             if (SaveDirectory == null)

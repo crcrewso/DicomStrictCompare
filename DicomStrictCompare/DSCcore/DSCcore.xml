@@ -9,6 +9,41 @@
             Holds the user entered data and builds the file list for the file handler
             </summary>
         </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.Settings">
+            <summary>
+            Global immutable object specifying all settings parameters the user entered. 
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.SourceDirectory">
+            <summary>
+            Directory containing reference or source files. Subdirectories will be searched
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.SourceAliasName">
+            <summary>
+            Human Readable identifier user specifies for outputs
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.TargetAliasName">
+            <summary>
+            Human Readable identifier user specifies for outputs
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.TargetDirectory">
+            <summary>
+            Directory containing target files. Subdirectories will be searched
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.SourceListStrings">
+            <summary>
+            List of all Dicom Files in source director
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DscDataHandler.TargetListStrings">
+            <summary>
+            List of all Dicom Files in target directory
+            </summary>
+        </member>
         <member name="P:DicomStrictCompare.DscDataHandler.SourceDosesList">
             <summary>
             List of RD (Dose) files in the source directory
@@ -39,6 +74,40 @@
             Increasingly inaccurate name for the csv separated results from the analysis, 
             includes error messages for matches that didn't work. 
             </summary>
+        </member>
+        <member name="M:DicomStrictCompare.DscDataHandler.#ctor">
+            <summary>
+            Argument Free constructor
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.Settings)">
+            <summary>
+            Constructor that accepts settings file and prepares accordingly
+            </summary>
+            <param name="settings"></param>
+        </member>
+        <member name="M:DicomStrictCompare.DscDataHandler.CreateSourceList(System.String)">
+            <summary>
+            Generates the list of DICOM files to examine from the 'Source' location
+            </summary>
+            <param name="folder">Global location, all subfolders will be examined</param>
+            <returns>The number of Files successfully identified</returns>
+        </member>
+        <member name="M:DicomStrictCompare.DscDataHandler.CreateTargetList(System.String)">
+            <summary>
+            Generates the list of DICOM files to examine from the 'Target' location
+            </summary>
+            <param name="folder">Global location, all subfolders will be examined</param>
+            <returns>The number of Files successfully identified</returns>
+        </member>
+        <member name="M:DicomStrictCompare.DscDataHandler.Run(System.Boolean,System.Boolean,System.String,System.Object)">
+            <summary>
+            Runner function
+            </summary>
+            <param name="runDoseComparisons">True if User would like 3D Dose comparisons</param>
+            <param name="runPDDComparisons">True if User would like PDD plots with comparisons</param>
+            <param name="SaveDirectory">Location of all output files, some results will be nested into subfolders, data will be overwritten</param>
+            <param name="sender"></param>
         </member>
         <member name="T:DicomStrictCompare.MatchedDosePair">
             <summary>
@@ -94,6 +163,27 @@
             
             </summary>
         </member>
+        <member name="M:DicomStrictCompare.FileHandler.DoseFiles(System.String[])">
+            <summary>
+            Returns a sublist of source list containing only Dicom Dose files
+            </summary>
+            <param name="listOfFiles">sourcelist to be evaluated</param>
+            <returns>sublist containing only Dose files</returns>
+        </member>
+        <member name="M:DicomStrictCompare.FileHandler.PlanFiles(System.String[])">
+            <summary>
+            Finds all Plan files
+            </summary>
+            <param name="listOfFiles">Source list of all dicom files to be evaluated</param>
+            <returns>only files matching type RTPLAN</returns>
+        </member>
+        <member name="M:DicomStrictCompare.FileHandler.LoadListRdDcmList(System.String)">
+            <summary>
+            List generator of all Dicom files
+            </summary>
+            <param name="folder">Source folder of interest, subfolders will be searched</param>
+            <returns>list of all filenames of type DICOM</returns>
+        </member>
         <member name="T:DicomStrictCompare.DoseFile">
             <summary>
             Parsses all of the MetaData from a dicom file, and if a dose file, allows access to the dose information through methods
@@ -102,6 +192,11 @@
         <member name="P:DicomStrictCompare.DoseFile.FileName">
             <summary>
             full filename including address
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DoseFile.ShortFileName">
+            <summary>
+            Human readable filename without location
             </summary>
         </member>
         <member name="P:DicomStrictCompare.DoseFile.IsDoseFile">
@@ -129,6 +224,11 @@
             Field Identifier
             </summary>
         </member>
+        <member name="P:DicomStrictCompare.DoseFile.FieldMUs">
+            <summary>
+            Machine Monitor Units delivered for this field. 
+            </summary>
+        </member>
         <member name="P:DicomStrictCompare.DoseFile.MatchIdentifier">
             <summary>
             Compound of other metaData to match against
@@ -150,6 +250,12 @@
             </summary>
             <param name="fileName"></param>
         </member>
+        <member name="M:DicomStrictCompare.DoseFile.SetFieldName(System.Collections.Generic.List{DicomStrictCompare.PlanFile})">
+            <summary>
+            Search the list of Plan Files, by UUID, to determine the Field's Human Readable Field Name
+            </summary>
+            <param name="planFiles"></param>
+        </member>
         <member name="M:DicomStrictCompare.DoseFile.DoseValues">
             <summary>
             If the file is a Dicom Dose file then the list of doses is returned.
@@ -164,6 +270,37 @@
             </summary>
             <returns></returns>
             <exception cref="T:System.InvalidOperationException">Cannot call for dose on a Dicom file that is not a dose file</exception>
+        </member>
+        <member name="T:DicomStrictCompare.DicomFile">
+            <summary>
+            Wrapper containing file type for supported DICOM files
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DicomFile.IsPlanFile">
+            <summary>
+            True if Dicom File is a plan file, all others are false
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DicomFile.IsDoseFile">
+            <summary>
+            True if Dicom File is a dose file all other parameters are fales
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.DicomFile.UnsupportedFile">
+            <summary>
+            True if DICOM file is of an unsupported type
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.DicomFile.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="fileName">String containing the full file location</param>
+        </member>
+        <member name="T:DicomStrictCompare.PlanFile">
+            <summary>
+            Metadata and location of Plan file
+            </summary>
         </member>
         <member name="P:DicomStrictCompare.PlanFile.FieldNumberToNameList">
             <summary>
@@ -202,6 +339,51 @@
             Stores the Matrix of doses from the 3D dose file, and associated settings, in a format optimal for this code base 
             </summary>
         </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.DimensionX">
+            <summary>
+            length of X axis in voxels
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.DimensionY">
+            <summary>
+            Length of Y axis in voxels
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.DimensionZ">
+            <summary>
+            Length of Z axis in voxels
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues">
+            <summary>
+            Array of Dose Values (array used for calculation simplicity and efficiency)
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.Scaling">
+            <summary>
+            Global dose scaling factor
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.XRes">
+            <summary>
+            Pitch between voxel centers (and width of voxels) in X axis
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.YRes">
+            <summary>
+            Pitch between voxel centers (and width of voxels) in Y axis
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.ZRes">
+            <summary>
+            Pitch between voxel centers (and width of voxels) in Z axis
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.MaxPointDose">
+            <summary>
+            DoseValue object of the Maximum dose found within the Dose Matrix
+            </summary>
+        </member>
         <member name="P:DicomStrictCompare.Model.DoseMatrixOptimal.Length">
             <summary>
             Number of dose values in the array
@@ -218,6 +400,13 @@
             </summary>
             <param name="doseMatrix"></param>
         </member>
+        <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.IsInBounds(EvilDICOM.Core.Helpers.Vector3)">
+            <summary>
+            Tests if the point in question is within the Dose Matrix
+            </summary>
+            <param name="pt">location of interest</param>
+            <returns>true if point is within Dose Matrix</returns>
+        </member>
         <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.GetPointDose(System.Double,System.Double,System.Double)">
             <summary>
             Gets the dose at a geometric point within this object. if point is not an explicit voxel of this object the dose 
@@ -226,7 +415,7 @@
             <param name="x"></param>
             <param name="y"></param>
             <param name="z"></param>
-            <returns></returns>
+            <returns>new DoseValue object containing location and Dose parameters at requested location</returns>
         </member>
         <member name="M:DicomStrictCompare.Model.DoseMatrixOptimal.GetPointDose(EvilDICOM.Core.Helpers.Vector3)">
             <summary>
@@ -505,6 +694,46 @@
             The main entry point for the application.
             </summary>
         </member>
+        <member name="P:DSC.Form1.Tested">
+            <summary>
+            Bool to keep track of if the settings have been changed since last check 
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.SourceDirectory">
+            <summary>
+            Directory containing 'source' or reference dicom dose files and plan files 
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.TargetDirectory">
+            <summary>
+            Directory containing Dicom files being evaluated
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.SaveDirectory">
+            <summary>
+            Destination directory for all results
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.SaveNamePrefix">
+            <summary>
+            Shortname of files (without extension) to be saved. Program will pick extension as applicable
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.SourceAliasName">
+            <summary>
+            Name user would like to call the source or reference dataset in results data and plots 
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.TargetAliasName">
+            <summary>
+            Name user would like to call the target dataset in the results data and plots
+            </summary>
+        </member>
+        <member name="P:DSC.Form1.Dtas">
+            <summary>
+            List of DTA parameters of interest
+            </summary>
+        </member>
         <member name="M:DSC.Form1.#ctor">
             <inheritdoc />
         </member>
@@ -559,6 +788,11 @@
               Looks up a localized string similar to Comparison algorithm failed spectacularily .
             </summary>
         </member>
+        <member name="P:DSCcore.Properties.Resources.EmptyList">
+            <summary>
+              Looks up a localized string similar to Lists are empty.
+            </summary>
+        </member>
         <member name="P:DSCcore.Properties.Resources.finished">
             <summary>
               Looks up a localized string similar to Finished.
@@ -577,6 +811,11 @@
         <member name="P:DSCcore.Properties.Resources.minDTAtrim">
             <summary>
               Looks up a localized string similar to 0.
+            </summary>
+        </member>
+        <member name="P:DSCcore.Properties.Resources.notDoseFile">
+            <summary>
+              Looks up a localized string similar to Cannot call for dose on a Dicom file that is not a dose file.
             </summary>
         </member>
         <member name="P:DSCcore.Properties.Resources.paramTestFailed">

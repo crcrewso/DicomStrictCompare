@@ -9,10 +9,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DSC.Form1.html",
-          "hash": "Uiyyov8cw6kcAc1eFtrWlQ=="
+          "hash": "s+N7GyoYjUTYjES2QOfOCg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -21,10 +21,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DSC.html",
-          "hash": "9F7wEWnCiwmiEqQUyEr7Rw=="
+          "hash": "hPSj2KRSFXpR4sHxzW2L6g=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -33,10 +33,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Controller.Settings.html",
-          "hash": "4gJvHjBbQNpRCV/rFnAQpw=="
+          "hash": "Z9KhW4JUYxMvc3DMLsu5rg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -45,10 +45,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Controller.html",
-          "hash": "sQ4Z6HBqnyJraxl8sNb7gw=="
+          "hash": "ycUR0mBN5cVEYTUKXMfnpA=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -57,10 +57,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DicomFile.html",
-          "hash": "Bqj7LHN4tdUatPT5Tlt5RQ=="
+          "hash": "Y3yJnwht2j9tntxw65HNXQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -69,10 +69,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DoseFile.html",
-          "hash": "bqkYPCkhktBVqHk6Gdj+yg=="
+          "hash": "TOH/wu8T7CAuSu6nDbTdUw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -81,10 +81,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DscDataHandler.html",
-          "hash": "xbO8VcpNtaSdLiyJcCfp0Q=="
+          "hash": "OeUTsaWgbGgvEM7j1Kw0Dg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -93,10 +93,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.FileHandler.html",
-          "hash": "38ji5u41IL5mS0E6IUOGTw=="
+          "hash": "wP9ZMr8pT12cl2AFMGyF2g=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -105,10 +105,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.IMathematics.html",
-          "hash": "WrioEBB8vs4qjvKsqvzVvA=="
+          "hash": "a9Tv/S/hXsmzP7ILPwwmkQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -117,7 +117,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.MatchedDosePair.html",
-          "hash": "OfuIYhM5kWS7T1oH60gq7g=="
+          "hash": "ePZqpRI8Mhkdsr658eU0YA=="
         }
       },
       "is_incremental": false,
@@ -129,10 +129,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.DoseMatrixOptimal.html",
-          "hash": "ccg5mX47OHmYLSxkNWXVXQ=="
+          "hash": "sKOc1I33Uh6Gl3fvqtEfwA=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -141,10 +141,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.CalcAlgorithm.html",
-          "hash": "YvASIWi8UnUyIx3Ud+NGPA=="
+          "hash": "eUX3/d0XNse4CPLiM/l+eg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -153,10 +153,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.CalcType.html",
-          "hash": "iIG2NwKs0TNcxpyFIcHOiA=="
+          "hash": "0EczTBhNsXQtcFXs0kqE/A=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -165,10 +165,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.html",
-          "hash": "rN5k9KISHmHRtPeFqMlDNg=="
+          "hash": "zCo4PnfLz2XVAJ4e4/7zGA=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -177,10 +177,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.SingleComparison.html",
-          "hash": "Rg0BbsLMYC0NfFJ4OtfsEw=="
+          "hash": "uPBTCuOcmlcCmJm4+y7ZTw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -189,10 +189,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.X86Mathematics.html",
-          "hash": "hmHDApS5dPQlOKyMoYaJLw=="
+          "hash": "7z3EEohVL44EgZsvsR63TA=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -201,10 +201,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.html",
-          "hash": "RO9kGVRFdAIksLAYEYuuIQ=="
+          "hash": "1px7Ph7xslYs7B6FXDqQgQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -213,10 +213,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.PlanFile.html",
-          "hash": "4/8MpzYR/y8uXYI1hhGC5Q=="
+          "hash": "O0YT4XbqE8dltthv3MCsbQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -225,10 +225,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.ProfileTools.html",
-          "hash": "4DF6Ra2ieeBaKTjU7ing5w=="
+          "hash": "SCT+90mUjww66lfhMjweFA=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -237,7 +237,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.html",
-          "hash": "HaWNvHKh31m3EfXYqBi6Ig=="
+          "hash": "qraB3YRil/Ymwxe9ccEtgw=="
         }
       },
       "is_incremental": false,
@@ -249,10 +249,10 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "ssjrnnr8uFmxW0kuxeEt2A=="
+          "hash": "u5eYJQhVJzAoVXexPIkxGw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -273,10 +273,10 @@
       "output": {
         ".html": {
           "relative_path": "articles/intro.html",
-          "hash": "tTYymf/lKmgrCCB2uklnww=="
+          "hash": "pFqa4hM2ZX8a9lMMllxHdg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -297,10 +297,10 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "WQauEkoDDTHXVy5hPAmWfw=="
+          "hash": "TMSDfTVYDfViF+ZqJtF2vw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -319,23 +319,25 @@
   "incremental_info": [
     {
       "status": {
-        "can_incremental": true,
+        "can_incremental": false,
+        "details": "Cannot build incrementally because docfx version changed from 2.53.1.0 to 2.56.2.0.",
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0
+        "skipped_file_count": 0,
+        "full_build_reason_code": "DocfxVersionChanged"
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
           "total_file_count": 3,
-          "skipped_file_count": 3
+          "skipped_file_count": 0
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
           "total_file_count": 20,
-          "skipped_file_count": 19
+          "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

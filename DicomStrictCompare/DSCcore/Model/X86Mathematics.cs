@@ -267,7 +267,7 @@ namespace DicomStrictCompare.Model
 
             for (int i = 0; i < TotalCompared.Length; i++)
                 zBoundaries[i] = zMin + i * zChunck * zRes;
-            zBoundaries[zBoundaries.Length - 1] = zMax + 0.5 * zRes;
+            zBoundaries[^1] = zMax + 0.5 * zRes;
 
             Task[] tasks = new Task[cpuParallel];
             for (int i = 0; i < cpuParallel; i++)

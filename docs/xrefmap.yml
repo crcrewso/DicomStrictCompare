@@ -145,6 +145,19 @@ references:
   isSpec: "True"
   fullName: DicomStrictCompare.DicomFile.IsPlanFile
   nameWithType: DicomFile.IsPlanFile
+- uid: DicomStrictCompare.DicomFile.UnsupportedFile
+  name: UnsupportedFile
+  href: api/DicomStrictCompare.DicomFile.html#DicomStrictCompare_DicomFile_UnsupportedFile
+  commentId: P:DicomStrictCompare.DicomFile.UnsupportedFile
+  fullName: DicomStrictCompare.DicomFile.UnsupportedFile
+  nameWithType: DicomFile.UnsupportedFile
+- uid: DicomStrictCompare.DicomFile.UnsupportedFile*
+  name: UnsupportedFile
+  href: api/DicomStrictCompare.DicomFile.html#DicomStrictCompare_DicomFile_UnsupportedFile_
+  commentId: Overload:DicomStrictCompare.DicomFile.UnsupportedFile
+  isSpec: "True"
+  fullName: DicomStrictCompare.DicomFile.UnsupportedFile
+  nameWithType: DicomFile.UnsupportedFile
 - uid: DicomStrictCompare.DoseFile
   name: DoseFile
   href: api/DicomStrictCompare.DoseFile.html
@@ -1062,7 +1075,14 @@ references:
 - uid: DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues
   name: DoseValues
   href: api/DicomStrictCompare.Model.DoseMatrixOptimal.html#DicomStrictCompare_Model_DoseMatrixOptimal_DoseValues
-  commentId: F:DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues
+  commentId: P:DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues
+  fullName: DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues
+  nameWithType: DoseMatrixOptimal.DoseValues
+- uid: DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues*
+  name: DoseValues
+  href: api/DicomStrictCompare.Model.DoseMatrixOptimal.html#DicomStrictCompare_Model_DoseMatrixOptimal_DoseValues_
+  commentId: Overload:DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues
+  isSpec: "True"
   fullName: DicomStrictCompare.Model.DoseMatrixOptimal.DoseValues
   nameWithType: DoseMatrixOptimal.DoseValues
 - uid: DicomStrictCompare.Model.DoseMatrixOptimal.GetPointDose(EvilDICOM.Core.Helpers.Vector3)
@@ -1872,19 +1892,6 @@ references:
   isSpec: "True"
   fullName: DSC.Form1.Dtas
   nameWithType: Form1.Dtas
-- uid: DSC.Form1.MainTol
-  name: MainTol
-  href: api/DSC.Form1.html#DSC_Form1_MainTol
-  commentId: P:DSC.Form1.MainTol
-  fullName: DSC.Form1.MainTol
-  nameWithType: Form1.MainTol
-- uid: DSC.Form1.MainTol*
-  name: MainTol
-  href: api/DSC.Form1.html#DSC_Form1_MainTol_
-  commentId: Overload:DSC.Form1.MainTol
-  isSpec: "True"
-  fullName: DSC.Form1.MainTol
-  nameWithType: Form1.MainTol
 - uid: DSC.Form1.SaveDirectory
   name: SaveDirectory
   href: api/DSC.Form1.html#DSC_Form1_SaveDirectory
@@ -1976,29 +1983,3 @@ references:
   isSpec: "True"
   fullName: DSC.Form1.Tested
   nameWithType: Form1.Tested
-- uid: DSC.Form1.Threshold
-  name: Threshold
-  href: api/DSC.Form1.html#DSC_Form1_Threshold
-  commentId: P:DSC.Form1.Threshold
-  fullName: DSC.Form1.Threshold
-  nameWithType: Form1.Threshold
-- uid: DSC.Form1.Threshold*
-  name: Threshold
-  href: api/DSC.Form1.html#DSC_Form1_Threshold_
-  commentId: Overload:DSC.Form1.Threshold
-  isSpec: "True"
-  fullName: DSC.Form1.Threshold
-  nameWithType: Form1.Threshold
-- uid: DSC.Form1.TightTol
-  name: TightTol
-  href: api/DSC.Form1.html#DSC_Form1_TightTol
-  commentId: P:DSC.Form1.TightTol
-  fullName: DSC.Form1.TightTol
-  nameWithType: Form1.TightTol
-- uid: DSC.Form1.TightTol*
-  name: TightTol
-  href: api/DSC.Form1.html#DSC_Form1_TightTol_
-  commentId: Overload:DSC.Form1.TightTol
-  isSpec: "True"
-  fullName: DSC.Form1.TightTol
-  nameWithType: Form1.TightTol

@@ -17,17 +17,37 @@ namespace DSC
 {
     public partial class Form1 : Form
     {
+        /// <summary>
+        /// Bool to keep track of if the settings have been changed since last check 
+        /// </summary>
         public bool Tested { get; private set; } = false;
-        public float TightTol { get; private set; } = 1;
-        public float MainTol { get; private set; } = 2;
-        public float Threshold { get; private set; } = 10;
+        /// <summary>
+        /// Directory containing 'source' or reference dicom dose files and plan files 
+        /// </summary>
         public string SourceDirectory { get; private set; }
+        /// <summary>
+        /// Directory containing Dicom files being evaluated
+        /// </summary>
         public string TargetDirectory { get; private set; }
+        /// <summary>
+        /// Destination directory for all results
+        /// </summary>
         public string SaveDirectory { get; private set; }
+        /// <summary>
+        /// Shortname of files (without extension) to be saved. Program will pick extension as applicable
+        /// </summary>
         public string SaveNamePrefix { get; private set; }
+        /// <summary>
+        /// Name user would like to call the source or reference dataset in results data and plots 
+        /// </summary>
         public string SourceAliasName { get; private set; } = "Reference";
+        /// <summary>
+        /// Name user would like to call the target dataset in the results data and plots
+        /// </summary>
         public string TargetAliasName { get; private set; } = "New Model";
-
+        /// <summary>
+        /// List of DTA parameters of interest
+        /// </summary>
         public List<DicomStrictCompare.Model.Dta> Dtas { get; private set; }
 
         private readonly DscDataHandler _dataHandler;
@@ -187,7 +207,7 @@ namespace DSC
             }
 
             //TODO: impliment proper threadding request
-            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+            DicomStrictCompare.Controller.DSCUserSettings settings = new DicomStrictCompare.Controller.DSCUserSettings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
             //TODO: make Fuzzy res width gui configurable  
             //TODO: Impliment gamma
 

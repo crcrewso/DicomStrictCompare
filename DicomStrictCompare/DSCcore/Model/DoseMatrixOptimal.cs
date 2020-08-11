@@ -11,21 +11,50 @@ namespace DicomStrictCompare.Model
     /// </summary>
     public class DoseMatrixOptimal
     {
+        /// <summary>
+        /// length of X axis in voxels
+        /// </summary>
         public int DimensionX { get; }
+        /// <summary>
+        /// Length of Y axis in voxels
+        /// </summary>
         public int DimensionY { get; }
+        /// <summary>
+        /// Length of Z axis in voxels
+        /// </summary>
         public int DimensionZ { get; }
-
-        public readonly double[] DoseValues;
+        /// <summary>
+        /// Array of Dose Values (array used for calculation simplicity and efficiency)
+        /// </summary>
+        public double[] DoseValues { get; }
+        /// <summary>
+        /// Global dose scaling factor
+        /// </summary>
         public double Scaling { get; }
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public double X0 { get; }
         public double Y0 { get; }
         public double Z0 { get; }
         public double XMax { get; }
         public double YMax { get; }
         public double ZMax { get; }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
+        /// <summary>
+        /// Pitch between voxel centers (and width of voxels) in X axis
+        /// </summary>
         public double XRes { get; }
+        /// <summary>
+        /// Pitch between voxel centers (and width of voxels) in Y axis
+        /// </summary>
         public double YRes { get; }
+        /// <summary>
+        /// Pitch between voxel centers (and width of voxels) in Z axis
+        /// </summary>
         public double ZRes { get; }
+        /// <summary>
+        /// DoseValue object of the Maximum dose found within the Dose Matrix
+        /// </summary>
         public DoseValue MaxPointDose { get; }
 
         /// <summary>
@@ -62,7 +91,11 @@ namespace DicomStrictCompare.Model
             Length = DoseValues.Length;
             MaxPointDose = doseMatrix.MaxPointDose;
         }
-
+        /// <summary>
+        /// Tests if the point in question is within the Dose Matrix
+        /// </summary>
+        /// <param name="pt">location of interest</param>
+        /// <returns>true if point is within Dose Matrix</returns>
         public bool IsInBounds(Vector3 pt)
         {
             if (null == pt)
@@ -77,7 +110,7 @@ namespace DicomStrictCompare.Model
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
-        /// <returns></returns>
+        /// <returns>new DoseValue object containing location and Dose parameters at requested location</returns>
         public DoseValue GetPointDose(double x, double y, double z)
         {
             //From method at http://en.wikipedia.org/wiki/Trilinear_interpolation
@@ -132,7 +165,7 @@ namespace DicomStrictCompare.Model
                 return DoseValues[LatticeXYZToIndexLocal(xStepsGDPD, yStepsGDPD, zStepsGDPD, DimensionX, DimensionY)];
             }
 
-            int LatticeXYZToIndexLocal(int xLTI, int yLTI, int zLTI, int dimXLTI, int dimYLTI)
+            static int LatticeXYZToIndexLocal(int xLTI, int yLTI, int zLTI, int dimXLTI, int dimYLTI)
             {
                 return xLTI + yLTI * dimXLTI + zLTI * dimXLTI * dimYLTI;
             }

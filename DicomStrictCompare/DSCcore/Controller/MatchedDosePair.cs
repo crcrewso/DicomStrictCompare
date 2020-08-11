@@ -15,11 +15,27 @@ namespace DicomStrictCompare
     {
         readonly Model.Dta[] _dtas;
         readonly SingleComparison[] _comparisons;
+
+        /// <summary>
+        /// Total voxels in source
+        /// </summary>
         public int TotalCount { get; private set; }
+        /// <summary>
+        /// Total compared, as in total comparisons above threshhold 
+        /// </summary>
         public int TotalCompared { get; private set; } = 0;
+        /// <summary>
+        /// Comparisons that have failed
+        /// </summary>
         public int TotalFailed { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
         public double PercentFailed => PercentCalculator(TotalCompared, TotalFailed);
- 
+        /// <summary>
+        /// Summary of results of PDD Comparison
+        /// TODO: Replace this functionality 
+        /// </summary>
         public string PDDoutString { get; set; } = "null";
         /// <summary>
         /// The matched pair has been evaluated to measure results
@@ -32,15 +48,25 @@ namespace DicomStrictCompare
         /// Name of the pair evaluated
         /// </summary>
         public string Name => _source.PlanID + ',' + _source.FieldName;
-            
+
         /// <summary>
         /// Filenames of the pair of files
         /// </summary>
         public string FileNames => _source.ShortFileName + ',' + _target.ShortFileName;
 
+        /// <summary>
+        /// TODO Fix this
+        /// </summary>
         public string ResultString => String.Join(",", ResultArray());
+        /// <summary>
+        /// TODO Fix this
+        /// </summary>
         public string ResultHeader => String.Join(",", ResultArrayHeaderRow0()) + "\n" + String.Join(",", ResultArrayHeaderRow1()) + "\n";
-
+        /// <summary>
+        /// TODO fix this
+        /// </summary>
+        /// <param name="dtas">DTA settings for the comparisons </param>
+        /// <returns></returns>
         public static string StaticResultHeader(Model.Dta[] dtas)
         {
             if (dtas == null) throw new ArgumentNullException(nameof(dtas));
@@ -50,10 +76,13 @@ namespace DicomStrictCompare
         private readonly DoseFile _source;
         private readonly DoseFile _target;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public List<DoseValue> SourcePDD { get; private set; }
         public List<DoseValue> TargetPDD { get; private set; }
         public string ChartTitle { get; private set; }
         public string ChartFileName { get; private set; }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
 
         /// <summary>
         /// Calculates the percent of voxels that failed based on the total 
@@ -125,13 +154,13 @@ namespace DicomStrictCompare
                 "Plan Name",
                 "Field Name"
             };
-            for (int i = 0; i < 3*_dtas.Length; i++)
+            for (int i = 0; i < 3 * _dtas.Length; i++)
             {
-                ret.Add(_dtas[i%_dtas.Length].ShortToString());
+                ret.Add(_dtas[i % _dtas.Length].ShortToString());
             }
             ret.Add("Source File Name,Target File Name");
             ret.Add("Source MUs");
-            ret.Add( "Target MUs");
+            ret.Add("Target MUs");
             return ret.ToArray();
         }
 
@@ -152,18 +181,28 @@ namespace DicomStrictCompare
             return ret.ToArray();
         }
 
-        public MatchedDosePair(DoseFile source, DoseFile target, Controller.Settings settings)
+
+        /// <summary>
+        /// Complex Constructor
+        /// </summary>
+        /// <param name="source"> source or reference RT Dose file</param>
+        /// <param name="target">Target RT Dose file</param>
+        /// <param name="settings"> global settings</param>
+        public MatchedDosePair(DoseFile source, DoseFile target, Controller.DSCUserSettings settings)
         {
-            if(settings == null) throw new ArgumentNullException(nameof(settings));
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _target = target ?? throw new ArgumentNullException(nameof(target));
-            _dtas = settings.Dtas; 
+            _dtas = settings.Dtas;
             _comparisons = new SingleComparison[_dtas.Length];
             PDDoutString = "PDD's not run";
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
             ChartFileName = _source.PlanID + @"\" + _source.FieldName;
         }
 
+        /// <summary>
+        /// Generates PDD profile datasets for comparison and plotting
+        /// </summary>
         public void GeneratePDD()
         {
             RTDose sourceMatrix = _source.DoseMatrix();
@@ -171,7 +210,7 @@ namespace DicomStrictCompare
             double yMin = (sourceMatrix.Y0 > targetMatrix.Y0) ? sourceMatrix.Y0 : targetMatrix.Y0;
             double yMax = (sourceMatrix.YMax < targetMatrix.YMax) ? sourceMatrix.YMax : targetMatrix.YMax;
             double yRes = sourceMatrix.YRes;
-            EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0 );
+            EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0);
             EvilDICOM.Core.Helpers.Vector3 endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
             SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
             TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
