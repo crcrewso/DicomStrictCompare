@@ -12,7 +12,7 @@ namespace DicomStrictCompare.Controller
     /// <summary>
     /// Consolidated settings collection to undo feature creep spaghettification.  
     /// </summary>
-    public class DSCUserSettings 
+    public class DSCUserSettings
     {
 
         /// <summary>
