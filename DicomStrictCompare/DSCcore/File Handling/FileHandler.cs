@@ -16,6 +16,9 @@ using EvilDICOM.RT;
 using EvilDICOM.CV;
 using DSCcore.Properties;
 using System.Windows.Forms.VisualStyles;
+using System.Configuration;
+using System.Windows.Forms.PropertyGridInternal;
+using DicomStrictCompare.Controller;
 
 namespace DicomStrictCompare
 {
@@ -124,7 +127,21 @@ namespace DicomStrictCompare
         /// Compound of other metaData to match against
         /// </summary>
         //public string MatchIdentifier => PatientId + BeamNumber + SopInstanceId;
-        public string MatchIdentifier => PatientId + PlanID + FieldName;
+        public string MatchIdentifier => GenerateMatchIdentifier();
+
+        private string GenerateMatchIdentifier()
+        {
+            string ret = "";
+            if (Settings.Default.MatchWithPatientId)
+                ret += PatientId;
+            if (Settings.Default.MatchWithPlanUUID)
+                ret += PlanID;
+            if (Settings.Default.MatchWithFieldName)
+                ret += FieldName;
+            return ret;
+        }
+
+
         /// <summary>
         /// Beam number 
         /// </summary>
@@ -133,6 +150,8 @@ namespace DicomStrictCompare
         /// SOP Instance Identifier of the source plan ID. 
         /// </summary>
         public string SopInstanceId { get; }
+
+        private DSCUserSettings settings;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public int X { get; private set; }
@@ -145,6 +164,7 @@ namespace DicomStrictCompare
         /// <param name="fileName"></param>
         public DoseFile(string fileName)
         {
+            this.settings = settings;
             if (fileName == null || fileName.Length < 1)
                 throw new ArgumentNullException(nameof(fileName));
             DICOMObject dcm1 = DICOMObject.Read(fileName);

@@ -13,93 +13,171 @@ references:
   commentId: N:DicomStrictCompare.Controller
   fullName: DicomStrictCompare.Controller
   nameWithType: DicomStrictCompare.Controller
-- uid: DicomStrictCompare.Controller.Settings
-  name: Settings
-  href: api/DicomStrictCompare.Controller.Settings.html
-  commentId: T:DicomStrictCompare.Controller.Settings
-  fullName: DicomStrictCompare.Controller.Settings
-  nameWithType: Settings
-- uid: DicomStrictCompare.Controller.Settings.#ctor(DicomStrictCompare.Model.Dta[],System.Boolean,System.Boolean,System.Boolean,System.Int32)
-  name: Settings(Dta[], Boolean, Boolean, Boolean, Int32)
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings__ctor_DicomStrictCompare_Model_Dta___System_Boolean_System_Boolean_System_Boolean_System_Int32_
-  commentId: M:DicomStrictCompare.Controller.Settings.#ctor(DicomStrictCompare.Model.Dta[],System.Boolean,System.Boolean,System.Boolean,System.Int32)
-  name.vb: Settings(Dta(), Boolean, Boolean, Boolean, Int32)
-  fullName: DicomStrictCompare.Controller.Settings.Settings(DicomStrictCompare.Model.Dta[], System.Boolean, System.Boolean, System.Boolean, System.Int32)
-  fullName.vb: DicomStrictCompare.Controller.Settings.Settings(DicomStrictCompare.Model.Dta(), System.Boolean, System.Boolean, System.Boolean, System.Int32)
-  nameWithType: Settings.Settings(Dta[], Boolean, Boolean, Boolean, Int32)
-  nameWithType.vb: Settings.Settings(Dta(), Boolean, Boolean, Boolean, Int32)
-- uid: DicomStrictCompare.Controller.Settings.#ctor*
-  name: Settings
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings__ctor_
-  commentId: Overload:DicomStrictCompare.Controller.Settings.#ctor
+- uid: DicomStrictCompare.Controller.DSCUserSettings
+  name: DSCUserSettings
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html
+  commentId: T:DicomStrictCompare.Controller.DSCUserSettings
+  fullName: DicomStrictCompare.Controller.DSCUserSettings
+  nameWithType: DSCUserSettings
+- uid: DicomStrictCompare.Controller.DSCUserSettings.#ctor(DicomStrictCompare.Model.Dta[])
+  name: DSCUserSettings(Dta[])
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings__ctor_DicomStrictCompare_Model_Dta___
+  commentId: M:DicomStrictCompare.Controller.DSCUserSettings.#ctor(DicomStrictCompare.Model.Dta[])
+  name.vb: DSCUserSettings(Dta())
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.DSCUserSettings(DicomStrictCompare.Model.Dta[])
+  fullName.vb: DicomStrictCompare.Controller.DSCUserSettings.DSCUserSettings(DicomStrictCompare.Model.Dta())
+  nameWithType: DSCUserSettings.DSCUserSettings(Dta[])
+  nameWithType.vb: DSCUserSettings.DSCUserSettings(Dta())
+- uid: DicomStrictCompare.Controller.DSCUserSettings.#ctor*
+  name: DSCUserSettings
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings__ctor_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.#ctor
   isSpec: "True"
-  fullName: DicomStrictCompare.Controller.Settings.Settings
-  nameWithType: Settings.Settings
-- uid: DicomStrictCompare.Controller.Settings.CpuParallel
-  name: CpuParallel
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_CpuParallel
-  commentId: P:DicomStrictCompare.Controller.Settings.CpuParallel
-  fullName: DicomStrictCompare.Controller.Settings.CpuParallel
-  nameWithType: Settings.CpuParallel
-- uid: DicomStrictCompare.Controller.Settings.CpuParallel*
-  name: CpuParallel
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_CpuParallel_
-  commentId: Overload:DicomStrictCompare.Controller.Settings.CpuParallel
-  isSpec: "True"
-  fullName: DicomStrictCompare.Controller.Settings.CpuParallel
-  nameWithType: Settings.CpuParallel
-- uid: DicomStrictCompare.Controller.Settings.Dtas
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.DSCUserSettings
+  nameWithType: DSCUserSettings.DSCUserSettings
+- uid: DicomStrictCompare.Controller.DSCUserSettings.Dtas
   name: Dtas
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_Dtas
-  commentId: P:DicomStrictCompare.Controller.Settings.Dtas
-  fullName: DicomStrictCompare.Controller.Settings.Dtas
-  nameWithType: Settings.Dtas
-- uid: DicomStrictCompare.Controller.Settings.Dtas*
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_Dtas
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.Dtas
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.Dtas
+  nameWithType: DSCUserSettings.Dtas
+- uid: DicomStrictCompare.Controller.DSCUserSettings.Dtas*
   name: Dtas
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_Dtas_
-  commentId: Overload:DicomStrictCompare.Controller.Settings.Dtas
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_Dtas_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.Dtas
   isSpec: "True"
-  fullName: DicomStrictCompare.Controller.Settings.Dtas
-  nameWithType: Settings.Dtas
-- uid: DicomStrictCompare.Controller.Settings.RunDoseComparisons
-  name: RunDoseComparisons
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_RunDoseComparisons
-  commentId: P:DicomStrictCompare.Controller.Settings.RunDoseComparisons
-  fullName: DicomStrictCompare.Controller.Settings.RunDoseComparisons
-  nameWithType: Settings.RunDoseComparisons
-- uid: DicomStrictCompare.Controller.Settings.RunDoseComparisons*
-  name: RunDoseComparisons
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_RunDoseComparisons_
-  commentId: Overload:DicomStrictCompare.Controller.Settings.RunDoseComparisons
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.Dtas
+  nameWithType: DSCUserSettings.Dtas
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithBeamNumber
+  name: MatchWithBeamNumber
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithBeamNumber
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithBeamNumber
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithBeamNumber
+  nameWithType: DSCUserSettings.MatchWithBeamNumber
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithBeamNumber*
+  name: MatchWithBeamNumber
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithBeamNumber_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithBeamNumber
   isSpec: "True"
-  fullName: DicomStrictCompare.Controller.Settings.RunDoseComparisons
-  nameWithType: Settings.RunDoseComparisons
-- uid: DicomStrictCompare.Controller.Settings.RunPDDComparisons
-  name: RunPDDComparisons
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_RunPDDComparisons
-  commentId: P:DicomStrictCompare.Controller.Settings.RunPDDComparisons
-  fullName: DicomStrictCompare.Controller.Settings.RunPDDComparisons
-  nameWithType: Settings.RunPDDComparisons
-- uid: DicomStrictCompare.Controller.Settings.RunPDDComparisons*
-  name: RunPDDComparisons
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_RunPDDComparisons_
-  commentId: Overload:DicomStrictCompare.Controller.Settings.RunPDDComparisons
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithBeamNumber
+  nameWithType: DSCUserSettings.MatchWithBeamNumber
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithEnergy
+  name: MatchWithEnergy
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithEnergy
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithEnergy
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithEnergy
+  nameWithType: DSCUserSettings.MatchWithEnergy
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithEnergy*
+  name: MatchWithEnergy
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithEnergy_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithEnergy
   isSpec: "True"
-  fullName: DicomStrictCompare.Controller.Settings.RunPDDComparisons
-  nameWithType: Settings.RunPDDComparisons
-- uid: DicomStrictCompare.Controller.Settings.RunProfileComparisons
-  name: RunProfileComparisons
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_RunProfileComparisons
-  commentId: P:DicomStrictCompare.Controller.Settings.RunProfileComparisons
-  fullName: DicomStrictCompare.Controller.Settings.RunProfileComparisons
-  nameWithType: Settings.RunProfileComparisons
-- uid: DicomStrictCompare.Controller.Settings.RunProfileComparisons*
-  name: RunProfileComparisons
-  href: api/DicomStrictCompare.Controller.Settings.html#DicomStrictCompare_Controller_Settings_RunProfileComparisons_
-  commentId: Overload:DicomStrictCompare.Controller.Settings.RunProfileComparisons
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithEnergy
+  nameWithType: DSCUserSettings.MatchWithEnergy
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldDimensions
+  name: MatchWithFieldDimensions
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithFieldDimensions
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldDimensions
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldDimensions
+  nameWithType: DSCUserSettings.MatchWithFieldDimensions
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldDimensions*
+  name: MatchWithFieldDimensions
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithFieldDimensions_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldDimensions
   isSpec: "True"
-  fullName: DicomStrictCompare.Controller.Settings.RunProfileComparisons
-  nameWithType: Settings.RunProfileComparisons
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldDimensions
+  nameWithType: DSCUserSettings.MatchWithFieldDimensions
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldName
+  name: MatchWithFieldName
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithFieldName
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldName
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldName
+  nameWithType: DSCUserSettings.MatchWithFieldName
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldName*
+  name: MatchWithFieldName
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithFieldName_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldName
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithFieldName
+  nameWithType: DSCUserSettings.MatchWithFieldName
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithMachineName
+  name: MatchWithMachineName
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithMachineName
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithMachineName
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithMachineName
+  nameWithType: DSCUserSettings.MatchWithMachineName
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithMachineName*
+  name: MatchWithMachineName
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithMachineName_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithMachineName
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithMachineName
+  nameWithType: DSCUserSettings.MatchWithMachineName
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPatientId
+  name: MatchWithPatientId
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPatientId
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPatientId
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPatientId
+  nameWithType: DSCUserSettings.MatchWithPatientId
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPatientId*
+  name: MatchWithPatientId
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPatientId_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPatientId
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPatientId
+  nameWithType: DSCUserSettings.MatchWithPatientId
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPhantomDimensions
+  name: MatchWithPhantomDimensions
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPhantomDimensions
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPhantomDimensions
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPhantomDimensions
+  nameWithType: DSCUserSettings.MatchWithPhantomDimensions
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPhantomDimensions*
+  name: MatchWithPhantomDimensions
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPhantomDimensions_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPhantomDimensions
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPhantomDimensions
+  nameWithType: DSCUserSettings.MatchWithPhantomDimensions
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanName
+  name: MatchWithPlanName
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPlanName
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanName
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanName
+  nameWithType: DSCUserSettings.MatchWithPlanName
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanName*
+  name: MatchWithPlanName
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPlanName_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanName
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanName
+  nameWithType: DSCUserSettings.MatchWithPlanName
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID
+  name: MatchWithPlanUUID
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPlanUUID
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID
+  nameWithType: DSCUserSettings.MatchWithPlanUUID
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID*
+  name: MatchWithPlanUUID
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithPlanUUID_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID
+  nameWithType: DSCUserSettings.MatchWithPlanUUID
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithResolution
+  name: MatchWithResolution
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithResolution
+  commentId: P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithResolution
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithResolution
+  nameWithType: DSCUserSettings.MatchWithResolution
+- uid: DicomStrictCompare.Controller.DSCUserSettings.MatchWithResolution*
+  name: MatchWithResolution
+  href: api/DicomStrictCompare.Controller.DSCUserSettings.html#DicomStrictCompare_Controller_DSCUserSettings_MatchWithResolution_
+  commentId: Overload:DicomStrictCompare.Controller.DSCUserSettings.MatchWithResolution
+  isSpec: "True"
+  fullName: DicomStrictCompare.Controller.DSCUserSettings.MatchWithResolution
+  nameWithType: DSCUserSettings.MatchWithResolution
 - uid: DicomStrictCompare.DicomFile
   name: DicomFile
   href: api/DicomStrictCompare.DicomFile.html
@@ -413,12 +491,12 @@ references:
   commentId: M:DicomStrictCompare.DscDataHandler.#ctor
   fullName: DicomStrictCompare.DscDataHandler.DscDataHandler()
   nameWithType: DscDataHandler.DscDataHandler()
-- uid: DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.Settings)
-  name: DscDataHandler(Settings)
-  href: api/DicomStrictCompare.DscDataHandler.html#DicomStrictCompare_DscDataHandler__ctor_DicomStrictCompare_Controller_Settings_
-  commentId: M:DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.Settings)
-  fullName: DicomStrictCompare.DscDataHandler.DscDataHandler(DicomStrictCompare.Controller.Settings)
-  nameWithType: DscDataHandler.DscDataHandler(Settings)
+- uid: DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.DSCUserSettings)
+  name: DscDataHandler(DSCUserSettings)
+  href: api/DicomStrictCompare.DscDataHandler.html#DicomStrictCompare_DscDataHandler__ctor_DicomStrictCompare_Controller_DSCUserSettings_
+  commentId: M:DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.DSCUserSettings)
+  fullName: DicomStrictCompare.DscDataHandler.DscDataHandler(DicomStrictCompare.Controller.DSCUserSettings)
+  nameWithType: DscDataHandler.DscDataHandler(DSCUserSettings)
 - uid: DicomStrictCompare.DscDataHandler.#ctor*
   name: DscDataHandler
   href: api/DicomStrictCompare.DscDataHandler.html#DicomStrictCompare_DscDataHandler__ctor_
@@ -742,12 +820,12 @@ references:
   commentId: T:DicomStrictCompare.MatchedDosePair
   fullName: DicomStrictCompare.MatchedDosePair
   nameWithType: MatchedDosePair
-- uid: DicomStrictCompare.MatchedDosePair.#ctor(DicomStrictCompare.DoseFile,DicomStrictCompare.DoseFile,DicomStrictCompare.Controller.Settings)
-  name: MatchedDosePair(DoseFile, DoseFile, Settings)
-  href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair__ctor_DicomStrictCompare_DoseFile_DicomStrictCompare_DoseFile_DicomStrictCompare_Controller_Settings_
-  commentId: M:DicomStrictCompare.MatchedDosePair.#ctor(DicomStrictCompare.DoseFile,DicomStrictCompare.DoseFile,DicomStrictCompare.Controller.Settings)
-  fullName: DicomStrictCompare.MatchedDosePair.MatchedDosePair(DicomStrictCompare.DoseFile, DicomStrictCompare.DoseFile, DicomStrictCompare.Controller.Settings)
-  nameWithType: MatchedDosePair.MatchedDosePair(DoseFile, DoseFile, Settings)
+- uid: DicomStrictCompare.MatchedDosePair.#ctor(DicomStrictCompare.DoseFile,DicomStrictCompare.DoseFile,DicomStrictCompare.Controller.DSCUserSettings)
+  name: MatchedDosePair(DoseFile, DoseFile, DSCUserSettings)
+  href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair__ctor_DicomStrictCompare_DoseFile_DicomStrictCompare_DoseFile_DicomStrictCompare_Controller_DSCUserSettings_
+  commentId: M:DicomStrictCompare.MatchedDosePair.#ctor(DicomStrictCompare.DoseFile,DicomStrictCompare.DoseFile,DicomStrictCompare.Controller.DSCUserSettings)
+  fullName: DicomStrictCompare.MatchedDosePair.MatchedDosePair(DicomStrictCompare.DoseFile, DicomStrictCompare.DoseFile, DicomStrictCompare.Controller.DSCUserSettings)
+  nameWithType: MatchedDosePair.MatchedDosePair(DoseFile, DoseFile, DSCUserSettings)
 - uid: DicomStrictCompare.MatchedDosePair.#ctor*
   name: MatchedDosePair
   href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair__ctor_

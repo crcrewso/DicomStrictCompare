@@ -205,9 +205,9 @@ namespace DSC
             {
                 Dtas.Add(viewSupport.listViewToDta(dtaItem));
             }
-
             //TODO: impliment proper threadding request
-            DicomStrictCompare.Controller.DSCUserSettings settings = new DicomStrictCompare.Controller.DSCUserSettings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+            DicomStrictCompare.Controller.DSCUserSettings settings = new DicomStrictCompare.Controller.DSCUserSettings(Dtas.ToArray());
+ //         DicomStrictCompare.Controller.DSCUserSettings settings = new DicomStrictCompare.Controller.DSCUserSettings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
             //TODO: make Fuzzy res width gui configurable  
             //TODO: Impliment gamma
 

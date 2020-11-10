@@ -22,5 +22,89 @@ namespace DSCcore.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool MatchWithPlanUUID {
+            get {
+                return ((bool)(this["MatchWithPlanUUID"]));
+            }
+            set {
+                this["MatchWithPlanUUID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool MatchWithFieldName {
+            get {
+                return ((bool)(this["MatchWithFieldName"]));
+            }
+            set {
+                this["MatchWithFieldName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool MatchWithPatientId {
+            get {
+                return ((bool)(this["MatchWithPatientId"]));
+            }
+            set {
+                this["MatchWithPatientId"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RunDoseComparisons {
+            get {
+                return ((bool)(this["RunDoseComparisons"]));
+            }
+            set {
+                this["RunDoseComparisons"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RunPDDComparisons {
+            get {
+                return ((bool)(this["RunPDDComparisons"]));
+            }
+            set {
+                this["RunPDDComparisons"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RunProfileComparisons {
+            get {
+                return ((bool)(this["RunProfileComparisons"]));
+            }
+            set {
+                this["RunProfileComparisons"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        public int CpuParallel {
+            get {
+                return ((int)(this["CpuParallel"]));
+            }
+            set {
+                this["CpuParallel"] = value;
+            }
+        }
     }
 }

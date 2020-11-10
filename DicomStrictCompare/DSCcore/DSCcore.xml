@@ -80,7 +80,7 @@
             Argument Free constructor
             </summary>
         </member>
-        <member name="M:DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.Settings)">
+        <member name="M:DicomStrictCompare.DscDataHandler.#ctor(DicomStrictCompare.Controller.DSCUserSettings)">
             <summary>
             Constructor that accepts settings file and prepares accordingly
             </summary>
@@ -109,9 +109,64 @@
             <param name="SaveDirectory">Location of all output files, some results will be nested into subfolders, data will be overwritten</param>
             <param name="sender"></param>
         </member>
+        <member name="T:DicomStrictCompare.Controller.DSCUserSettings">
+            <summary>
+            Consolidated settings collection to undo feature creep spaghettification.  
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Controller.DSCUserSettings.Dtas">
+            <summary>
+            Simple dta algorithm for fractional DTA adjustment
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.Controller.DSCUserSettings.MatchWithPlanUUID">
+             <summary>
+             Global setting for maximum number of CPU cores to be used in parallel organization
+             </summary>
+            public int CpuParallel { get; }
+            <summary>
+            True for parameters the user intends to use for cross referencing Target to Source
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.Controller.DSCUserSettings.#ctor(DicomStrictCompare.Model.Dta[])">
+            <summary>
+            Contructor
+            </summary>
+            <param name="dtas"></param>
+            <param name="runDoseComparisons"></param>
+            <param name="runPDDComparisons"></param>
+            <param name="runProfileComparisons"></param>
+            <param name="coresIn"></param>
+        </member>
         <member name="T:DicomStrictCompare.MatchedDosePair">
             <summary>
             Will contain the evaluation of any stored pair of DoseFiles
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.TotalCount">
+            <summary>
+            Total voxels in source
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.TotalCompared">
+            <summary>
+            Total compared, as in total comparisons above threshhold 
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.TotalFailed">
+            <summary>
+            Comparisons that have failed
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.PercentFailed">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.PDDoutString">
+            <summary>
+            Summary of results of PDD Comparison
+            TODO: Replace this functionality 
             </summary>
         </member>
         <member name="P:DicomStrictCompare.MatchedDosePair.IsEvaluated">
@@ -129,6 +184,23 @@
             Filenames of the pair of files
             </summary>
         </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.ResultString">
+            <summary>
+            TODO Fix this
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.MatchedDosePair.ResultHeader">
+            <summary>
+            TODO Fix this
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.MatchedDosePair.StaticResultHeader(DicomStrictCompare.Model.Dta[])">
+            <summary>
+            TODO fix this
+            </summary>
+            <param name="dtas">DTA settings for the comparisons </param>
+            <returns></returns>
+        </member>
         <member name="M:DicomStrictCompare.MatchedDosePair.PercentCalculator(System.Int32,System.Int32)">
             <summary>
             Calculates the percent of voxels that failed based on the total 
@@ -137,19 +209,22 @@
             <param name="failed">The number of voxels that failed</param>
             <returns></returns>
         </member>
+        <member name="M:DicomStrictCompare.MatchedDosePair.#ctor(DicomStrictCompare.DoseFile,DicomStrictCompare.DoseFile,DicomStrictCompare.Controller.DSCUserSettings)">
+            <summary>
+            Complex Constructor
+            </summary>
+            <param name="source"> source or reference RT Dose file</param>
+            <param name="target">Target RT Dose file</param>
+            <param name="settings"> global settings</param>
+        </member>
+        <member name="M:DicomStrictCompare.MatchedDosePair.GeneratePDD">
+            <summary>
+            Generates PDD profile datasets for comparison and plotting
+            </summary>
+        </member>
         <member name="M:DicomStrictCompare.MatchedDosePair.Evaluate(DicomStrictCompare.IMathematics)">
             <summary>
             Performs the actual work not the most efficient way but I'll work it out
-            </summary>
-        </member>
-        <member name="T:DicomStrictCompare.Controller.Settings">
-            <summary>
-            Consolidated settings collection to undo feature creep spaghettification.  
-            </summary>
-        </member>
-        <member name="P:DicomStrictCompare.Controller.Settings.Dtas">
-            <summary>
-            Simple dta algorithm for fractional DTA adjustment
             </summary>
         </member>
         <member name="T:DicomStrictCompare.FileHandler">
@@ -307,10 +382,41 @@
             Contains the field name, field number and number of MU's 
             </summary>
         </member>
+        <member name="P:DicomStrictCompare.PlanFile.FileName">
+            <summary>
+            Filename with location
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.PlanFile.ShortFileName">
+            <summary>
+            Human readable filename
+            </summary>
+        </member>
         <member name="P:DicomStrictCompare.PlanFile.PlanID">
             <summary>
             Plan Label is the Dicom Equivalent of the Plan ID in Eclipse
             </summary>
+        </member>
+        <member name="P:DicomStrictCompare.PlanFile.SopInstanceId">
+            <summary>
+            DICOM UUID 
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.PlanFile.PatientID">
+            <summary>
+            Patient ID 
+            </summary>
+        </member>
+        <member name="P:DicomStrictCompare.PlanFile.IsPlanFile">
+            <summary>
+            True if file is of type RTPlan
+            </summary>
+        </member>
+        <member name="M:DicomStrictCompare.PlanFile.#ctor(System.String)">
+            <summary>
+            Contructor reads metatdata from file
+            </summary>
+            <param name="fileName">Source file of class object</param>
         </member>
         <member name="T:DicomStrictCompare.SaveFile">
             <summary>

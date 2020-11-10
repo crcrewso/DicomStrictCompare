@@ -26,20 +26,39 @@ namespace DicomStrictCompare.Controller
         /// <summary>
         /// user setting requesting 3D dose settings according to DTA's 
         /// </summary>
-        public bool RunDoseComparisons { get;  }
+        //public bool RunDoseComparisons { get;  }
+        
         /// <summary>
         /// User setting requesting the analysis of the central axis plots and comparisons
         /// </summary>
-        public bool RunPDDComparisons { get; }
+        //public bool RunPDDComparisons { get; }
+        
         /// <summary>
         /// User setting requesting Profile Comparisons 
-        /// TODO: not yet implimented
+        ///  TODO: not yet implimented
         /// </summary>
-        public bool RunProfileComparisons { get; }
+        //public bool RunProfileComparisons { get; }
         /// <summary>
         /// Global setting for maximum number of CPU cores to be used in parallel organization
         /// </summary>
-        public int CpuParallel { get; } 
+        ///public int CpuParallel { get; }
+
+        /// <summary>
+        /// True for parameters the user intends to use for cross referencing Target to Source
+        /// </summary>
+        #region MatchParameters
+        public bool MatchWithPlanUUID { get; } = true;
+        public bool MatchWithFieldName { get; } = true;
+        public bool MatchWithPatientId { get; } = true;
+        public bool MatchWithBeamNumber { get;  }
+        public bool MatchWithPlanName { get; } 
+        public bool MatchWithMachineName { get; }
+        public bool MatchWithEnergy { get; }
+        public bool MatchWithFieldDimensions { get; }
+        public bool MatchWithResolution { get; }
+        public bool MatchWithPhantomDimensions { get; }
+
+        #endregion
 
         /// <summary>
         /// Contructor
@@ -51,18 +70,21 @@ namespace DicomStrictCompare.Controller
         /// <param name="coresIn"></param>
         public DSCUserSettings(
             Dta[] dtas
-            , bool runDoseComparisons
-            , bool runPDDComparisons
-            , bool runProfileComparisons
-            , int coresIn
+            //, bool runDoseComparisons
+            //, bool runPDDComparisons
+            //, bool runProfileComparisons
+            //, int coresIn
             )
         {
             Dtas = dtas;
-            RunDoseComparisons = runDoseComparisons;
-            RunPDDComparisons = runPDDComparisons;
-            RunProfileComparisons = runProfileComparisons;
-            CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
+            // RunDoseComparisons = runDoseComparisons;
+            //RunPDDComparisons = runPDDComparisons;
+            //RunProfileComparisons = runProfileComparisons;
+            //CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
         }
+
+        
+
 
     }
 }
