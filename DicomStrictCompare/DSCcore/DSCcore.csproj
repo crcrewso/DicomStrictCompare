@@ -12,6 +12,8 @@
     <FileVersion>0.1.1</FileVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>DSC.Program</StartupObject>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
