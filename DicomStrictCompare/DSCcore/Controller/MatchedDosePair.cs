@@ -212,10 +212,37 @@ namespace DicomStrictCompare
             double yRes = sourceMatrix.YRes;
             EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0);
             EvilDICOM.Core.Helpers.Vector3 endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
-            SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
-            TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
+            try
+            {
+                SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
+                TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
+            }
+            catch (Exception)
+            {
 
+                double xMidSource = (sourceMatrix.XMax - sourceMatrix.X0) / 2;
+                double zMidSource = (sourceMatrix.ZMax - sourceMatrix.Z0) / 2;
 
+                if ((targetMatrix.XMax > xMidSource && xMidSource > targetMatrix.X0) && (targetMatrix.ZMax > zMidSource && zMidSource > targetMatrix.Z0))
+                {
+                    startPoint = new EvilDICOM.Core.Helpers.Vector3(xMidSource, yMin, zMidSource);
+                    endPoint = new EvilDICOM.Core.Helpers.Vector3(xMidSource, yMax, zMidSource);
+                    SourcePDD = sourceMatrix.GetLineDose(startPoint, endPoint, yRes);
+                    TargetPDD = targetMatrix.GetLineDose(startPoint, endPoint, yRes);
+                }
+                else
+                {
+                    TargetPDD = new List<DoseValue>();
+                    SourcePDD = new List<DoseValue>();
+                    for (double pt = sourceMatrix.Y0; pt <= sourceMatrix.YMax; pt += sourceMatrix.YRes)
+                    {
+                        var tempDose = new DoseValue(0, pt, 0, 0);
+                        TargetPDD.Add(tempDose);
+                        SourcePDD.Add(tempDose);
+                    }
+
+                }
+            }
         }
 
         /// <summary>
