@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "C:/Users/its_g/Source/Repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
+  "source_base_path": "C:/Users/Cody/source/Repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -9,7 +9,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DSC.Form1.html",
-          "hash": "KKn1bXAxMOOhEI8fyS3OjA=="
+          "hash": "1B5bF9EUU9bcY96+uOPDWQ=="
         }
       },
       "is_incremental": true,
@@ -33,7 +33,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Controller.Settings.html",
-          "hash": "PWmGCF6TI/w5V/iDiCuKiA=="
+          "hash": "6wCFSgI7W2V1Q9yZ2yekjg=="
         }
       },
       "is_incremental": true,
@@ -57,7 +57,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DicomFile.html",
-          "hash": "jdenvYbQ8UinacmWntc+TQ=="
+          "hash": "85ywE2+l9h188/FROo/qWQ=="
         }
       },
       "is_incremental": true,
@@ -69,7 +69,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DoseFile.html",
-          "hash": "OnqORfoNjvvMI55jL0wL3g=="
+          "hash": "kLyZxk42s4oUmk8yWv9ZRQ=="
         }
       },
       "is_incremental": true,
@@ -81,7 +81,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DscDataHandler.html",
-          "hash": "NPfRPQNeA/KPnDgkJRmvOA=="
+          "hash": "3uRgdevV1bsqfv/U33kPwA=="
         }
       },
       "is_incremental": true,
@@ -93,7 +93,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.FileHandler.html",
-          "hash": "lMsc2Tr3zgVJf6HscT5quw=="
+          "hash": "y0Hw1Z0tSpr6wEcxraCXwg=="
         }
       },
       "is_incremental": true,
@@ -105,7 +105,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.IMathematics.html",
-          "hash": "AJEUETUVwb/d5lMWviUpiw=="
+          "hash": "b2mX4FPStQ16Tf5Wn6fm5A=="
         }
       },
       "is_incremental": true,
@@ -117,7 +117,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.MatchedDosePair.html",
-          "hash": "HfNmvFfAi33O/8O3BvVdBQ=="
+          "hash": "pw4cSNgeROrVCi0smuBqIg=="
         }
       },
       "is_incremental": true,
@@ -129,7 +129,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.DoseMatrixOptimal.html",
-          "hash": "m+QhDD6OGcSjjagX5U7hvg=="
+          "hash": "0svfFSKR/CmTfX5N95WsrA=="
         }
       },
       "is_incremental": true,
@@ -141,7 +141,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.CalcAlgorithm.html",
-          "hash": "VLQIXBnjSEZcwt2TOUBVOA=="
+          "hash": "lJwYlqLCb4l8nSoc4wKg9A=="
         }
       },
       "is_incremental": true,
@@ -153,7 +153,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.CalcType.html",
-          "hash": "DgcCDJ+Gtf+xhetppuCK+Q=="
+          "hash": "TWd3hKBqgBRFSj7ic2lm3Q=="
         }
       },
       "is_incremental": true,
@@ -165,7 +165,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.html",
-          "hash": "r+xQ4ULkrEImCzvhX0hZJQ=="
+          "hash": "FpAhyqp0xeu58j5vs4ZGNQ=="
         }
       },
       "is_incremental": true,
@@ -177,7 +177,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.SingleComparison.html",
-          "hash": "Yh060SbJkMIdr2ySZkW74w=="
+          "hash": "ACkbtGO0bIHeIrsxeL2Dfg=="
         }
       },
       "is_incremental": true,
@@ -189,7 +189,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.X86Mathematics.html",
-          "hash": "0j5aHoCYFtC7mB8+vbMbkA=="
+          "hash": "LAnFr527SG1VE3BQrfwdgA=="
         }
       },
       "is_incremental": true,
@@ -201,7 +201,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.html",
-          "hash": "jgtZLbBJJXpL79cBn2CR/A=="
+          "hash": "uYJ263dLgWw8kPLmUJCOaQ=="
         }
       },
       "is_incremental": true,
@@ -213,7 +213,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.PlanFile.html",
-          "hash": "nIJa3EQ15J0Bzyu12Re/zg=="
+          "hash": "90PO9yKod/Pwo9r4h5vKnA=="
         }
       },
       "is_incremental": true,
@@ -225,7 +225,7 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.ProfileTools.html",
-          "hash": "8Lzcmgm3xqhvU43WD3UeiQ=="
+          "hash": "W3nukTaRR8+yGDYbgqS4dw=="
         }
       },
       "is_incremental": true,
@@ -249,7 +249,7 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "ssjrnnr8uFmxW0kuxeEt2A=="
+          "hash": "VyC/sjLiYJOC8DZyWPIz2g=="
         }
       },
       "is_incremental": true,
@@ -273,7 +273,7 @@
       "output": {
         ".html": {
           "relative_path": "articles/intro.html",
-          "hash": "tTYymf/lKmgrCCB2uklnww=="
+          "hash": "onpF0u0Cs+zRkE9DUMdZsg=="
         }
       },
       "is_incremental": true,
@@ -297,7 +297,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "WQauEkoDDTHXVy5hPAmWfw=="
+          "hash": "aBNqxs8270j5nLqkivHx1Q=="
         }
       },
       "is_incremental": true,

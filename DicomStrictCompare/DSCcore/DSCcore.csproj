@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DocumentationFile>C:\Users\its_g\Source\Repos\crcrewso\DicomStrictCompare\DicomStrictCompare\DSCcore\DSCcore.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
     <Optimize>false</Optimize>
   </PropertyGroup>
 
@@ -29,6 +29,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="ScottPlot" Version="4.0.47" />
     <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
   </ItemGroup>
 

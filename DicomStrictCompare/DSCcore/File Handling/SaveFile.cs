@@ -14,8 +14,8 @@ namespace DicomStrictCompare
     /// </summary>
     class SaveFile
     {
-        public string SaveFileName { get; } = null;
-        public string SaveFileDir { get; } = null;
+        public string SaveFileName { get; }
+        public string SaveFileDir { get; } 
 
         public SaveFile(string FileName, string FileDirectory)
         {
@@ -50,7 +50,7 @@ namespace DicomStrictCompare
             }
             if (String.IsNullOrEmpty(csvMessage))
             {
-                throw new ArgumentNullException("I have no data to save");
+                throw new ArgumentNullException(nameof(csvMessage));
             }
             StreamWriter outfile = new StreamWriter(SaveFileName);
             outfile.Write(csvMessage);
@@ -64,13 +64,14 @@ namespace DicomStrictCompare
         /// <param name="sourcePDD"></param>
         /// <param name="targetPDD"></param>
         /// <param name="filename"></param>
-        /// <param name="title"></param>
-        /// <param name="note"></param>
+        /// <param name="chartTitleString"></param>
+        /// <param name="SourceAlias"></param>
+        /// <param name="TargetAlias"></param>
+        /// <param name="location"></param>
         public string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
         {
-            double maxDose = 0;
-            foreach (DoseValue dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
+            #region Safety Check
             if (sourcePDD.Count != targetPDD.Count)
             {
                 throw new ArgumentOutOfRangeException("The two lists don't have the same length!!!!\n" + chartTitleString);
@@ -79,14 +80,19 @@ namespace DicomStrictCompare
             {
                 throw new ArgumentException("the lists are empty");
             }
+            #endregion
 
+            //Calculates Max Dose
+            double maxDose = 0;
+            foreach (DoseValue dose in sourcePDD) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
-
-
+            // Percent of PDD matching 1%/1mm
             double oneOne = ProfileTools.Comparison(sourcePDD, targetPDD, 1, 1);
+            // Number of comparisions matching 1%/1mm
             int oneOneRaw = ProfileTools.ComparisonRaw(sourcePDD, targetPDD, 1, 1);
 
-            List<double> z = new List<double>();
+
+            List<double> z = new List<double>(); //List of plot positions
             List<double> doses0 = new List<double>(); // the list of doubles to plot for dose0
             List<double> doses1 = new List<double>(); // the list of doubles to plot for dose1
 
@@ -127,6 +133,9 @@ namespace DicomStrictCompare
             titleText += "\n" + SourceAlias + " \t"+sourcePercent80.ToString(strFormat) + " \t" + sourcePercent50.ToString(strFormat);
             titleText += "\n" + TargetAlias + " \t"+targetPercent80.ToString(strFormat) + " \t" + targetPercent50.ToString(strFormat);
 
+
+
+
             //produces the list of differences to plot
             List<double> doseDiff = new List<double>();
             for (int i = 0; i < sourcePDD.Count; i++)
@@ -141,7 +150,10 @@ namespace DicomStrictCompare
                 doseDiff.Add(temp);
             }
 
+            SaveScottPlot(z.ToArray(), maxDose, doses0.ToArray(), SourceAlias, doses1.ToArray(), TargetAlias, titleText, filename, location) ;
 
+
+            /*
             Font titleFont = new Font(familyName: "Consolas", 36, FontStyle.Regular);
             Font axesFont = new Font(familyName: "Consolas", 20, FontStyle.Regular);
             Font subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
@@ -216,7 +228,7 @@ namespace DicomStrictCompare
             }
             */
 
-
+            /*
             Series series = new Series
             {
                 Name = SourceAlias,
@@ -268,13 +280,26 @@ namespace DicomStrictCompare
             chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
             chart.Dispose();
             Debug.WriteLine("Finished saving " + filename);
+            */
             return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }
 
+        private void SaveScottPlot(double[] xIndexValues, double maxDose, double[] sourceDoses, string sourceAlias, double[] targetDoses, string targetAlias, string titleText, string filename, string location)
+        {
+            string longFileName = location + @"\\" + filename;
+            string longDirectory = longFileName.Substring(0, longFileName.LastIndexOf(@"\"));
 
-        
+            var plt = new ScottPlot.Plot(600, 400);
+
+            plt.PlotScatter(xIndexValues, sourceDoses, label: sourceAlias);
+            plt.PlotScatter(xIndexValues, targetDoses, label: targetAlias);
+
+            plt.Legend(fixedLineWidth: false);
+            plt.Title(titleText);
+            plt.SaveFig(filename+".png");
 
 
+        }
     }
 
 }

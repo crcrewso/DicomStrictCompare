@@ -183,7 +183,8 @@ namespace DicomStrictCompare
             ProgressIncrimentor = 30.0 / DosePairsList.Count;
             progress %= 100;
             (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
-            if (runPDDComparisons)
+            //if (runPDDComparisons)
+            if (true)
             {
                 _ = Parallel.ForEach(DosePairsList, cpuParallel, pair =>
                 {
