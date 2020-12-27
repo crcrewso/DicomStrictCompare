@@ -12,7 +12,7 @@ namespace DicomStrictCompare
     /// <summary>
     /// Produces the 
     /// </summary>
-    class SaveFile
+    public class SaveFile
     {
         public string SaveFileName { get; }
         public string SaveFileDir { get; } 
@@ -284,10 +284,12 @@ namespace DicomStrictCompare
             return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }
 
-        private void SaveScottPlot(double[] xIndexValues, double maxDose, double[] sourceDoses, string sourceAlias, double[] targetDoses, string targetAlias, string titleText, string filename, string location)
+        public static void SaveScottPlot(double[] xIndexValues, double maxDose, double[] sourceDoses, string sourceAlias, double[] targetDoses, string targetAlias, string titleText, string filename, string location)
         {
-            string longFileName = location + @"\\" + filename;
+            string longFileName = location + @"\" + filename;
             string longDirectory = longFileName.Substring(0, longFileName.LastIndexOf(@"\"));
+            if (!(System.IO.Directory.Exists(longDirectory)))
+                System.IO.Directory.CreateDirectory(longDirectory);
 
             var plt = new ScottPlot.Plot(600, 400);
 
@@ -296,7 +298,7 @@ namespace DicomStrictCompare
 
             plt.Legend(fixedLineWidth: false);
             plt.Title(titleText);
-            plt.SaveFig(filename+".png");
+            plt.SaveFig(longFileName + @".png");
 
 
         }

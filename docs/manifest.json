@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "C:/Users/Cody/source/Repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
+  "source_base_path": "C:/Users/its_g/source/repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -233,11 +233,23 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.SaveFile.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.SaveFile.html",
+          "hash": "++FSQrE9S3ZclMUW/N2pkQ=="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/DicomStrictCompare.yml",
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.html",
-          "hash": "ZDjkk5JRAo2qLHRcxSrkOQ=="
+          "hash": "IUCIaJ9k4JDdB4ECucB8Rg=="
         }
       },
       "is_incremental": true,
@@ -261,7 +273,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "Ty7gUukmMANks0mKzIRUIw=="
+          "hash": "JAUSunwRoufG9dESO3j+bw=="
         }
       },
       "is_incremental": false,
@@ -334,8 +346,8 @@
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 20,
-          "skipped_file_count": 20
+          "total_file_count": 21,
+          "skipped_file_count": 21
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
