@@ -1888,15 +1888,15 @@ references:
   isSpec: "True"
   fullName: DicomStrictCompare.SaveFile.SaveFileName
   nameWithType: SaveFile.SaveFileName
-- uid: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[],System.Double,System.Double[],System.String,System.Double[],System.String,System.String,System.String,System.String)
-  name: SaveScottPlot(Double[], Double, Double[], String, Double[], String, String, String, String)
-  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveScottPlot_System_Double___System_Double_System_Double___System_String_System_Double___System_String_System_String_System_String_System_String_
-  commentId: M:DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[],System.Double,System.Double[],System.String,System.Double[],System.String,System.String,System.String,System.String)
-  name.vb: SaveScottPlot(Double(), Double, Double(), String, Double(), String, String, String, String)
-  fullName: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[], System.Double, System.Double[], System.String, System.Double[], System.String, System.String, System.String, System.String)
-  fullName.vb: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double(), System.Double, System.Double(), System.String, System.Double(), System.String, System.String, System.String, System.String)
-  nameWithType: SaveFile.SaveScottPlot(Double[], Double, Double[], String, Double[], String, String, String, String)
-  nameWithType.vb: SaveFile.SaveScottPlot(Double(), Double, Double(), String, Double(), String, String, String, String)
+- uid: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[],System.Double,System.Double[],System.String,System.Double[],System.String,System.String,System.String,System.String,System.String)
+  name: SaveScottPlot(Double[], Double, Double[], String, Double[], String, String, String, String, String)
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveScottPlot_System_Double___System_Double_System_Double___System_String_System_Double___System_String_System_String_System_String_System_String_System_String_
+  commentId: M:DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[],System.Double,System.Double[],System.String,System.Double[],System.String,System.String,System.String,System.String,System.String)
+  name.vb: SaveScottPlot(Double(), Double, Double(), String, Double(), String, String, String, String, String)
+  fullName: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[], System.Double, System.Double[], System.String, System.Double[], System.String, System.String, System.String, System.String, System.String)
+  fullName.vb: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double(), System.Double, System.Double(), System.String, System.Double(), System.String, System.String, System.String, System.String, System.String)
+  nameWithType: SaveFile.SaveScottPlot(Double[], Double, Double[], String, Double[], String, String, String, String, String)
+  nameWithType.vb: SaveFile.SaveScottPlot(Double(), Double, Double(), String, Double(), String, String, String, String, String)
 - uid: DicomStrictCompare.SaveFile.SaveScottPlot*
   name: SaveScottPlot
   href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveScottPlot_

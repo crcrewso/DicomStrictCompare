@@ -133,7 +133,7 @@ namespace DicomStrictCompare
             titleText += "\n" + SourceAlias + " \t"+sourcePercent80.ToString(strFormat) + " \t" + sourcePercent50.ToString(strFormat);
             titleText += "\n" + TargetAlias + " \t"+targetPercent80.ToString(strFormat) + " \t" + targetPercent50.ToString(strFormat);
 
-
+            string title2 = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count;
 
 
             //produces the list of differences to plot
@@ -150,7 +150,7 @@ namespace DicomStrictCompare
                 doseDiff.Add(temp);
             }
 
-            SaveScottPlot(z.ToArray(), maxDose, doses0.ToArray(), SourceAlias, doses1.ToArray(), TargetAlias, titleText, filename, location) ;
+            SaveScottPlot(z.ToArray(), maxDose, doses0.ToArray(), SourceAlias, doses1.ToArray(), TargetAlias, titleText, title2, filename, location) ;
 
 
             /*
@@ -284,20 +284,25 @@ namespace DicomStrictCompare
             return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
         }
 
-        public static void SaveScottPlot(double[] xIndexValues, double maxDose, double[] sourceDoses, string sourceAlias, double[] targetDoses, string targetAlias, string titleText, string filename, string location)
+        public static void SaveScottPlot(double[] xIndexValues, double maxDose, double[] sourceDoses, string sourceAlias, double[] targetDoses, string targetAlias, string titleText, string subtitletText, string filename, string location)
         {
             string longFileName = location + @"\" + filename;
             string longDirectory = longFileName.Substring(0, longFileName.LastIndexOf(@"\"));
             if (!(System.IO.Directory.Exists(longDirectory)))
                 System.IO.Directory.CreateDirectory(longDirectory);
 
-            var plt = new ScottPlot.Plot(600, 400);
+            var plt = new ScottPlot.Plot(1600, 900);
 
             plt.PlotScatter(xIndexValues, sourceDoses, label: sourceAlias);
             plt.PlotScatter(xIndexValues, targetDoses, label: targetAlias);
 
-            plt.Legend(fixedLineWidth: false);
-            plt.Title(titleText);
+            if (maxDose > 0.5 && maxDose < 1.5)
+                plt.Axis(y1: 0, y2: 1.2);
+
+            plt.XLabel(@"Depth[mm]");
+            plt.YLabel(@"Dose [Gy}");
+            plt.Legend(fixedLineWidth: true);
+            plt.Title(filename + "\n" + titleText + "\n" + subtitletText);
             plt.SaveFig(longFileName + @".png");
 
 

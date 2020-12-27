@@ -49,7 +49,7 @@ namespace DicomStrictCompare.Tests
             double[] sin = DataGen.Sin(pointCount);
             double[] cos = DataGen.Cos(pointCount);
 
-            DicomStrictCompare.SaveFile.SaveScottPlot(xs, 1, sin, "sin", cos, "cos", "title",  saveFileName, saveFileLocation);
+            DicomStrictCompare.SaveFile.SaveScottPlot(xs, 1, sin, "sin", cos, "cos", "title", "subtitle", saveFileName, saveFileLocation);
 
             Assert.IsTrue(System.IO.File.Exists(saveFileLongName));
 
