@@ -820,6 +820,19 @@ references:
   isSpec: "True"
   fullName: DicomStrictCompare.MatchedDosePair.IsEvaluated
   nameWithType: MatchedDosePair.IsEvaluated
+- uid: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered(System.Double)
+  name: IsReasonablyCentered(Double)
+  href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair_IsReasonablyCentered_System_Double_
+  commentId: M:DicomStrictCompare.MatchedDosePair.IsReasonablyCentered(System.Double)
+  fullName: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered(System.Double)
+  nameWithType: MatchedDosePair.IsReasonablyCentered(Double)
+- uid: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered*
+  name: IsReasonablyCentered
+  href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair_IsReasonablyCentered_
+  commentId: Overload:DicomStrictCompare.MatchedDosePair.IsReasonablyCentered
+  isSpec: "True"
+  fullName: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered
+  nameWithType: MatchedDosePair.IsReasonablyCentered
 - uid: DicomStrictCompare.MatchedDosePair.Name
   name: Name
   href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair_Name
