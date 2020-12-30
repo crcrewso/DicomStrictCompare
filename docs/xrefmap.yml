@@ -911,6 +911,19 @@ references:
   isSpec: "True"
   fullName: DicomStrictCompare.MatchedDosePair.IsEvaluated
   nameWithType: MatchedDosePair.IsEvaluated
+- uid: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered(System.Double)
+  name: IsReasonablyCentered(Double)
+  href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair_IsReasonablyCentered_System_Double_
+  commentId: M:DicomStrictCompare.MatchedDosePair.IsReasonablyCentered(System.Double)
+  fullName: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered(System.Double)
+  nameWithType: MatchedDosePair.IsReasonablyCentered(Double)
+- uid: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered*
+  name: IsReasonablyCentered
+  href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair_IsReasonablyCentered_
+  commentId: Overload:DicomStrictCompare.MatchedDosePair.IsReasonablyCentered
+  isSpec: "True"
+  fullName: DicomStrictCompare.MatchedDosePair.IsReasonablyCentered
+  nameWithType: MatchedDosePair.IsReasonablyCentered
 - uid: DicomStrictCompare.MatchedDosePair.Name
   name: Name
   href: api/DicomStrictCompare.MatchedDosePair.html#DicomStrictCompare_MatchedDosePair_Name
@@ -1919,6 +1932,89 @@ references:
   isSpec: "True"
   fullName: DicomStrictCompare.ProfileTools.Distance
   nameWithType: ProfileTools.Distance
+- uid: DicomStrictCompare.SaveFile
+  name: SaveFile
+  href: api/DicomStrictCompare.SaveFile.html
+  commentId: T:DicomStrictCompare.SaveFile
+  fullName: DicomStrictCompare.SaveFile
+  nameWithType: SaveFile
+- uid: DicomStrictCompare.SaveFile.#ctor(System.String,System.String)
+  name: SaveFile(String, String)
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile__ctor_System_String_System_String_
+  commentId: M:DicomStrictCompare.SaveFile.#ctor(System.String,System.String)
+  fullName: DicomStrictCompare.SaveFile.SaveFile(System.String, System.String)
+  nameWithType: SaveFile.SaveFile(String, String)
+- uid: DicomStrictCompare.SaveFile.#ctor*
+  name: SaveFile
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile__ctor_
+  commentId: Overload:DicomStrictCompare.SaveFile.#ctor
+  isSpec: "True"
+  fullName: DicomStrictCompare.SaveFile.SaveFile
+  nameWithType: SaveFile.SaveFile
+- uid: DicomStrictCompare.SaveFile.Save(System.Collections.Generic.List{EvilDICOM.RT.DoseValue},System.Collections.Generic.List{EvilDICOM.RT.DoseValue},System.String,System.String,System.String,System.String,System.String)
+  name: Save(List<DoseValue>, List<DoseValue>, String, String, String, String, String)
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_Save_System_Collections_Generic_List_EvilDICOM_RT_DoseValue__System_Collections_Generic_List_EvilDICOM_RT_DoseValue__System_String_System_String_System_String_System_String_System_String_
+  commentId: M:DicomStrictCompare.SaveFile.Save(System.Collections.Generic.List{EvilDICOM.RT.DoseValue},System.Collections.Generic.List{EvilDICOM.RT.DoseValue},System.String,System.String,System.String,System.String,System.String)
+  name.vb: Save(List(Of DoseValue), List(Of DoseValue), String, String, String, String, String)
+  fullName: DicomStrictCompare.SaveFile.Save(System.Collections.Generic.List<EvilDICOM.RT.DoseValue>, System.Collections.Generic.List<EvilDICOM.RT.DoseValue>, System.String, System.String, System.String, System.String, System.String)
+  fullName.vb: DicomStrictCompare.SaveFile.Save(System.Collections.Generic.List(Of EvilDICOM.RT.DoseValue), System.Collections.Generic.List(Of EvilDICOM.RT.DoseValue), System.String, System.String, System.String, System.String, System.String)
+  nameWithType: SaveFile.Save(List<DoseValue>, List<DoseValue>, String, String, String, String, String)
+  nameWithType.vb: SaveFile.Save(List(Of DoseValue), List(Of DoseValue), String, String, String, String, String)
+- uid: DicomStrictCompare.SaveFile.Save(System.String)
+  name: Save(String)
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_Save_System_String_
+  commentId: M:DicomStrictCompare.SaveFile.Save(System.String)
+  fullName: DicomStrictCompare.SaveFile.Save(System.String)
+  nameWithType: SaveFile.Save(String)
+- uid: DicomStrictCompare.SaveFile.Save*
+  name: Save
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_Save_
+  commentId: Overload:DicomStrictCompare.SaveFile.Save
+  isSpec: "True"
+  fullName: DicomStrictCompare.SaveFile.Save
+  nameWithType: SaveFile.Save
+- uid: DicomStrictCompare.SaveFile.SaveFileDir
+  name: SaveFileDir
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveFileDir
+  commentId: P:DicomStrictCompare.SaveFile.SaveFileDir
+  fullName: DicomStrictCompare.SaveFile.SaveFileDir
+  nameWithType: SaveFile.SaveFileDir
+- uid: DicomStrictCompare.SaveFile.SaveFileDir*
+  name: SaveFileDir
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveFileDir_
+  commentId: Overload:DicomStrictCompare.SaveFile.SaveFileDir
+  isSpec: "True"
+  fullName: DicomStrictCompare.SaveFile.SaveFileDir
+  nameWithType: SaveFile.SaveFileDir
+- uid: DicomStrictCompare.SaveFile.SaveFileName
+  name: SaveFileName
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveFileName
+  commentId: P:DicomStrictCompare.SaveFile.SaveFileName
+  fullName: DicomStrictCompare.SaveFile.SaveFileName
+  nameWithType: SaveFile.SaveFileName
+- uid: DicomStrictCompare.SaveFile.SaveFileName*
+  name: SaveFileName
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveFileName_
+  commentId: Overload:DicomStrictCompare.SaveFile.SaveFileName
+  isSpec: "True"
+  fullName: DicomStrictCompare.SaveFile.SaveFileName
+  nameWithType: SaveFile.SaveFileName
+- uid: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[],System.Double,System.Double[],System.String,System.Double[],System.String,System.String,System.String,System.String)
+  name: SaveScottPlot(Double[], Double, Double[], String, Double[], String, String, String, String)
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveScottPlot_System_Double___System_Double_System_Double___System_String_System_Double___System_String_System_String_System_String_System_String_
+  commentId: M:DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[],System.Double,System.Double[],System.String,System.Double[],System.String,System.String,System.String,System.String)
+  name.vb: SaveScottPlot(Double(), Double, Double(), String, Double(), String, String, String, String)
+  fullName: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double[], System.Double, System.Double[], System.String, System.Double[], System.String, System.String, System.String, System.String)
+  fullName.vb: DicomStrictCompare.SaveFile.SaveScottPlot(System.Double(), System.Double, System.Double(), System.String, System.Double(), System.String, System.String, System.String, System.String)
+  nameWithType: SaveFile.SaveScottPlot(Double[], Double, Double[], String, Double[], String, String, String, String)
+  nameWithType.vb: SaveFile.SaveScottPlot(Double(), Double, Double(), String, Double(), String, String, String, String)
+- uid: DicomStrictCompare.SaveFile.SaveScottPlot*
+  name: SaveScottPlot
+  href: api/DicomStrictCompare.SaveFile.html#DicomStrictCompare_SaveFile_SaveScottPlot_
+  commentId: Overload:DicomStrictCompare.SaveFile.SaveScottPlot
+  isSpec: "True"
+  fullName: DicomStrictCompare.SaveFile.SaveScottPlot
+  nameWithType: SaveFile.SaveScottPlot
 - uid: DSC
   name: DSC
   href: api/DSC.html

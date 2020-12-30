@@ -231,7 +231,8 @@ namespace DicomStrictCompare
             ProgressIncrimentor = 30.0 / DosePairsList.Count;
             progress %= 100;
             (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
-            if (runPDDComparisons)
+            //if (runPDDComparisons)
+            if (true)
             {
                 _ = Parallel.ForEach(DosePairsList, cpuParallel, pair =>
                 {
@@ -242,9 +243,11 @@ namespace DicomStrictCompare
                     Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
                     try
                     {
-                        //SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                        pair.PDDoutString = SaveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
-
+                        SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
+                        if (pair.IsReasonablyCentered())
+                            pair.PDDoutString = saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
+                        else
+                            pair.PDDoutString = "did not run";
                     }
                     catch (Exception)
                     {

@@ -13,6 +13,34 @@ namespace DicomStrictCompare
     /// </summary>
     public class MatchedDosePair
     {
+        /// <summary>
+        /// tests if the phantom is reasonably centered within x and y
+        /// reasonable is within n % of width, default to 10%
+        /// </summary>
+        /// 
+        /// <returns>true if </returns>
+        public bool IsReasonablyCentered(double percent = 10)
+        {
+            double lim = percent / 100.0;
+            double[] center = {0, 0, 0, 0 };
+            center[0] = SourcePDD.Last().X + SourcePDD.First().X;
+            center[0] /= Math.Abs(SourcePDD.Last().X - SourcePDD.First().X);
+            center[1] = SourcePDD.Last().Y + SourcePDD.First().Y;
+            center[1] /= Math.Abs(SourcePDD.Last().Y - SourcePDD.First().Y);
+
+            center[2] = TargetPDD.Last().X + TargetPDD.First().X;
+            center[2] /= Math.Abs(TargetPDD.Last().X - TargetPDD.First().X);
+            center[3] = TargetPDD.Last().Y + TargetPDD.First().Y;
+            center[3] /= Math.Abs(TargetPDD.Last().Y - TargetPDD.First().Y);
+
+            if (center.Max() <= lim)
+                return true;
+            return false;
+
+
+
+        }
+
         readonly Model.Dta[] _dtas;
         readonly SingleComparison[] _comparisons;
 

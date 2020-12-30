@@ -1,6 +1,6 @@
 {
   "homepages": [],
-  "source_base_path": "C:/Users/its_g/Source/Repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
+  "source_base_path": "C:/source/repos/crcrewso/DicomStrictCompare/DicomStrictCompare/DSCcore",
   "xrefmap": "xrefmap.yml",
   "files": [
     {
@@ -10,9 +10,10 @@
         ".html": {
           "relative_path": "api/DSC.Form1.html",
           "hash": "3M3AbieyqVZ03YRY3NZXaA=="
+          "hash": "UHyZbgCcwGkN5F4zWctBdg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -22,9 +23,10 @@
         ".html": {
           "relative_path": "api/DSC.html",
           "hash": "QdMg5n0kpJNJIMsBanoKZQ=="
+          "hash": "Q+RrRxOviO/pQJl9C+Kd1w=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -32,11 +34,11 @@
       "source_relative_path": "api/DicomStrictCompare.Controller.DSCUserSettings.yml",
       "output": {
         ".html": {
-          "relative_path": "api/DicomStrictCompare.Controller.DSCUserSettings.html",
-          "hash": "SXp+KwZtoNDDyKFXHGH6uQ=="
+          "relative_path": "api/DicomStrictCompare.Controller.Settings.html",
+          "hash": "DoHqJjKM29veNohnGdIaLw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -45,10 +47,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Controller.html",
-          "hash": "YP70XCjQJ7deqoPKYstfLw=="
+          "hash": "1HgygMfWnsF+fU1Io/TCjg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -57,10 +59,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DicomFile.html",
-          "hash": "D4wUsfkXQs4JVukvwWYihw=="
+          "hash": "fq1BCB5cVb6mS/ZLw664YQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -69,10 +71,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DoseFile.html",
-          "hash": "K+zaeeDGqKnkFC8C3WuiWA=="
+          "hash": "tkS0vQ4Apk4s260ZvWcKSw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -81,10 +83,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.DscDataHandler.html",
-          "hash": "qxULdd/LhxhWYdMsZ5PGoQ=="
+          "hash": "ooqruBAJXLfJNhKY9Iix8A=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -93,10 +95,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.FileHandler.html",
-          "hash": "UwhJB+8b4cKrew5dBvwH3Q=="
+          "hash": "QT+NpMAKAt+sFe/e8+H0Hw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -105,10 +107,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.IMathematics.html",
-          "hash": "iz39FqUboJJfr0cXJXLUCw=="
+          "hash": "Eolzafib5KEH1Cwp5emb2w=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -117,10 +119,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.MatchedDosePair.html",
-          "hash": "cmCZW9IqLURQDLQm1X0bXQ=="
+          "hash": "Pn+r1ZGkXiAXCRsQJrRxvg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -129,10 +131,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.DoseMatrixOptimal.html",
-          "hash": "YnUFvi060+sBF1bKIgoUMw=="
+          "hash": "6p9d/pwSMAlTB0Jq2e6BNw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -141,10 +143,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.CalcAlgorithm.html",
-          "hash": "Snvdj7+7jTYcbv3jD3RI8g=="
+          "hash": "kvbYUYpExHoX9jsbi7YF5A=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -153,10 +155,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.CalcType.html",
-          "hash": "/jGl3FwJ5IzH6bQp3NdEqg=="
+          "hash": "D+rg23KoATB54T9wPlVDzg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -165,10 +167,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.Dta.html",
-          "hash": "QFEiNDYO68McPItZ6A14HQ=="
+          "hash": "imFP8YpCt3kJs/fLYBylJw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -177,10 +179,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.SingleComparison.html",
-          "hash": "ES5w9otOVicoI0aimRn3og=="
+          "hash": "1uvd2AfFB4lokZOSWGvqnQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -189,10 +191,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.X86Mathematics.html",
-          "hash": "NcfpVJDeEY506hgZJ+F6gA=="
+          "hash": "8JDXTj4TsHR/rPawhR6ekg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -201,10 +203,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.Model.html",
-          "hash": "fvPicKWPrFcZLLFARw0RAw=="
+          "hash": "CGIHOWcnlS3F4l1M286zbQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -213,10 +215,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.PlanFile.html",
-          "hash": "22hD68g7W2DxOBXzmgQQ7w=="
+          "hash": "FcBEGWU8vJO9Wd1xohw4ww=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -225,10 +227,22 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.ProfileTools.html",
-          "hash": "JUKEe7fBgSKl0HuZKRE34g=="
+          "hash": "3zqa+jBbfji/OjWYplZfXg=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/DicomStrictCompare.SaveFile.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/DicomStrictCompare.SaveFile.html",
+          "hash": "LhkCU4AWzoS07ljKyx8evg=="
+        }
+      },
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -237,10 +251,10 @@
       "output": {
         ".html": {
           "relative_path": "api/DicomStrictCompare.html",
-          "hash": "THfWJXm5nPRgm8ocVTmKjA=="
+          "hash": "uf+If7P+bkT49zu6sfUBaw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -249,10 +263,10 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "X6f+pTuksJl+6IO/a38nLA=="
+          "hash": "XpUUViI8QzbZ47yESAfjtQ=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -261,7 +275,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "fqnxAtU0jJp+xY+ePXHIAQ=="
+          "hash": "JAUSunwRoufG9dESO3j+bw=="
         }
       },
       "is_incremental": false,
@@ -273,10 +287,10 @@
       "output": {
         ".html": {
           "relative_path": "articles/intro.html",
-          "hash": "p/546B7zjH/47g0rH8pzxw=="
+          "hash": "sQvQ4XSfvP3NIrUdZleX6Q=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -297,10 +311,10 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "JO6nr3kEH+UPWTok1LGRqg=="
+          "hash": "PnAiWOdFJ2y+SOfBCt3TEw=="
         }
       },
-      "is_incremental": true,
+      "is_incremental": false,
       "version": ""
     },
     {
@@ -319,23 +333,25 @@
   "incremental_info": [
     {
       "status": {
-        "can_incremental": true,
+        "can_incremental": false,
+        "details": "Cannot build incrementally because docfx version changed from 2.53.1.0 to 2.56.6.0.",
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0
+        "skipped_file_count": 0,
+        "full_build_reason_code": "DocfxVersionChanged"
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
           "total_file_count": 3,
-          "skipped_file_count": 3
+          "skipped_file_count": 0
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": true,
+          "can_incremental": false,
           "incrementalPhase": "build",
-          "total_file_count": 20,
-          "skipped_file_count": 20
+          "total_file_count": 21,
+          "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
