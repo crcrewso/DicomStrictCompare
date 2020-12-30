@@ -129,11 +129,11 @@ namespace DicomStrictCompare
             }
             string strFormat = "0.00";
             string titleText = "";
-            titleText += "\t \t \t \t 80% \t \t \t 50%";
+            titleText += "         80%       50%";
             titleText += "\n" + SourceAlias + " \t"+sourcePercent80.ToString(strFormat) + " \t" + sourcePercent50.ToString(strFormat);
             titleText += "\n" + TargetAlias + " \t"+targetPercent80.ToString(strFormat) + " \t" + targetPercent50.ToString(strFormat);
 
-
+            string analysis = "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
 
 
             //produces the list of differences to plot
@@ -150,138 +150,8 @@ namespace DicomStrictCompare
                 doseDiff.Add(temp);
             }
 
-            SaveScottPlot(z.ToArray(), maxDose, doses0.ToArray(), SourceAlias, doses1.ToArray(), TargetAlias, titleText, filename, location) ;
-
-
-            /*
-            Font titleFont = new Font(familyName: "Consolas", 36, FontStyle.Regular);
-            Font axesFont = new Font(familyName: "Consolas", 20, FontStyle.Regular);
-            Font subtitleFont = new Font("Consolas", 24, FontStyle.Regular);
-            Chart chart = new Chart
-            {
-                Size = new Size(3200, 1800)
-            };
-            //chart title
-            Title chartTitle = new Title(chartTitleString, Docking.Top, titleFont, Color.Black)
-            {
-                Docking = Docking.Top,
-                IsDockedInsideChartArea = false
-            };
-            chart.Titles.Add(chartTitle);
-
-            //textbox for Percent depth metrics
-            Title DepthMetricsBox = new Title(titleText, Docking.Top, subtitleFont, Color.Black)
-            {
-                IsDockedInsideChartArea = true,
-                Docking = Docking.Top
-            };
-            chart.Titles.Add(DepthMetricsBox);
-            ChartArea chartArea = new ChartArea();
-            chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
-            chartArea.AxisY.MajorGrid.LineColor = Color.Black;
-            chartArea.AxisY2.MajorGrid.LineColor = Color.LightGray;
-            chartArea.AxisY.MajorTickMark.Interval = 0.1;
-            chartArea.AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Number;
-            chartArea.AxisY.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Number;
-            chartArea.AxisX.Minimum = 0;
-            chartArea.AxisX.Maximum = (300.0 < z.Last()) ? 300 : z.Last();
-
-            chartArea.AxisY.Minimum = 0;
-            chartArea.AxisY.Maximum = 1.20;
-            chartArea.AxisY.Interval = 0.20;
-
-            chartArea.AxisY2.Minimum = 0;
-            chartArea.AxisY2.Maximum = 6;
-            chartArea.AxisY2.Interval = 1;
-
-            chartArea.AxisX.Title = "Position [mm]";
-            chartArea.AxisY.Title = "Dose ";
-            chartArea.AxisY2.Title = "Percent of Max dose Diff";
-
-            chart.ChartAreas.Add(chartArea);
-            // font style and size declarations must be after the add Chart Area or else they are ignored. 
-            chartArea.AxisX.TitleFont = axesFont;
-            chartArea.AxisY.TitleFont = axesFont;
-            chartArea.AxisY2.TitleFont = axesFont;
-            chartArea.AxisX.LabelStyle.Font = axesFont;
-            chartArea.AxisY.LabelStyle.Font = axesFont;
-            chartArea.AxisY2.LabelStyle.Font = axesFont;
-
-            Title title2 = new Title("Results", Docking.Bottom, subtitleFont, Color.DarkBlue)
-            {
-                Text = "Pixels outside 1%/1mm = " + Math.Round(oneOne, 1) + " %\nRaw " + oneOneRaw + " of " + sourcePDD.Count
-            };
-            chart.Titles.Add(title2);
-            /*
-             /// Old logic for when the dose diff could be large. not necessary for this project
-            double doseDiffMax = 0;
-            for (int i = 5; i < doseDiff.Count; i++)
-            {
-                doseDiffMax = (doseDiff[i] > doseDiffMax) ? doseDiff[i] : doseDiffMax;
-            }
-
-            if (doseDiffMax > 10)
-            {
-                chartArea.AxisY2.Maximum = 120;
-                chartArea.AxisY2.Interval = 20;
-                chartArea.AxisY2.LabelStyle.Font = new Font("Consolas", 20, FontStyle.Italic);
-            }
-            */
-
-            /*
-            Series series = new Series
-            {
-                Name = SourceAlias,
-                ChartType = SeriesChartType.Line,
-                XValueType = ChartValueType.Double,
-                Color = Color.Blue,
-                MarkerSize = 5
-            };
-            series.Points.DataBindXY(z, doses0);
-            series.YAxisType = AxisType.Primary;
-            chart.Series.Add(series);
-            chart.ChartAreas[0].RecalculateAxesScale();
-            Series series1 = new Series
-            {
-                Name = TargetAlias,
-                ChartType = SeriesChartType.Point,
-                MarkerSize = 4,
-                Color = Color.DarkGreen,
-                XValueType = ChartValueType.Double
-            };
-            series1.Points.DataBindXY(z, doses1);
-            series1.YAxisType = AxisType.Primary;
-            chart.Series.Add(series1);
-            chart.ChartAreas[0].RecalculateAxesScale();
-            Series series2 = new Series
-            {
-                Name = "Dose Difference (%)",
-                ChartType = SeriesChartType.Line,
-                XValueType = ChartValueType.Double,
-                Color = Color.DarkRed
-            };
-            series2.Points.DataBindXY(z, doseDiff);
-            series2.YAxisType = AxisType.Secondary;
-            chart.Series.Add(series2);
-            chart.ChartAreas[0].RecalculateAxesScale();
-            chart.Legends.Add(new Legend("Legend"));
-            chart.Legends[0].Docking = Docking.Bottom;
-            chart.Legends[0].LegendStyle = LegendStyle.Row;
-            chart.Legends[0].TitleAlignment = StringAlignment.Center;
-            chart.Legends[0].Font = subtitleFont;
-
-            chart.Invalidate();
-            chart.Update();
-
-            string longFileName = location + @"\\" + filename;
-            string longDirectory = longFileName.Substring(0, longFileName.LastIndexOf(@"\"));
-            _ = System.IO.Directory.CreateDirectory(longDirectory);
-            chart.SaveImage(longFileName + ".emf", format: ChartImageFormat.EmfPlus);
-            chart.SaveImage(longFileName + ".png", format: ChartImageFormat.Png);
-            chart.Dispose();
-            Debug.WriteLine("Finished saving " + filename);
-            */
-            return "Pixels outside 1%/1mm," + Math.Round(oneOne, 1) + ",Raw, " + oneOneRaw + ",of," + sourcePDD.Count;
+            SaveScottPlot(z.ToArray(), maxDose, doses0.ToArray(), SourceAlias, doses1.ToArray(), TargetAlias, titleText + '\n'+ analysis.Replace(',', ' ').Replace("Raw", "  Points:") , filename, location) ;
+            return analysis;
         }
 
         public static void SaveScottPlot(double[] xIndexValues, double maxDose, double[] sourceDoses, string sourceAlias, double[] targetDoses, string targetAlias, string titleText, string filename, string location)
@@ -291,13 +161,17 @@ namespace DicomStrictCompare
             if (!(System.IO.Directory.Exists(longDirectory)))
                 System.IO.Directory.CreateDirectory(longDirectory);
 
-            var plt = new ScottPlot.Plot(600, 400);
+            var plt = new ScottPlot.Plot(1440, 900);
 
             plt.PlotScatter(xIndexValues, sourceDoses, label: sourceAlias);
             plt.PlotScatter(xIndexValues, targetDoses, label: targetAlias);
 
             plt.Legend(fixedLineWidth: false);
-            plt.Title(titleText);
+            plt.Title(filename + '\n' + titleText);
+            plt.XLabel(@"Depth (mm)");
+            plt.YLabel(@"Dose (Gy)");
+            if (maxDose < 1.5 && maxDose > 0.1)
+                plt.Axis(y1: 0, y2: 1.2);
             plt.SaveFig(longFileName + @".png");
 
 

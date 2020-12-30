@@ -196,8 +196,10 @@ namespace DicomStrictCompare
                     try
                     {
                         SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
-                        pair.PDDoutString = saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
-
+                        if (pair.IsReasonablyCentered())
+                            pair.PDDoutString = saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
+                        else
+                            pair.PDDoutString = "did not run";
                     }
                     catch (Exception)
                     {
