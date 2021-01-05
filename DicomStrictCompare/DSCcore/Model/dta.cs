@@ -54,7 +54,7 @@ namespace DicomStrictCompare.Model
         /// <summary>
         /// Backwards compatable placeholder for logic
         /// </summary>
-        public bool Relative => (Type == CalcType.relative) ? true : false;
+        public bool Relative => (Type == CalcType.relative);
 
         /// <summary>
         /// lists the possible scope limit techniques for voxel to voxel comparison. 
@@ -123,7 +123,7 @@ namespace DicomStrictCompare.Model
             Distance = Convert.ToDouble(values[1]);
             Threshhold = Convert.ToDouble(values[2]);
             Type = Convert.ToBoolean(values[3]) ? CalcType.relative : CalcType.absolute;
-            UseMM = (values[4] == "mm" ? true : false);
+            UseMM = (values[4] == "mm");
         }
 
         /// <summary>

@@ -33,23 +33,18 @@ namespace DicomStrictCompare
         {
             if (reference == null) throw new ArgumentNullException(nameof(reference));
             if (profile == null) throw new ArgumentNullException(nameof(profile));
-            List<int> failed = new List<int>();
+            _ = new List<int>();
             double maxDose = 0;
-            double ret = 0;
-            double tolerance = 0; // the tolerance of dose matching in absolute units of the reference profile
             int pointsCompared = profile.Count;
             int pointsFailedDtAandPercent = 0;
-            double threshold = 0;
-
             List<DoseValue> failedPercent = new List<DoseValue>(); // contains the doses that didn't pass percent agreement
 
 
             // finds the maximum dose
             foreach (DoseValue dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
-            tolerance = maxDose * percent / 100;
-            threshold = 5 * tolerance;
-
+            double tolerance = maxDose * percent / 100;
+            double threshold = 5 * tolerance;
             for (int i = 0; i < profile.Count; i++)
             {
                 if (profile[i].Dose < threshold) { continue; }
@@ -71,7 +66,7 @@ namespace DicomStrictCompare
                 listOfDosesWithinDtaTolerance.Sort();
                 // checks if the dose is within the boundary doses. if yes the pixel's dose agrees with the reference within the dta tolerance
                 // should be expanded to use linear interpolation. 
-                if (listOfDosesWithinDtaTolerance[0] <= item.Dose && listOfDosesWithinDtaTolerance[listOfDosesWithinDtaTolerance.Count - 1] >= item.Dose)
+                if (listOfDosesWithinDtaTolerance[0] <= item.Dose && listOfDosesWithinDtaTolerance[^1] >= item.Dose)
                 {
                     continue;
                 }
@@ -79,7 +74,7 @@ namespace DicomStrictCompare
                 pointsFailedDtAandPercent++;
             }
 
-            ret = ((double)pointsFailedDtAandPercent) / ((double)pointsCompared) * 100;
+            double ret = pointsFailedDtAandPercent / (double)pointsCompared * 100;
             return ret;
 
 
@@ -98,20 +93,16 @@ namespace DicomStrictCompare
             if (reference == null) throw new ArgumentNullException(nameof(reference));
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             double maxDose = 0;
-            double tolerance = 0; // the tolerance of dose matching in absolute units of the reference profile
-            int pointsCompared = profile.Count;
+            _ = profile.Count;
             int pointsFailedDtAandPercent = 0;
-            double threshold = 0;
-
             List<DoseValue> failedPercent = new List<DoseValue>(); // contains the doses that didn't pass percent agreement
 
 
             // finds the maximum dose
             foreach (DoseValue dose in reference) { maxDose = (dose.Dose > maxDose) ? dose.Dose : maxDose; }
 
-            tolerance = maxDose * percent / 100;
-            threshold = 10 * tolerance;
-
+            double tolerance = maxDose * percent / 100;
+            double threshold = 10 * tolerance;
             for (int i = 0; i < profile.Count; i++)
             {
                 if (profile[i].Dose < threshold) { continue; }
@@ -133,7 +124,7 @@ namespace DicomStrictCompare
                 listOfDosesWithinDtaTolerance.Sort();
                 // checks if the dose is within the boundary doses. if yes the pixel's dose agrees with the reference within the dta tolerance
                 // should be expanded to use linear interpolation. 
-                if (listOfDosesWithinDtaTolerance[0] <= item.Dose && listOfDosesWithinDtaTolerance[listOfDosesWithinDtaTolerance.Count - 1] >= item.Dose)
+                if (listOfDosesWithinDtaTolerance[0] <= item.Dose && listOfDosesWithinDtaTolerance[^1] >= item.Dose)
                 {
                     continue;
                 }

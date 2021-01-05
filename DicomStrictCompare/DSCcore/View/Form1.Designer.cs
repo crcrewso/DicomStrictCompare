@@ -82,7 +82,7 @@
             this.lblIntro.Size = new System.Drawing.Size(708, 475);
             this.lblIntro.TabIndex = 0;
             this.lblIntro.Text = resources.GetString("lblIntro.Text");
-            this.lblIntro.Click += new System.EventHandler(this.lblIntro_Click);
+            this.lblIntro.Click += new System.EventHandler(this.LblIntro_Click);
             // 
             // tbxSource
             // 

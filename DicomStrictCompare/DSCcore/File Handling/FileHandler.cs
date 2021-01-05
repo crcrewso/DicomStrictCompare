@@ -13,7 +13,6 @@ using EvilDICOM.Core.Element;
 using EvilDICOM.Core.Helpers;
 using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
-using EvilDICOM.CV;
 
 namespace DicomStrictCompare
 {
@@ -132,7 +131,7 @@ namespace DicomStrictCompare
             int slashindex = FileName.LastIndexOf(@"\");
             slashindex = FileName.Substring(0, slashindex - 1).LastIndexOf(@"\");
             slashindex = FileName.Substring(0, slashindex - 1).LastIndexOf(@"\");
-            ShortFileName = FileName.Substring(slashindex + 1);
+            ShortFileName = FileName[(slashindex + 1)..];
             Name = dcm1.FindFirst(TagHelper.SeriesDescription).ToString();
             PatientId = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
 
@@ -275,10 +274,9 @@ namespace DicomStrictCompare
 
         public PlanFile(string fileName)
         {
-            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
             FieldNumberToNameList = new List<Tuple<string, string, string>>();
-            FileName = fileName;
-            ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
+            FileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+            ShortFileName = FileName[FileName.LastIndexOf(@"\")..];
             DICOMObject dcm1 = DICOMObject.Read(fileName);
             SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).DData.ToString();
             PatientID = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Drawing;
-using System.Windows.Forms.DataVisualization.Charting;
 using EvilDICOM.RT;
 
 namespace DicomStrictCompare
@@ -68,7 +67,7 @@ namespace DicomStrictCompare
         /// <param name="SourceAlias"></param>
         /// <param name="TargetAlias"></param>
         /// <param name="location"></param>
-        public string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
+        public static string Save(List<DoseValue> sourcePDD, List<DoseValue> targetPDD, string filename, string location, string chartTitleString, string SourceAlias = "Reference", string TargetAlias = "New Model")
         {
 
             #region Safety Check

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -27,17 +27,15 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="EvilDICOM" Version="2.0.6.5" />
-    <PackageReference Include="EvilDICOM.CV" Version="0.0.3" />
-    <PackageReference Include="MathNet.Numerics" Version="4.12.0" />
+    <PackageReference Include="MathNet.Numerics" Version="4.14.0" />
     <PackageReference Include="Microcharts" Version="0.9.5.9" />
     <PackageReference Include="Microcharts.Forms" Version="0.9.5.9" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.2">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="ScottPlot" Version="4.0.47" />
-    <PackageReference Include="ScottPlot.WinForms" Version="4.0.47" />
-    <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
+    <PackageReference Include="ScottPlot" Version="4.0.48" />
+    <PackageReference Include="ScottPlot.WinForms" Version="4.0.48" />
   </ItemGroup>
 
   <ItemGroup>

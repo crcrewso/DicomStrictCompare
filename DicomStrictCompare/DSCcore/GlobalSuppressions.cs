@@ -13,7 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.BtnSaveDir_Click(System.Object,System.EventArgs)")]
 [assembly: SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.BtnSourceDir_Click(System.Object,System.EventArgs)")]
 [assembly: SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.BtnTargetDir_Click(System.Object,System.EventArgs)")]
-[assembly: SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.lblIntro_Click(System.Object,System.EventArgs)")]
+[assembly: SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.LblIntro_Click(System.Object,System.EventArgs)")]
 [assembly: SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.BtnSourceDir_Click(System.Object,System.EventArgs)")]
 [assembly: SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.BtnTargetDir_Click(System.Object,System.EventArgs)")]
 [assembly: SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "<Pending>", Scope = "member", Target = "~M:DSC.Form1.TestDirectories_Click(System.Object,System.EventArgs)")]

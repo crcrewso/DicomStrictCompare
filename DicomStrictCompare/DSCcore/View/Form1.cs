@@ -130,8 +130,10 @@ namespace DSC
 
         private void BtnSourceDir_Click(object sender, EventArgs e)
         {
-            using FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = @"Select Source Dose Folder Location";
+            using FolderBrowserDialog fbd = new FolderBrowserDialog
+            {
+                Description = @"Select Source Dose Folder Location"
+            };
             DialogResult result = fbd.ShowDialog();
 
             if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
@@ -145,8 +147,10 @@ namespace DSC
 
         private void BtnTargetDir_Click(object sender, EventArgs e)
         {
-            using FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = @"Select Source Dose Folder Location";
+            using FolderBrowserDialog fbd = new FolderBrowserDialog
+            {
+                Description = @"Select Source Dose Folder Location"
+            };
             DialogResult result = fbd.ShowDialog();
 
             if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
@@ -159,8 +163,10 @@ namespace DSC
 
         private void BtnSaveDir_Click(object sender, EventArgs e)
         {
-            using FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = @"Select Source Dose Folder Location";
+            using FolderBrowserDialog fbd = new FolderBrowserDialog
+            {
+                Description = @"Select Source Dose Folder Location"
+            };
             DialogResult result = fbd.ShowDialog();
 
             if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
@@ -314,7 +320,7 @@ namespace DSC
             }
             else
             {
-                isMM = units.SelectedItem.ToString() == "mm" ? true : false;
+                isMM = units.SelectedItem.ToString() == "mm";
             }
 
             if (String.IsNullOrEmpty(txtBxTrim.Text))
@@ -340,7 +346,7 @@ namespace DSC
 
         }
 
-        private void lblIntro_Click(object sender, EventArgs e)
+        private void LblIntro_Click(object sender, EventArgs e)
         {
             string boxMessage = "DTA Definitions"
                 + "\nTolerance\t- Percent Deviation of Target dose at each point to pass agreement"

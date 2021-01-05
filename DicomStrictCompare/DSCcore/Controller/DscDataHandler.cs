@@ -177,7 +177,7 @@ namespace DicomStrictCompare
                   }
 
               });
-            if (DosePairsList.Count <= 0)
+            if (DosePairsList.IsEmpty)
                 return;
             progress = 39;
             ProgressIncrimentor = 30.0 / DosePairsList.Count;
@@ -197,7 +197,7 @@ namespace DicomStrictCompare
                     {
                         SaveFile saveFile = new SaveFile(pair.ChartTitle, SaveDirectory);
                         if (pair.IsReasonablyCentered())
-                            pair.PDDoutString = saveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
+                            pair.PDDoutString = SaveFile.Save(pair.SourcePDD, pair.TargetPDD, pair.ChartFileName, SaveDirectory, pair.ChartTitle, SourceAliasName, TargetAliasName);
                         else
                             pair.PDDoutString = "did not run";
                     }
