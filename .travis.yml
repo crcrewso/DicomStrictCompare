@@ -1,0 +1,7 @@
+language: csharp
+mono: none
+dotnet: 5.0.104
+solution: ./DicomStrictCompare/DicomStrictCompare.sln
+script:
+  - dotnet restore ./DicomStrictCompare/
+  - dotnet test ./DicomStrictCompare/
