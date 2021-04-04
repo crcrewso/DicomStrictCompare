@@ -190,7 +190,7 @@ namespace DSC
         private void BtnExecute_Click(object sender, EventArgs e)
         {
             //TODO: impliment proper threadding request
-            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount );
             //TODO: make Fuzzy res width gui configurable  
             //TODO: Impliment gamma
 

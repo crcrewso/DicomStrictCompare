@@ -12,10 +12,14 @@ namespace DicomStrictCompare.Controller
     public class Settings
     {
 
+        public static int[] defaultDepths = { 5, 10 };
+
+
         /// <summary>
         /// Simple dta algorithm for fractional DTA adjustment
         /// </summary>
 
+        public int[] Depths { get; private set; }
 
         public Model.Dta[] Dtas { get; }
         public bool RunDoseComparisons { get;  }
@@ -36,6 +40,7 @@ namespace DicomStrictCompare.Controller
             RunPDDComparisons = runPDDComparisons;
             RunProfileComparisons = runProfileComparisons;
             CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
+            Depths = defaultDepths;
         }
 
 

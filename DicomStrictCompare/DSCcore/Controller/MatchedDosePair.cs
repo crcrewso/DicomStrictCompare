@@ -22,7 +22,7 @@ namespace DicomStrictCompare
         public bool IsReasonablyCentered(double percent = 10)
         {
             double lim = percent / 100.0;
-            double[] center = {0, 0, 0, 0 };
+            double[] center = { 0, 0, 0, 0 };
             center[0] = SourcePDD.Last().X + SourcePDD.First().X;
             center[0] /= Math.Abs(SourcePDD.Last().X - SourcePDD.First().X);
             center[1] = SourcePDD.Last().Y + SourcePDD.First().Y;
@@ -37,9 +37,17 @@ namespace DicomStrictCompare
                 return true;
             return false;
 
-
-
         }
+
+
+        int[] depths;
+
+        List<DoseValue>[] sourceInPlane;
+        List<DoseValue>[] sourceCrossPlane;
+        List<DoseValue>[] targetInPlane;
+        List<DoseValue>[] targetCrossPlane;
+
+
 
         readonly Model.Dta[] _dtas;
         readonly SingleComparison[] _comparisons;
@@ -47,7 +55,7 @@ namespace DicomStrictCompare
         public int TotalCompared { get; private set; } = 0;
         public int TotalFailed { get; private set; }
         public double PercentFailed => PercentCalculator(TotalCompared, TotalFailed);
- 
+
         public string PDDoutString { get; set; } = "null";
         /// <summary>
         /// The matched pair has been evaluated to measure results
@@ -60,7 +68,7 @@ namespace DicomStrictCompare
         /// Name of the pair evaluated
         /// </summary>
         public string Name => _source.PlanID + ',' + _source.FieldName;
-            
+
         /// <summary>
         /// Filenames of the pair of files
         /// </summary>
@@ -152,13 +160,13 @@ namespace DicomStrictCompare
                 "Plan Name",
                 "Field Name"
             };
-            for (int i = 0; i < 3*_dtas.Length; i++)
+            for (int i = 0; i < 3 * _dtas.Length; i++)
             {
-                ret.Add(_dtas[i%_dtas.Length].ShortToString());
+                ret.Add(_dtas[i % _dtas.Length].ShortToString());
             }
             ret.Add("Source File Name,Target File Name");
             ret.Add("Source MUs");
-            ret.Add( "Target MUs");
+            ret.Add("Target MUs");
             return ret.ToArray();
         }
 
@@ -185,6 +193,13 @@ namespace DicomStrictCompare
             _target = target;
             _dtas = settings.Dtas;
             _comparisons = new SingleComparison[_dtas.Length];
+            depths = settings.Depths;
+
+            sourceInPlane = new List<DoseValue>[depths.Length];
+            sourceCrossPlane = new List<DoseValue>[depths.Length];
+            targetInPlane = new List<DoseValue>[depths.Length];
+            targetCrossPlane = new List<DoseValue>[depths.Length];
+
             PDDoutString = "PDD's not run";
             ChartTitle = "PDD of " + _source.PlanID + @" " + _source.FieldName;
             ChartFileName = _source.PlanID + @"\" + _source.FieldName;
@@ -197,7 +212,7 @@ namespace DicomStrictCompare
             double yMin = (sourceMatrix.Y0 > targetMatrix.Y0) ? sourceMatrix.Y0 : targetMatrix.Y0;
             double yMax = (sourceMatrix.YMax < targetMatrix.YMax) ? sourceMatrix.YMax : targetMatrix.YMax;
             double yRes = sourceMatrix.YRes;
-            EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0 );
+            EvilDICOM.Core.Helpers.Vector3 startPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMin, 0);
             EvilDICOM.Core.Helpers.Vector3 endPoint = new EvilDICOM.Core.Helpers.Vector3(0, yMax, 0);
             try
             {
@@ -231,6 +246,18 @@ namespace DicomStrictCompare
                 }
             }
         }
+
+
+        public void GenerateProfiles()
+        {
+            foreach(var depth in depths)
+            {
+                inplaneStart = 
+
+                var tempSin =  
+            }
+        }
+
 
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out

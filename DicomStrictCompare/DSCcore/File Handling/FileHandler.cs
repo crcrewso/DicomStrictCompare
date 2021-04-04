@@ -99,6 +99,8 @@ namespace DicomStrictCompare
         /// </summary>
         public string FieldName { get; private set; }
 
+        public int Energy { get; private set;  }
+
         public string FieldMUs { get; private set; }
 
         /// <summary>
@@ -162,12 +164,13 @@ namespace DicomStrictCompare
             PlanFile match = planFiles.Find(X => X.SopInstanceId == SopInstanceId);
             if (match != null)
             {
-                Tuple<string, string, string> beam = match.FieldNumberToNameList.Find(x => x.Item1 == BeamNumber);
+                Tuple<string, string, string, int> beam = match.FieldNumberToNameList.Find(x => x.Item1 == BeamNumber);
                 if (beam != null)
                 {
                     PlanID = match.PlanID;
                     FieldName = beam.Item2;
                     FieldMUs = beam.Item3;
+                    Energy = beam.Item4; 
                 }
                 else
                 {
@@ -262,7 +265,7 @@ namespace DicomStrictCompare
         /// <summary>
         /// Contains the field name, field number and number of MU's 
         /// </summary>
-        public List<Tuple<string, string, string>> FieldNumberToNameList { get; }
+        public List<Tuple<string, string, string, int>> FieldNumberToNameList { get; }
         public string FileName { get; }
         public string ShortFileName { get; }
         /// <summary>
@@ -276,7 +279,7 @@ namespace DicomStrictCompare
         public PlanFile(string fileName)
         {
             if (fileName == null) throw new ArgumentNullException(nameof(fileName));
-            FieldNumberToNameList = new List<Tuple<string, string, string>>();
+            FieldNumberToNameList = new List<Tuple<string, string, string, int>>();
             FileName = fileName;
             ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
             DICOMObject dcm1 = DICOMObject.Read(fileName);
@@ -289,13 +292,14 @@ namespace DicomStrictCompare
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNames = dcm1.FindAll(TagHelper.BeamName);
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamMUs = dcm1.FindAll(TagHelper.BeamMeterset);
+                List<EvilDICOM.Core.Interfaces.IDICOMElement> energies = dcm1.FindAll(TagHelper.LINACEnergy);
                 if (beamNames.Count == beamNumbers.Count && beamNames.Count == beamMUs.Count)
                 {
                     for (int i = 0; i < beamNames.Count; i++)
                     {
                         try
                         {
-                            var temp = new Tuple<string, string, string>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString(), beamMUs[i].DData.ToString());
+                            var temp = new Tuple<string, string, string, int>(beamNumbers[i].DData.ToString(), beamNames[i].DData.ToString(), beamMUs[i].DData.ToString(), Convert.ToInt32(energies[i].DData));
                             FieldNumberToNameList.Add(temp);
                         }
                         catch (ArgumentOutOfRangeException)

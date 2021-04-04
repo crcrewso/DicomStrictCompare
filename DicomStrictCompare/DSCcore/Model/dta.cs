@@ -59,7 +59,7 @@ namespace DicomStrictCompare.Model
         /// <summary>
         /// lists the possible scope limit techniques for voxel to voxel comparison. 
         /// </summary>
-        public enum CalcType { 
+        public enum CalcType {
             /// <summary>
             /// perccent difference is taken to mean that pass or fail is based on the difference between source and target based on the fraction of source dmax 
             /// </summary>
@@ -73,12 +73,12 @@ namespace DicomStrictCompare.Model
         /// list of supported comparison algorithms 
         /// </summary>
         //TODO: future features here, adding penumbra detection percent difference dta complex andrew analysis
-        public enum CalcAlgorithm { 
+        public enum CalcAlgorithm {
             /// <summary>
             /// first the relative dose difference at the point in question is analyzed, if failed then 
             /// if its possible for the target to match the source within the distance window provided
             /// </summary>
-            dta, 
+            dta,
             /// <summary>
             /// impliments gamma evaluation function
             /// </summary>
@@ -88,7 +88,8 @@ namespace DicomStrictCompare.Model
         /// <summary>
         /// Results summary
         /// </summary>
-        List<string> Summary => new List<string> { (Tolerance * 100).ToString("0.0"), Distance.ToString("0.00"), (Threshhold * 100).ToString("0.0"), Type.ToString(), UseMM ? "mm" : "voxel" };
+        List<string> Summary => new List<string> { (Tolerance * 100).ToString("0.0"), Distance.ToString("0.00"), (Threshhold * 100).ToString("0.0"), Type.ToString(), UseMM ? "mm" : "voxel", TrimWidth.ToString() };
+        
 
         /// <summary>
         /// Constructor
@@ -144,7 +145,7 @@ namespace DicomStrictCompare.Model
         /// <returns>String</returns> 
         static public string Titles()
         {
-            string[] titles = new string[] { "Tolerance", "Distance", "Threshhold", "Relative to Max dose?", "Unit" };
+            string[] titles = new string[] { "Tolerance", "Distance", "Threshhold", "Relative to Max dose?", "Unit of dta", "Trim Width (voxels)" };
             return String.Join(", ", titles);
         }
 
