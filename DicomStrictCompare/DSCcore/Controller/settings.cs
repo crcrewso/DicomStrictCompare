@@ -21,6 +21,11 @@ namespace DicomStrictCompare.Controller
         public bool RunDoseComparisons { get;  }
         public bool RunPDDComparisons { get; }
         public bool RunProfileComparisons { get; }
+        public bool MatchByPlanName { get; }
+        public bool MatchByUUID { get; }
+        public bool MatchByPatientID { get;  }
+        public bool MatchByFieldName { get; }
+        public bool MatchByFieldParameters { get; }
         public int CpuParallel { get; private set; } = 1;
 
         public Settings(
@@ -36,6 +41,7 @@ namespace DicomStrictCompare.Controller
             RunPDDComparisons = runPDDComparisons;
             RunProfileComparisons = runProfileComparisons;
             CpuParallel = Math.Min(coresIn, Environment.ProcessorCount);
+            
         }
 
 

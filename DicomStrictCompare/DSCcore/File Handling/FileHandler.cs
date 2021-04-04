@@ -272,6 +272,8 @@ namespace DicomStrictCompare
         public string SopInstanceId { get; }
         public string PatientID { get; }
         public bool IsPlanFile { get; }
+        
+        public DICOMObject rawDicomPlan { get; }
 
         public PlanFile(string fileName)
         {
@@ -279,12 +281,13 @@ namespace DicomStrictCompare
             FieldNumberToNameList = new List<Tuple<string, string, string>>();
             FileName = fileName;
             ShortFileName = FileName.Substring(FileName.LastIndexOf(@"\"));
-            DICOMObject dcm1 = DICOMObject.Read(fileName);
+           DICOMObject dcm1 = DICOMObject.Read(fileName);
             SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).DData.ToString();
             PatientID = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
             if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTPLAN"))
             {
                 IsPlanFile = true;
+                rawDicomPlan = dcm1;
                 PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNumbers = dcm1.FindAll(TagHelper.BeamNumber);
                 List<EvilDICOM.Core.Interfaces.IDICOMElement> beamNames = dcm1.FindAll(TagHelper.BeamName);
