@@ -9,14 +9,30 @@ namespace DCSCore.Controller
 {
     public record Results
     {
-        public List<DoseValue> sourcePDD { get; } 
-        public List<DoseValue> targetPDD;
-        public string chartTitleString;
-        string SourceAlias;
-        string TargetAlias;
-
-        public Results()
+        public Results(string sourceAlias, string targetAlias, string[] resultStrings, string resultMessageHeader)
         {
+            SourceAlias = sourceAlias;
+            TargetAlias = targetAlias;
+            ResultStrings = resultStrings;
+            Array.Sort(ResultStrings);
+            ResultMessageHeader = resultMessageHeader;
+        }
+
+        string SourceAlias { get; init; }
+        string TargetAlias {  get; init;}
+        public string[] ResultStrings { get; init; }
+        public string ResultMessageHeader {  get; init; }
+
+
+        public override string ToString()
+        {
+            string ret = ResultMessageHeader;
+            foreach(string result in ResultStrings)
+            {
+                ret += result + "\n";
+            }
+            return ret;
+
         }
     }
 

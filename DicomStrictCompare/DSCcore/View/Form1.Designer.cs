@@ -108,7 +108,7 @@
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(163, 50);
+            this.btnExecute.Location = new System.Drawing.Point(174, 49);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
             this.btnExecute.TabIndex = 10;
@@ -243,7 +243,7 @@
             // 
             // testDirectories
             // 
-            this.testDirectories.Location = new System.Drawing.Point(163, 21);
+            this.testDirectories.Location = new System.Drawing.Point(174, 21);
             this.testDirectories.Name = "testDirectories";
             this.testDirectories.Size = new System.Drawing.Size(75, 23);
             this.testDirectories.TabIndex = 9;
@@ -307,9 +307,9 @@
             this.testAndRunBox.Controls.Add(this.lblTargetFilesFoundText);
             this.testAndRunBox.Controls.Add(this.lblSourceFilesFoundText);
             this.testAndRunBox.Controls.Add(this.btnExecute);
-            this.testAndRunBox.Location = new System.Drawing.Point(593, 9);
+            this.testAndRunBox.Location = new System.Drawing.Point(565, 9);
             this.testAndRunBox.Name = "testAndRunBox";
-            this.testAndRunBox.Size = new System.Drawing.Size(244, 144);
+            this.testAndRunBox.Size = new System.Drawing.Size(272, 144);
             this.testAndRunBox.TabIndex = 35;
             this.testAndRunBox.TabStop = false;
             this.testAndRunBox.Text = "Control";
@@ -331,7 +331,7 @@
             this.panel2.Controls.Add(this.tbxSource);
             this.panel2.Location = new System.Drawing.Point(3, 12);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(585, 197);
+            this.panel2.Size = new System.Drawing.Size(542, 197);
             this.panel2.TabIndex = 38;
             // 
             // dtaListPairs

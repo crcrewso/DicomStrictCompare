@@ -29,6 +29,7 @@ namespace DSC
         public BindingList<DCSCore.Model.Dta> Dtas { get; private set; }
 
         private readonly DscDataHandler _dataHandler;
+        public DCSCore.Controller.Results results;
 
         private readonly BackgroundWorker worker;
         private bool _isRunning;
@@ -230,12 +231,11 @@ namespace DSC
         void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             _isRunning = true;
-            _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
-
+            results = _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
             if (chkDoseCompare.Checked == true)
             {
                 SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
-                saveFile.Save(_dataHandler.ResultMessage);
+                saveFile.Save(results.ToString());
             }
         }
 

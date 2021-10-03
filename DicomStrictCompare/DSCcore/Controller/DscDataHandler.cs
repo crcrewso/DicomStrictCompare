@@ -16,8 +16,9 @@ namespace DCSCore
     public class DscDataHandler
     {
         public Controller.Settings Settings { get; set; }
-        public Controller.Results Results {  get; set; }
-
+        /// <summary>
+        /// results table 
+        /// </summary>
         public string SourceDirectory { get; private set; }
         public string SourceAliasName { get; set; }
         public string TargetAliasName { get; set; }
@@ -48,11 +49,6 @@ namespace DCSCore
 
         private IMathematics mathematics;
 
-        /// <summary>
-        /// Increasingly inaccurate name for the csv separated results from the analysis, 
-        /// includes error messages for matches that didn't work. 
-        /// </summary>
-        public string ResultMessage { get; private set; }
 
         public DscDataHandler()
         {
@@ -87,14 +83,14 @@ namespace DCSCore
 
 
 
-        public void Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, object sender)
+        public Controller.Results Run(bool runDoseComparisons, bool runPDDComparisons, string SaveDirectory, object sender)
         {
             // Maximum number of CPU threads
             ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount };
             //ParallelOptions cpuParallel = new ParallelOptions { MaxDegreeOfParallelism = 1 };
 
             ParallelOptions parallel = cpuParallel;
-            ResultMessage = "";
+            var resultsStrings = new ConcurrentBag<string>();
 
             // Sets the system to use the correct resources without doubling down on GPU
 
@@ -147,7 +143,7 @@ namespace DCSCore
 
             progress += 5;
 
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Scanning Source Folder");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Scanning Source Folder");
             _ = Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
               {
                   doseFile.SetFieldName(SourcePlanList);
@@ -155,7 +151,7 @@ namespace DCSCore
               });
 
             progress += 5;
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Scanning Target Folder");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Scanning Target Folder");
             _ = Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
               {
                   doseFile.SetFieldName(TargetPlanList);
@@ -163,7 +159,7 @@ namespace DCSCore
 
 
             double ProgressIncrimentor = 10.0 / TargetDosesList.Count;
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Matching");
             // match each pair for analysis
             _ = Parallel.ForEach(TargetDosesList, cpuParallel, (dose) =>
               {
@@ -179,11 +175,11 @@ namespace DCSCore
 
               });
             if (DosePairsList.Count <= 0)
-                return;
+                return null;
             progress = 39;
             ProgressIncrimentor = 30.0 / DosePairsList.Count;
             progress %= 100;
-            (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "PDD Production");
             //if (runPDDComparisons)
             if (true)
             {
@@ -191,7 +187,7 @@ namespace DCSCore
                 {
                     progress += ProgressIncrimentor;
                     progress %= 100;
-                    (sender as BackgroundWorker).ReportProgress((int)progress, "PDD Production");
+                    ((BackgroundWorker)sender).ReportProgress((int)progress, "PDD Production");
                     pair.GeneratePDD();
                     Debug.WriteLine("Saving " + pair.ChartTitle + " to " + SaveDirectory);
                     try
@@ -214,24 +210,22 @@ namespace DCSCore
             if (runDoseComparisons)
             {
 
-
                 ProgressIncrimentor = 30.0 / DosePairsList.Count;
-                ResultMessage += MatchedDosePair.StaticResultHeader(Settings.Dtas);
                 _ = Parallel.ForEach(DosePairsList, parallel, pair =>
                   {
                       progress += ProgressIncrimentor;
                       progress %= 100;
-                      (sender as BackgroundWorker).ReportProgress((int)progress, "Comparing " + progress);
+                      ((BackgroundWorker)sender).ReportProgress((int)progress, "Comparing " + progress);
                       try
                       {
                           pair.Evaluate(mathematics);
-                          ResultMessage += pair.ResultString + '\n';
+                          resultsStrings.Add(pair.ResultString);
                       }
                       // Will catch array misalignment problems
                       catch (Exception e)
                       {
                           string temp = pair.Name + ",Was not Evaluated ,\n";
-                          ResultMessage += temp;
+                          resultsStrings.Add(temp);
                           Debug.WriteLine(temp);
                           Debug.WriteLine(e.Message.ToString());
                           Debug.Write(e.StackTrace.ToString());
@@ -241,6 +235,10 @@ namespace DCSCore
 
                   });
             }
+
+            
+
+            return new Controller.Results(SourceAliasName, TargetAliasName, resultsStrings.ToArray(), MatchedDosePair.StaticResultHeader(Settings.Dtas));
 
         }
 
