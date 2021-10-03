@@ -286,7 +286,7 @@ namespace DicomStrictCompare.Model
                 if (targeti < MinDoseEvaluated || sourcei < MinDoseEvaluated) { return; }
                 TotalCompared[index]++;
                 double sourceLow, sourceHigh;
-                if (Dta.CalcType.relative == dta.Type)
+                if (Dta.CalcType.Global == dta.Type)
                 {
                     sourceLow = (1.0 - dta.Tolerance) * sourcei;
                     sourceHigh = (1.0 + dta.Tolerance) * sourcei;

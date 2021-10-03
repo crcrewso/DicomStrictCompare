@@ -35,7 +35,7 @@ namespace DicomStrictCompare.Model
         public double Distance { get; }
 
         /// <summary>
-        /// If relative is true calculation is based off of max Source dose
+        /// If Global is true calculation is based off of max Source dose
         /// if not calculation is based off of source voxel dose. 
         /// </summary>
         public CalcType Type { get; }
@@ -54,7 +54,7 @@ namespace DicomStrictCompare.Model
         /// <summary>
         /// Backwards compatable placeholder for logic
         /// </summary>
-        public bool Relative => (Type == CalcType.relative) ? true : false;
+        public bool Global => (Type == CalcType.Global) ? true : false;
 
         /// <summary>
         /// lists the possible scope limit techniques for voxel to voxel comparison. 
@@ -63,11 +63,11 @@ namespace DicomStrictCompare.Model
             /// <summary>
             /// perccent difference is taken to mean that pass or fail is based on the difference between source and target based on the fraction of source dmax 
             /// </summary>
-            relative,
+            Global,
             /// <summary>
             /// percent difference conditions are based solely on the source and target doses at the point of inspection
             /// </summary>
-            absolute };
+            Local };
 
         /// <summary>
         /// list of supported comparison algorithms 
@@ -75,7 +75,7 @@ namespace DicomStrictCompare.Model
         //TODO: future features here, adding penumbra detection percent difference dta complex andrew analysis
         public enum CalcAlgorithm { 
             /// <summary>
-            /// first the relative dose difference at the point in question is analyzed, if failed then 
+            /// first the Global dose difference at the point in question is analyzed, if failed then 
             /// if its possible for the target to match the source within the distance window provided
             /// </summary>
             dta, 
@@ -107,7 +107,7 @@ namespace DicomStrictCompare.Model
             Tolerance = tolerance;
             Distance = distance;
             TrimWidth = trim;
-            Type = relative ? CalcType.relative : CalcType.absolute;
+            Type = relative ? CalcType.Global : CalcType.Local;
             Algorithm = gamma ? CalcAlgorithm.gamma : CalcAlgorithm.dta;
         }
 
@@ -122,7 +122,7 @@ namespace DicomStrictCompare.Model
             Tolerance = Convert.ToDouble(values[0]);
             Distance = Convert.ToDouble(values[1]);
             Threshhold = Convert.ToDouble(values[2]);
-            Type = Convert.ToBoolean(values[3]) ? CalcType.relative : CalcType.absolute;
+            Type = Convert.ToBoolean(values[3]) ? CalcType.Global : CalcType.Local;
             UseMM = (values[4] == "mm" ? true : false);
         }
 
@@ -130,7 +130,7 @@ namespace DicomStrictCompare.Model
         /// Shorter Summary 
         /// </summary>
         /// <returns></returns>
-        public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + " % " + Distance.ToString() + (UseMM ? " mm" : " voxels");
+        public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + " % " + Distance.ToString() + (Global? " Global": " Local") +  (UseMM ? " mm" : " voxels");
 
         /// <summary>
         /// Impliments standard tostring with comma. old way of reporting results
@@ -144,7 +144,7 @@ namespace DicomStrictCompare.Model
         /// <returns>String</returns> 
         static public string Titles()
         {
-            string[] titles = new string[] { "Tolerance", "Distance", "Threshhold", "Relative to Max dose?", "Unit" };
+            string[] titles = new string[] { "Tolerance", "Distance", "Threshhold", "Global?", "Unit" };
             return String.Join(", ", titles);
         }
 

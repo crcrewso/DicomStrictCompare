@@ -36,7 +36,7 @@ namespace DicomStrictCompare
             List<int> failed = new List<int>();
             double maxDose = 0;
             double ret = 0;
-            double tolerance = 0; // the tolerance of dose matching in absolute units of the reference profile
+            double tolerance = 0; // the tolerance of dose matching in Local units of the reference profile
             int pointsCompared = profile.Count;
             int pointsFailedDtAandPercent = 0;
             double threshold = 0;
@@ -98,7 +98,7 @@ namespace DicomStrictCompare
             if (reference == null) throw new ArgumentNullException(nameof(reference));
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             double maxDose = 0;
-            double tolerance = 0; // the tolerance of dose matching in absolute units of the reference profile
+            double tolerance = 0; // the tolerance of dose matching in Local units of the reference profile
             int pointsCompared = profile.Count;
             int pointsFailedDtAandPercent = 0;
             double threshold = 0;

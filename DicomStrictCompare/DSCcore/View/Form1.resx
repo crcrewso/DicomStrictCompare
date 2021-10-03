@@ -76,6 +76,8 @@ Trim           - Allows the user to remove a number of skin voxels from the phan
                     Useful if there is a known discrepancy in skin dose between two algorithims
                     that the user would like to remove from analysis
 Gamma     - if Checked a gamma calculation will be used for comparison, 
-                    if not software defaults to dta </value>
+                    if not software defaults to dta 
+Global       - Tolerance difference is percent of peak dose
+Local         - Tolerance difference is percent of source</value>
   </data>
 </root>

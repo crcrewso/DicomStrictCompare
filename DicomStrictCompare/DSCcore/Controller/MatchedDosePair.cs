@@ -245,7 +245,7 @@ namespace DicomStrictCompare
             Model.SingleComparison ret;
             for (int i = 0; i < _dtas.Length; i++)
             {
-                if (_dtas[i].Relative)
+                if (_dtas[i].Global)
                 {
                     ret = mathematics.CompareRelative(sourceDose, targetDose, _dtas[i]);
                 }
