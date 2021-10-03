@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using EvilDICOM.Core.Helpers;
 using EvilDICOM.RT;
 
-namespace DicomStrictCompare.Model
+namespace DCSCore.Model
 {
     public class DoseMatrixOptimal
     {

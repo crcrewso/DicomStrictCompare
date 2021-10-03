@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using DicomStrictCompare.Model;
+using DCSCore.Model;
 using EvilDICOM.RT;
 
-namespace DicomStrictCompare
+namespace DCSCore
 {
     /// <summary>
     /// Will contain the evaluation of any stored pair of DoseFiles

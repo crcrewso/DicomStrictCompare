@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using EvilDICOM.RT;
 
 
-namespace DicomStrictCompare.Model
+namespace DCSCore.Model
 {
 
     public class X86Mathematics : IMathematics

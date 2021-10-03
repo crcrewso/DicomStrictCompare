@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomStrictCompare.Model
+namespace DCSCore.Model
 {
     public class SingleComparison
     {

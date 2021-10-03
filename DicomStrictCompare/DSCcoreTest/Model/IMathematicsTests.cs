@@ -1,10 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using DicomStrictCompare;
+using DCSCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DicomStrictCompare.Tests
+namespace DCSCore.Tests
 {
     [TestClass()]
     public class IMathematicsTests

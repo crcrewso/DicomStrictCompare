@@ -3,7 +3,7 @@ using EvilDICOM.RT;
 using System;
 using MathNet.Numerics;
 
-namespace DicomStrictCompare
+namespace DCSCore
 {
     public static class ProfileTools
     {

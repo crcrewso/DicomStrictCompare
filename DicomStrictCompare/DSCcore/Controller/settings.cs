@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomStrictCompare.Controller
+namespace DCSCore.Controller
 {
     /// <summary>
     /// Consolidated settings collection to undo feature creep spaghettification.  
@@ -24,7 +24,7 @@ namespace DicomStrictCompare.Controller
         public int CpuParallel { get; private set; } = 1;
 
         public Settings(
-            DicomStrictCompare.Model.Dta[] dtas
+            DCSCore.Model.Dta[] dtas
             , bool runDoseComparisons
             , bool runPDDComparisons
             , bool runProfileComparisons

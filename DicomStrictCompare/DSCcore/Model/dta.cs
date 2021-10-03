@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DicomStrictCompare.Model
+namespace DCSCore.Model
 {
     /// <summary>
     /// Holds all information needed for a single comparison set

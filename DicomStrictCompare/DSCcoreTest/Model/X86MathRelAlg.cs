@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DicomStrictCompare.Model.Tests
+namespace DCSCore.Model.Tests
 {
     [TestClass]
     public class X86MathRelAlg

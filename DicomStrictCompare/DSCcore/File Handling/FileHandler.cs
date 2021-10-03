@@ -15,7 +15,7 @@ using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
 using EvilDICOM.CV;
 
-namespace DicomStrictCompare
+namespace DCSCore
 {
     /// <summary>
     /// Take the list of source and target dicom files

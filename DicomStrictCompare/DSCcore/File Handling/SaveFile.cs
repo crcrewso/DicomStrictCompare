@@ -7,7 +7,7 @@ using System.Drawing;
 using System.Windows.Forms.DataVisualization.Charting;
 using EvilDICOM.RT;
 
-namespace DicomStrictCompare
+namespace DCSCore
 {
     /// <summary>
     /// Produces the 

@@ -6,9 +6,9 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
-using DicomStrictCompare.Model;
+using DCSCore.Model;
 
-namespace DicomStrictCompare
+namespace DCSCore
 {
     /// <summary>
     /// Holds the user entered data and builds the file list for the file handler
@@ -16,6 +16,7 @@ namespace DicomStrictCompare
     public class DscDataHandler
     {
         public Controller.Settings Settings { get; set; }
+        public Controller.Results Results {  get; set; }
 
         public string SourceDirectory { get; private set; }
         public string SourceAliasName { get; set; }
@@ -60,7 +61,7 @@ namespace DicomStrictCompare
         }
 
 
-        public DscDataHandler(DicomStrictCompare.Controller.Settings settings)
+        public DscDataHandler(DCSCore.Controller.Settings settings)
         {
             this.Settings = settings;
             DosePairsList = new ConcurrentBag<MatchedDosePair>();

@@ -1,7 +1,7 @@
-﻿using DicomStrictCompare.Model;
+﻿using DCSCore.Model;
 using System.Linq;
 
-namespace DicomStrictCompare
+namespace DCSCore
 {
     public abstract class IMathematics
     {

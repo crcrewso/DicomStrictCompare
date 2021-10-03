@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DicomStrictCompare;
+using DCSCore;
 using DSCcore.Properties;
 
 namespace DSC
@@ -26,7 +26,7 @@ namespace DSC
         public string SourceAliasName { get; private set; } = "Reference";
         public string TargetAliasName { get; private set; } = "New Model";
 
-        public BindingList<DicomStrictCompare.Model.Dta> Dtas { get; private set; }
+        public BindingList<DCSCore.Model.Dta> Dtas { get; private set; }
 
         private readonly DscDataHandler _dataHandler;
 
@@ -36,7 +36,7 @@ namespace DSC
         public Form1()
         {
             InitializeComponent();
-            Dtas = new BindingList<DicomStrictCompare.Model.Dta>();
+            Dtas = new BindingList<DCSCore.Model.Dta>();
             this.dtaListPairs.DataSource = Dtas;
             tbxSourceLabel.Text = SourceAliasName.ToString();
             tbxTargetLabel.Text = TargetAliasName.ToString();
@@ -190,7 +190,7 @@ namespace DSC
         private void BtnExecute_Click(object sender, EventArgs e)
         {
             //TODO: impliment proper threadding request
-            DicomStrictCompare.Controller.Settings settings = new DicomStrictCompare.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+            DCSCore.Controller.Settings settings = new DCSCore.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
             //TODO: make Fuzzy res width gui configurable  
             //TODO: Impliment gamma
 
@@ -323,7 +323,7 @@ namespace DSC
             }
 
 
-            var temp = new DicomStrictCompare.Model.Dta(isMM
+            var temp = new DCSCore.Model.Dta(isMM
                , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text) / 100)
                , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text) / 100)
                , distance, chkBoxDArel.Checked

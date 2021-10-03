@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using DicomStrictCompare;
+using DCSCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ScottPlot;
 
-namespace DicomStrictCompare.Tests
+namespace DCSCore.Tests
 {
     [TestClass()]
     public class SaveFileTests
@@ -49,7 +49,7 @@ namespace DicomStrictCompare.Tests
             double[] sin = DataGen.Sin(pointCount);
             double[] cos = DataGen.Cos(pointCount);
 
-            DicomStrictCompare.SaveFile.SaveScottPlot(xs, 1, sin, "sin", cos, "cos", "title",  saveFileName, saveFileLocation);
+            DCSCore.SaveFile.SaveScottPlot(xs, 1, sin, "sin", cos, "cos", "title",  saveFileName, saveFileLocation);
 
             Assert.IsTrue(System.IO.File.Exists(saveFileLongName));
 

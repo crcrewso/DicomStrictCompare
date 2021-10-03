@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DicomStrictCompare.Model.Tests
+namespace DCSCore.Model.Tests
 {
     /// <summary>
     /// Compares the various algorithm methods to allow for regression testing. 
