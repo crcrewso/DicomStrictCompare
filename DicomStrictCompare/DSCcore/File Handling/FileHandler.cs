@@ -138,7 +138,7 @@ namespace DCSCore
 
             EvilDICOM.Core.Interfaces.IDICOMElement tempSopInstanceId = dcm1.FindFirst(TagHelper.ReferencedSOPInstanceUID);
             SopInstanceId = tempSopInstanceId.DData.ToString();
-            if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
+            if ((dcm1.FindFirst(TagHelper.Modality).ToString() ?? "").Contains("RTDOSE"))
             {
                 IsDoseFile = true;
 
@@ -242,11 +242,11 @@ namespace DCSCore
         {
 
             DICOMObject dcm1 = DICOMObject.Read(fileName);
-            if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTDOSE"))
+            if ((dcm1.FindFirst(TagHelper.Modality).ToString()?? "").Contains("RTDOSE"))
             {
                 IsDoseFile = true;
             }
-            else if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTPLAN"))
+            else if ((dcm1.FindFirst(TagHelper.Modality).ToString()?? "").Contains("RTPLAN"))
             {
                 IsPlanFile = true;
             }
@@ -282,7 +282,7 @@ namespace DCSCore
             DICOMObject dcm1 = DICOMObject.Read(fileName);
             SopInstanceId = dcm1.FindFirst(TagHelper.SOPInstanceUID).DData.ToString();
             PatientID = dcm1.FindFirst(TagHelper.PatientID).DData.ToString();
-            if (dcm1.FindFirst(TagHelper.Modality).ToString().Contains("RTPLAN"))
+            if ((dcm1.FindFirst(TagHelper.Modality).ToString() ?? "").Contains("RTPLAN"))
             {
                 IsPlanFile = true;
                 PlanID = dcm1.FindFirst(TagHelper.RTPlanLabel).DData.ToString();

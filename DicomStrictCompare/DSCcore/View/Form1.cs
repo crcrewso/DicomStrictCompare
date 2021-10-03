@@ -242,7 +242,7 @@ namespace DSC
         void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             doseProgressBar.Value = e.ProgressPercentage;
-            lblRunStatus.Text = e.UserState.ToString();
+            lblRunStatus.Text = e.UserState.ToString() ?? "failed to get string";
         }
 
         void WorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)

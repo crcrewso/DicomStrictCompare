@@ -105,7 +105,7 @@ namespace DCSCore.Model
                     }
                 }
             }
-            System.Diagnostics.Debug.WriteLine(new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().Name);
+            System.Diagnostics.Debug.WriteLine(new System.Diagnostics.StackTrace().GetFrame(0).GetMethod().Name ?? "Failed to get name");
             System.Diagnostics.Debug.WriteLine("Failed: " + failed + " of " + ComparisionsAboveThreshhold);
             SingleComparison ret = new SingleComparison(dta, VoxelsRead, ComparisionsAboveThreshhold, failed);
 

@@ -23,8 +23,8 @@ namespace DCSCore.Tests
             double[] sin = DataGen.Sin(pointCount);
             double[] cos = DataGen.Cos(pointCount);
 
-            plt.PlotScatter(xs, sin, label: "sin");
-            plt.PlotScatter(xs, cos, label: "cos");
+            plt.AddScatter(sin, cos, label: "sin");
+            plt.AddScatter(xs, cos, label: "cos");
             plt.Legend();
 
             plt.Title("Scatter Plot Quickstart");
@@ -48,7 +48,7 @@ namespace DCSCore.Tests
             double[] xs = DataGen.Consecutive(pointCount);
             double[] sin = DataGen.Sin(pointCount);
             double[] cos = DataGen.Cos(pointCount);
-
+            
             DCSCore.SaveFile.SaveScottPlot(xs, 1, sin, "sin", cos, "cos", "title",  saveFileName, saveFileLocation);
 
             Assert.IsTrue(System.IO.File.Exists(saveFileLongName));

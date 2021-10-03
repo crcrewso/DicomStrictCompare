@@ -126,13 +126,13 @@ namespace DCSCore
             #endregion
 
             #region setup
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Source Doses ");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Setup: Scanning Source Doses ");
             SourceDosesList = FileHandler.DoseFiles(SourceListStrings);
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Source Plans ");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Setup: Scanning Source Plans ");
             SourcePlanList = FileHandler.PlanFiles(SourceListStrings);
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Target Doses ");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Setup: Scanning Target Doses ");
             TargetDosesList = FileHandler.DoseFiles(TargetListStrings);
-            (sender as BackgroundWorker).ReportProgress((int)progress, "Setup: Scanning Target Plans ");
+            ((BackgroundWorker)sender).ReportProgress((int)progress, "Setup: Scanning Target Plans ");
             TargetPlanList = FileHandler.PlanFiles(TargetListStrings);
 
 
@@ -165,7 +165,7 @@ namespace DCSCore
               {
                   progress += ProgressIncrimentor;
                   progress %= 100;
-                  (sender as BackgroundWorker).ReportProgress((int)progress, "Matching");
+                  ((BackgroundWorker)sender).ReportProgress((int)progress, "Matching");
                   var sourceDose = SourceDosesList.Find(x => x.MatchIdentifier == dose.MatchIdentifier);
                   if (sourceDose != null)
                   {
@@ -227,8 +227,8 @@ namespace DCSCore
                           string temp = pair.Name + ",Was not Evaluated ,\n";
                           resultsStrings.Add(temp);
                           Debug.WriteLine(temp);
-                          Debug.WriteLine(e.Message.ToString());
-                          Debug.Write(e.StackTrace.ToString());
+                          Debug.WriteLine(e.Message.ToString() ?? "\n");
+                          Debug.Write(e.StackTrace.ToString() ?? "\n");
 
                       }
 

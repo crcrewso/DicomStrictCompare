@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Drawing;
-using System.Windows.Forms.DataVisualization.Charting;
 using EvilDICOM.RT;
 
 namespace DCSCore
@@ -163,15 +160,16 @@ namespace DCSCore
 
             var plt = new ScottPlot.Plot(1440, 900);
 
-            plt.PlotScatter(xIndexValues, sourceDoses, label: sourceAlias);
-            plt.PlotScatter(xIndexValues, targetDoses, label: targetAlias);
+            plt.AddScatter(xIndexValues, sourceDoses, label: sourceAlias);
+            plt.AddScatter(xIndexValues, targetDoses, label: targetAlias);
+            double xmin = xIndexValues.Min();
+            double xmax = xIndexValues.Max();  
 
-            plt.Legend(fixedLineWidth: false);
             plt.Title(filename + '\n' + titleText);
             plt.XLabel(@"Depth (mm)");
             plt.YLabel(@"Dose (Gy)");
             if (maxDose < 1.5 && maxDose > 0.1)
-                plt.Axis(y1: 0, y2: 1.2);
+                plt.SetAxisLimitsY(0, 1.2);
             plt.SaveFig(longFileName + @".png");
 
 
