@@ -19,6 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.DirectoryServices" Version="5.0.0" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DSCcore\DSCcore.csproj" />
   </ItemGroup>
 

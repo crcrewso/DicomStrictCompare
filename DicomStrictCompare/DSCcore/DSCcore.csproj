@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="docfx.console" Version="2.58.4">
+    <PackageReference Include="docfx.console" Version="2.58.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -32,8 +32,10 @@
     <PackageReference Include="MathNet.Numerics" Version="4.15.0" />
     <PackageReference Include="Microcharts" Version="0.9.5.9" />
     <PackageReference Include="Microcharts.Forms" Version="0.9.5.9" />
-    <PackageReference Include="ScottPlot" Version="4.1.24" />
-    <PackageReference Include="ScottPlot.WinForms" Version="4.1.24" />
+    <PackageReference Include="ScottPlot" Version="4.1.27" />
+    <PackageReference Include="ScottPlot.WinForms" Version="4.1.27" />
+    <PackageReference Include="System.DirectoryServices" Version="5.0.0" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
