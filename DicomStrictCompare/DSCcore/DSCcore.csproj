@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows10.0.20348.0</TargetFramework>
+    <TargetFramework>net6.0-windows7.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <Platforms>x64</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -13,8 +13,8 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <Nullable>warnings</Nullable>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="docfx.console" Version="2.58.4">
+    <PackageReference Include="docfx.console" Version="2.58.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -32,8 +32,8 @@
     <PackageReference Include="MathNet.Numerics" Version="4.15.0" />
     <PackageReference Include="Microcharts" Version="0.9.5.9" />
     <PackageReference Include="Microcharts.Forms" Version="0.9.5.9" />
-    <PackageReference Include="ScottPlot" Version="4.1.24" />
-    <PackageReference Include="ScottPlot.WinForms" Version="4.1.24" />
+    <PackageReference Include="ScottPlot" Version="4.1.27" />
+    <PackageReference Include="ScottPlot.WinForms" Version="4.1.27" />
   </ItemGroup>
 
   <ItemGroup>
