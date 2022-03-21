@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows10.0.20348.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
     <Platforms>x64</Platforms>
-
-    <SupportedOSPlatformVersion>10.0.20348.0</SupportedOSPlatformVersion>
 
     <AnalysisLevel>6.0</AnalysisLevel>
   </PropertyGroup>

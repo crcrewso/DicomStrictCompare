@@ -95,13 +95,15 @@ namespace ProfileBatchCompare.Model
             TrimArray(raw_data[bias_row].Split('\t').ToArray(), out biases, data_column_start, data_column_end);
             TrimArray(raw_data[calibration_row].Split('\t').ToArray(), out calibrations, data_column_start, data_column_end);
 
+            throw new NotImplementedException();
 
-            
+            /*
             timetic = float.Parse(raw_data[bias_row].Split('\t')[2]);
             double[] temp = biases.Select(r => r * timetic).ToArray();
             temp = temp.Zip(data, (x, y) => x - y).ToArray();
             doses = temp.Zip(calibrations, (x, y) => x * y).ToArray();
             integrated_dose = temp.Sum(x => x);
+            */
         }
 
         /// <summary>
