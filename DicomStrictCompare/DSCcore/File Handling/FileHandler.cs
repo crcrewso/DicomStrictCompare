@@ -13,7 +13,6 @@ using EvilDICOM.Core.Element;
 using EvilDICOM.Core.Helpers;
 using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
-using EvilDICOM.CV;
 
 namespace DCSCore
 {
