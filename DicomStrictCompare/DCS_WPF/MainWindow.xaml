@@ -5,8 +5,43 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCS_WPF"
         mc:Ignorable="d"
-        Title="This is a failure to compile" Height="800" Width="500">
-    <Grid>
+        Title="This is a failure to compile" Height="800" Width="500"
+        MinHeight="600" MinWidth="400"
+        >
+    <Grid x:Name="MainGrid" Margin="10,10,10,10">
+        <!--#region Grid setup-->
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <!--#endregion-->
+        
+        <!--#region Source Elements-->
+        <Label Grid.Row="0" Grid.Column="0" Content="Source Identifier" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="SourceLabelForOutput" MinWidth="60" VerticalAlignment="Center" Text="{Binding Path=SourceLabelString}"/>
+        <Label Grid.Row="0" Grid.Column="2" Content="{Binding Path=SourceLabelString}" VerticalAlignment="Center"/>
+        <Button Grid.Row="1" Grid.Column="0" x:Name="SourceDirectoryPath"  Click="SourceDirectoryPath_Click" Content="Source Path" VerticalAlignment="Center"/>
+        <Label Grid.Row="1" Grid.Column="1" x:Name="SourceDirectoryPathLabel" Content="{Binding SourceDirectoryPathString}" VerticalAlignment="Center"/>
+        <!--#endregion-->
+
+        <!--#region Target Elements-->
+        <Label Grid.Row="2" Grid.Column="0" Content="Target Identifier" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TargetLabelForOutput" MinWidth="60" VerticalAlignment="Center" Text="{Binding Path=TargetLabelString}"/>
+        <Label Grid.Row="2" Grid.Column="2" Content="{Binding Path=TargetLabelString}" VerticalAlignment="Center"/>
+        <Button Grid.Row="3" Grid.Column="0" x:Name="TargetDirectoryPath"  Click="TargetDirectoryPath_Click" Content="Target Path" VerticalAlignment="Center"/>
+        <Label Grid.Row="3" Grid.Column="1" x:Name="TargetDirectoryPathLabel" Content="{Binding TargetDirectoryPathString}" VerticalAlignment="Center"/>
+        <!--#endregion-->
 
     </Grid>
 </Window>
