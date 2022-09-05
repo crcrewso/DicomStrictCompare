@@ -12,12 +12,12 @@
 	  <Title>DSC Dose Comparison</Title>
 	  <ApplicationManifest>app.manifest</ApplicationManifest>
 	  <UseWindowsForms>True</UseWindowsForms>
+	  <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="ModelViews\" />
-    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>

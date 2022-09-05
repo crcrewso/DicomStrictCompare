@@ -86,7 +86,7 @@ namespace DCS_WPF
             }
         }
 
-
+        public int SourceDoseFileCount { get; private set; } = -1;
 
 
 
@@ -96,10 +96,10 @@ namespace DCS_WPF
         {
 
             InitializeComponent();
-            SourceLabelString = Properties.Resources.DefaultSourceLabel;
-            TargetLabelString = Properties.Resources.DefaultTargetLabel;
-            SourceDirectoryPathString = Properties.Resources.DefaultSourceDirectory;
-            TargetDirectoryPathString = Properties.Resources.DefaultTargetDirectory;
+            _sourceLabelString = Properties.Resources.DefaultSourceLabel;
+            _targetLabelString = Properties.Resources.DefaultTargetLabel;
+            _sourceDirectoryPathString = Properties.Resources.DefaultSourceDirectory;
+            _targetDirectoryPathString = Properties.Resources.DefaultTargetDirectory;
             MainGrid.DataContext = this; // This is what binds this window's properties to the xaml view!
         }
 

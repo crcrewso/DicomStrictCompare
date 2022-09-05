@@ -1,0 +1,6 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:String x:Key="ToolTipSaveName">This will be the name of the root folder containing all of the resulting plots and excel files.</sys:String>
+    <sys:String x:Key="ToolTipSubtitle">This is a consistent subtitle for each plot produced by this run.</sys:String>
+</ResourceDictionary>

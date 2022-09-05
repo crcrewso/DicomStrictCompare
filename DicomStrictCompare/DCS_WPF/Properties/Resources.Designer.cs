@@ -113,5 +113,23 @@ namespace DCS_WPF.Properties {
                 return ResourceManager.GetString("DefaultTargetLabel", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This will be the name of the root folder containing all of the resulting plots and excel files..
+        /// </summary>
+        internal static string ToolTipSaveName {
+            get {
+                return ResourceManager.GetString("ToolTipSaveName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is a consistent subtitle for each plot produced by this run. .
+        /// </summary>
+        internal static string ToolTipSubtitle {
+            get {
+                return ResourceManager.GetString("ToolTipSubtitle", resourceCulture);
+            }
+        }
     }
 }

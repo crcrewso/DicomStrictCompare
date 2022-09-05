@@ -10,8 +10,12 @@
         >
     <Grid x:Name="MainGrid" Margin="10,10,10,10">
         <!--#region Grid setup-->
+        <Grid.Resources>
+            <ResourceDictionary Source="Views/TextDictionary.xaml"/>
+        </Grid.Resources>
         
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -23,25 +27,44 @@
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <!--#endregion-->
         
         <!--#region Source Elements-->
         <Label Grid.Row="0" Grid.Column="0" Content="Source Identifier" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="0" Grid.Column="1" x:Name="SourceLabelForOutput" MinWidth="60" VerticalAlignment="Center" Text="{Binding Path=SourceLabelString}"/>
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="SourceLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=SourceLabelString}"/>
         <Label Grid.Row="0" Grid.Column="2" Content="{Binding Path=SourceLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="1" Grid.Column="0" x:Name="SourceDirectoryPath"  Click="SourceDirectoryPath_Click" Content="Source Path" VerticalAlignment="Center"/>
         <Label Grid.Row="1" Grid.Column="1" x:Name="SourceDirectoryPathLabel" Content="{Binding SourceDirectoryPathString}" VerticalAlignment="Center"/>
+        <Label Grid.Row="0" Grid.Column="2" Content="Source dose files found" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+        <Label Grid.Row="1" Grid.Column="2" Content="{Binding Path=SourceDoseFileCount}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
         <!--#endregion-->
 
         <!--#region Target Elements-->
         <Label Grid.Row="2" Grid.Column="0" Content="Target Identifier" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TargetLabelForOutput" MinWidth="60" VerticalAlignment="Center" Text="{Binding Path=TargetLabelString}"/>
+        <TextBox Grid.Row="2" Grid.Column="1" x:Name="TargetLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=TargetLabelString}"/>
         <Label Grid.Row="2" Grid.Column="2" Content="{Binding Path=TargetLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="3" Grid.Column="0" x:Name="TargetDirectoryPath"  Click="TargetDirectoryPath_Click" Content="Target Path" VerticalAlignment="Center"/>
         <Label Grid.Row="3" Grid.Column="1" x:Name="TargetDirectoryPathLabel" Content="{Binding TargetDirectoryPathString}" VerticalAlignment="Center"/>
+        <Label Grid.Row="2" Grid.Column="2" Content="Target dose files found" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+        <Label Grid.Row="3" Grid.Column="2" Content="{Binding Path=TargetDoseFileCount}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
         <!--#endregion-->
 
+        <!--#region Save Elements-->
+        <Label Grid.Row="4" Grid.Column="0" Content="Save Name" VerticalAlignment="Center" ToolTip="{StaticResource ToolTipSaveName}"/>
+        <TextBox Grid.Row="4" Grid.Column="1" x:Name="SaveLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=SaveLabelString}"/>
+        <Label Grid.Row="4" Grid.Column="2" Content="{Binding Path=SaveLabelString}" VerticalAlignment="Center"/>
+        <Button Grid.Row="5" Grid.Column="0" x:Name="SaveDirectoryPath"  Click="TargetDirectoryPath_Click" Content="Save Path" VerticalAlignment="Center"/>
+        <Label Grid.Row="5" Grid.Column="1" x:Name="SaveDirectoryPathLabel" Content="{Binding SaveDirectoryPathString}" VerticalAlignment="Center"></Label>
+        <!--#endregion-->
+
+        
+        
+        
+        
     </Grid>
 </Window>
