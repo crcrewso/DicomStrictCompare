@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Forms;
 using System.IO;
+using System.Windows.Markup;
 
 namespace DCS_WPF
 {
@@ -30,6 +31,9 @@ namespace DCS_WPF
         string _targetLabelString;
         string _sourceDirectoryPathString;
         string _targetDirectoryPathString;
+        string _saveLabelString;
+        string _saveDirectoryPathString;
+        int _progressValue;
         #endregion
 
         #region Properties
@@ -62,6 +66,16 @@ namespace DCS_WPF
             }
         }
 
+        public string SaveLabelString
+        {
+            get { return _saveLabelString; }
+            set
+            {
+                _saveLabelString = value;
+                OnPropertyChanged(nameof(SaveLabelString));
+            }
+        }
+
         // weird way to make sure it's never null 
         public string SourceDirectoryPathString
         {
@@ -85,9 +99,35 @@ namespace DCS_WPF
 
             }
         }
+        public string SaveDirectoryPathString
+        {
+            get => _saveDirectoryPathString;
+            set
+            {
+                if (value != null)
+                    _saveDirectoryPathString = value;
+                OnPropertyChanged(nameof(SaveDirectoryPathString));
+
+            }
+        }
 
         public int SourceDoseFileCount { get; private set; } = -1;
 
+        public int TargetDoseFileCount { get; private set; } = -1;
+
+        public int ProgressValue
+        {
+            get => _progressValue;
+            set
+            {
+                if (value < 0)
+                    _progressValue = 0;
+                if (value > 100)
+                    _progressValue = 100;
+                else
+                    _progressValue = value;
+            }
+        }
 
 
         #endregion
@@ -98,8 +138,11 @@ namespace DCS_WPF
             InitializeComponent();
             _sourceLabelString = Properties.Resources.DefaultSourceLabel;
             _targetLabelString = Properties.Resources.DefaultTargetLabel;
+            _saveLabelString = Properties.Resources.DefaultSaveLabel;
             _sourceDirectoryPathString = Properties.Resources.DefaultSourceDirectory;
             _targetDirectoryPathString = Properties.Resources.DefaultTargetDirectory;
+            _saveDirectoryPathString= Properties.Resources.DefaultSaveDirectory;
+            
             MainGrid.DataContext = this; // This is what binds this window's properties to the xaml view!
         }
 
@@ -113,7 +156,6 @@ namespace DCS_WPF
         }
 
 
-
         #endregion
 
 
@@ -122,7 +164,7 @@ namespace DCS_WPF
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             dialog.ShowNewFolderButton = true;
-            dialog.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Directory.GetParent(path: SourceDirectoryPathString).FullName.ToString());
+            dialog.InitialDirectory = System.IO.Path.GetFullPath(Directory.GetParent(path: SourceDirectoryPathString).FullName.ToString());
             DialogResult dialogResult = dialog.ShowDialog();
             if (dialogResult == System.Windows.Forms.DialogResult.OK)
             {
@@ -138,7 +180,7 @@ namespace DCS_WPF
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             dialog.ShowNewFolderButton = true;
-            dialog.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Directory.GetParent(path: TargetDirectoryPathString).FullName.ToString());
+            dialog.InitialDirectory = System.IO.Path.GetFullPath(Directory.GetParent(path: TargetDirectoryPathString).FullName.ToString());
             DialogResult dialogResult = dialog.ShowDialog();
             if (dialogResult == System.Windows.Forms.DialogResult.OK)
             {
@@ -151,5 +193,16 @@ namespace DCS_WPF
         }
 
         #endregion
+
+        private void addDTASet_Click(object sender, RoutedEventArgs e)
+        {
+            Views.AddDta addDta = new Views.AddDta();
+            addDta.Show();
+        }
+
+        private void RunButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -115,20 +115,17 @@ namespace DCS_WPF.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This will be the name of the root folder containing all of the resulting plots and excel files..
+        ///   Looks up a localized string similar to Welcome to the Dicom Dose Batch Comparison Utility.
+        ///        Expects  - Two folders, each filled with dicom dose files from the same patient,
+        ///                 - The expected difference is that they were in some way calculated differently
+        ///        Each of the following folders can have subfolders, they don&apos;t need to match layout.
+        ///        Source - The set of Files you Trust
+        ///        Target - The set of Files you want to determine how different they are from source
+        ///Save - Directory you want to save the resu [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string ToolTipSaveName {
+        internal static string IntroParagraph {
             get {
-                return ResourceManager.GetString("ToolTipSaveName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This is a consistent subtitle for each plot produced by this run. .
-        /// </summary>
-        internal static string ToolTipSubtitle {
-            get {
-                return ResourceManager.GetString("ToolTipSubtitle", resourceCulture);
+                return ResourceManager.GetString("IntroParagraph", resourceCulture);
             }
         }
     }

@@ -16,8 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
-    <Folder Include="ModelViews\" />
+    <Folder Include="Resources\" />
   </ItemGroup>
 
   <ItemGroup>

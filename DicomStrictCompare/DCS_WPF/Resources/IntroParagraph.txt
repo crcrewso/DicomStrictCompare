@@ -1,0 +1,21 @@
+Welcome to the Dicom Dose Batch Comparison Utility.
+        Expects  - Two folders, each filled with dicom dose files from the same patient,
+                 - The expected difference is that they were in some way calculated differently
+        Each of the following folders can have subfolders, they don't need to match layout.
+        Source - The set of Files you Trust
+        Target - The set of Files you want to determine how different they are from source
+Save - Directory you want to save the results, CSV will be saved to this directory 
+     - PDD comparison plots will be saved into indexed subdirectories
+Save Name - Save Name of the csv file containing the summary information.
+ 
+DTA Definitions:
+Tolerance      - Percent Deviation of Target dose at each point to pass agreement
+DTA            - Distance to agreement in units of mm or voxels, can be 0
+Threshhold     - Percent of Max source below which comparisons will not be made
+Trim           - Allows the user to remove a number of skin voxels from the phantom
+                    Useful if there is a known discrepancy in skin dose between two algorithims
+                    that the user would like to remove from analysis
+Gamma          - if Checked a gamma calculation will be used for comparison, 
+                    if not software defaults to dta 
+Global         - Tolerance difference is percent of peak dose
+Local          - Tolerance difference is percent of source

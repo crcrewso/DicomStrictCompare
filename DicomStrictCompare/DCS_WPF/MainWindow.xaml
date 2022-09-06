@@ -5,15 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DCS_WPF"
         mc:Ignorable="d"
-        Title="This is a failure to compile" Height="800" Width="500"
-        MinHeight="600" MinWidth="400"
+        Title="This is a failure to compile" Height="720" Width="800"
+        MinHeight="800" MinWidth="800"
+        ResizeMode="CanResizeWithGrip"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
         >
+
+
     <Grid x:Name="MainGrid" Margin="10,10,10,10">
         <!--#region Grid setup-->
         <Grid.Resources>
             <ResourceDictionary Source="Views/TextDictionary.xaml"/>
         </Grid.Resources>
-        
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -30,14 +34,16 @@
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <!--#endregion-->
-        
+
+
         <!--#region Source Elements-->
         <Label Grid.Row="0" Grid.Column="0" Content="Source Identifier" VerticalAlignment="Center"/>
         <TextBox Grid.Row="0" Grid.Column="1" x:Name="SourceLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=SourceLabelString}"/>
-        <Label Grid.Row="0" Grid.Column="2" Content="{Binding Path=SourceLabelString}" VerticalAlignment="Center"/>
+        <Label Grid.Row="0" Grid.Column="3" Content="{Binding Path=SourceLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="1" Grid.Column="0" x:Name="SourceDirectoryPath"  Click="SourceDirectoryPath_Click" Content="Source Path" VerticalAlignment="Center"/>
         <Label Grid.Row="1" Grid.Column="1" x:Name="SourceDirectoryPathLabel" Content="{Binding SourceDirectoryPathString}" VerticalAlignment="Center"/>
         <Label Grid.Row="0" Grid.Column="2" Content="Source dose files found" VerticalAlignment="Center" HorizontalAlignment="Left"/>
@@ -47,7 +53,7 @@
         <!--#region Target Elements-->
         <Label Grid.Row="2" Grid.Column="0" Content="Target Identifier" VerticalAlignment="Center"/>
         <TextBox Grid.Row="2" Grid.Column="1" x:Name="TargetLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=TargetLabelString}"/>
-        <Label Grid.Row="2" Grid.Column="2" Content="{Binding Path=TargetLabelString}" VerticalAlignment="Center"/>
+        <Label Grid.Row="2" Grid.Column="3" Content="{Binding Path=TargetLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="3" Grid.Column="0" x:Name="TargetDirectoryPath"  Click="TargetDirectoryPath_Click" Content="Target Path" VerticalAlignment="Center"/>
         <Label Grid.Row="3" Grid.Column="1" x:Name="TargetDirectoryPathLabel" Content="{Binding TargetDirectoryPathString}" VerticalAlignment="Center"/>
         <Label Grid.Row="2" Grid.Column="2" Content="Target dose files found" VerticalAlignment="Center" HorizontalAlignment="Left"/>
@@ -57,14 +63,111 @@
         <!--#region Save Elements-->
         <Label Grid.Row="4" Grid.Column="0" Content="Save Name" VerticalAlignment="Center" ToolTip="{StaticResource ToolTipSaveName}"/>
         <TextBox Grid.Row="4" Grid.Column="1" x:Name="SaveLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=SaveLabelString}"/>
-        <Label Grid.Row="4" Grid.Column="2" Content="{Binding Path=SaveLabelString}" VerticalAlignment="Center"/>
+        <Label Grid.Row="4" Grid.Column="3" Content="{Binding Path=SaveLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="5" Grid.Column="0" x:Name="SaveDirectoryPath"  Click="TargetDirectoryPath_Click" Content="Save Path" VerticalAlignment="Center"/>
         <Label Grid.Row="5" Grid.Column="1" x:Name="SaveDirectoryPathLabel" Content="{Binding SaveDirectoryPathString}" VerticalAlignment="Center"></Label>
         <!--#endregion-->
 
+        <!--#region Controls-->
+        <CheckBox Grid.Row="6" Grid.Column="1" x:Name="makePDDs" Content="Produce PDD Comparison Plots" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0, 5"/>
+        <CheckBox Grid.Row="7" Grid.Column="1" x:Name="makeDoseTable" Content="Produce Dose Comparison Table" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0, 5"/>
+        <ProgressBar Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5"
+                     x:Name="statusBar" Height="auto" MinHeight="20" Margin="30, 5" Value="{Binding ProgressValue}" Maximum="100" Minimum="0"
+                     />
+
+        <!--#endregion-->
+
+        <!--#region DTA Settings-->
+        <Label Grid.Row="0" Grid.Column="3" Content="Tolerance (%)" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="4" x:Name="valueTolerance" VerticalAlignment="Center"/>
+        <Label Grid.Row="1" Grid.Column="3" Content="DTA" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="4" x:Name="valueDTA" VerticalAlignment="Center"/>
+        <Label Grid.Row="2" Grid.Column="3" Content="Threshhold (%)" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="4" x:Name="valueThreshhold" VerticalAlignment="Center"/>
+        <!-- TODO: Add tool tip for the Global checkbox -->
+        <CheckBox Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" Content="Global" x:Name="useGlobalAnalysis" Margin="0, 5"/>
+        <!-- TODO: Add tool tip for the Gamma checkbox -->
+        <CheckBox Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" Content="Gamma" x:Name="useGammaAlgorithm" Margin="0, 5" />
+        <Button Grid.Row="5" Grid.Column="3" Grid.ColumnSpan="2" Content="Run" Margin="0, 5" x:Name="RunButton" Click="RunButton_Click"/>
+        <!--#endregion-->
         
-        
-        
-        
+        <!--#region How to:-->
+        <FlowDocumentReader Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5"
+               x:Name="introParagraphReader"
+               HorizontalAlignment="Stretch"
+               HorizontalContentAlignment="Center"
+               >
+            <FlowDocument IsColumnWidthFlexible="True" >
+                <Paragraph Margin="10" >
+                    <Run Text="Welcome to the Dicom Dose Batch Comparison Utility." FontWeight="Bold"/>
+                </Paragraph>
+                <Paragraph>
+                    <Run Text="This program expects two folders, each filled with dicom dose files from the same patient"/>
+                </Paragraph>
+                <Paragraph>
+                    <Run Text="Each of the following folders can have subfolders, they don't need to match layout."/>
+                </Paragraph>
+                <List>
+                    <ListItem>
+                        <Paragraph>
+                            The expected difference is that they were in some way calculated differently.
+                        </Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>Save - Directory you want to save the results, CSV will be saved to this directory</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>Source - The set of Files you Trust</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>Target - The set of Files you want to determine how different they are from source</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>PDD comparison plots will be saved into indexed subdirectories</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>Save Name - Save Name of the csv file containing the summary information.</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>DTA Definitions: Tolerance - Percent Deviation of Target dose at each point to pass agreement</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>
+                            DTA - Distance to agreement in units of mm or voxels, can be 0
+                        </Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>
+                            Trim - Allows the user to remove a number of skin voxels from the phantom Useful if there is a known discrepancy in skin dose between two algorithims that the user would like to remove from analysis
+                        </Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>
+                            Gamma - if Checked a gamma calculation will be used for comparison, if not software defaults to dta
+                        </Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>
+                            Global - Tolerance difference is percent of peak dose</Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>
+                            Threshhold - Percent of Max source below which comparisons will not be made
+                        </Paragraph>
+                    </ListItem>
+                    <ListItem>
+                        <Paragraph>
+                            Local - Tolerance difference is percent of source
+                        </Paragraph>
+                    </ListItem>
+                </List>
+            </FlowDocument>
+        </FlowDocumentReader>
+        <!--#endregion-->
+
+
+
     </Grid>
+
+
 </Window>
