@@ -34,6 +34,7 @@ namespace DCS_WPF
         string _saveLabelString;
         string _saveDirectoryPathString;
         int _progressValue;
+        ModelViews.MainWindowMV mainWindowMV;
         #endregion
 
         #region Properties
@@ -142,6 +143,7 @@ namespace DCS_WPF
             _sourceDirectoryPathString = Properties.Resources.DefaultSourceDirectory;
             _targetDirectoryPathString = Properties.Resources.DefaultTargetDirectory;
             _saveDirectoryPathString= Properties.Resources.DefaultSaveDirectory;
+            mainWindowMV = new ModelViews.MainWindowMV();
             
             MainGrid.DataContext = this; // This is what binds this window's properties to the xaml view!
         }
