@@ -330,3 +330,5 @@ ASALocalRun/
 .mfractor/
 
 */log.txt
+/DicomStrictCompare/DSCcore/log.txt
+/DicomStrictCompare/DSClibrary/log.txt
