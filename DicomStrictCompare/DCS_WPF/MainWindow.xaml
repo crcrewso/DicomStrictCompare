@@ -35,6 +35,7 @@
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <!--#endregion-->
@@ -43,17 +44,15 @@
         <!--#region Source Elements-->
         <Label Grid.Row="0" Grid.Column="0" Content="Source Identifier" VerticalAlignment="Center"/>
         <TextBox Grid.Row="0" Grid.Column="1" x:Name="SourceLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=SourceLabelString}"/>
-        <Label Grid.Row="0" Grid.Column="3" Content="{Binding Path=SourceLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="1" Grid.Column="0" x:Name="SourceDirectoryPath"  Click="SourceDirectoryPath_Click" Content="Source Path" VerticalAlignment="Center"/>
         <Label Grid.Row="1" Grid.Column="1" x:Name="SourceDirectoryPathLabel" Content="{Binding SourceDirectoryPathString}" VerticalAlignment="Center"/>
-        <Label Grid.Row="0" Grid.Column="2" Content="Source dose files found" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+        <Label Grid.Row="0" Grid.Column="2" Content="Source dose files found" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,1,0,0" Grid.RowSpan="2"/>
         <Label Grid.Row="1" Grid.Column="2" Content="{Binding Path=SourceDoseFileCount}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
         <!--#endregion-->
 
         <!--#region Target Elements-->
         <Label Grid.Row="2" Grid.Column="0" Content="Target Identifier" VerticalAlignment="Center"/>
         <TextBox Grid.Row="2" Grid.Column="1" x:Name="TargetLabelForOutput" MinWidth="120" VerticalAlignment="Center" Text="{Binding Path=TargetLabelString}"/>
-        <Label Grid.Row="2" Grid.Column="3" Content="{Binding Path=TargetLabelString}" VerticalAlignment="Center"/>
         <Button Grid.Row="3" Grid.Column="0" x:Name="TargetDirectoryPath"  Click="TargetDirectoryPath_Click" Content="Target Path" VerticalAlignment="Center"/>
         <Label Grid.Row="3" Grid.Column="1" x:Name="TargetDirectoryPathLabel" Content="{Binding TargetDirectoryPathString}" VerticalAlignment="Center"/>
         <Label Grid.Row="2" Grid.Column="2" Content="Target dose files found" VerticalAlignment="Center" HorizontalAlignment="Left"/>
@@ -69,30 +68,31 @@
         <!--#endregion-->
 
         <!--#region Controls-->
-        <CheckBox Grid.Row="6" Grid.Column="1" x:Name="makePDDs" Content="Produce PDD Comparison Plots" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0, 5"/>
-        <CheckBox Grid.Row="7" Grid.Column="1" x:Name="makeDoseTable" Content="Produce Dose Comparison Table" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0, 5"/>
-        <ProgressBar Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5"
+        <CheckBox Grid.Row="2" Grid.Column="4" x:Name="makePDDs" Content="Produce PDD Comparison Plots" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0, 5"/>
+        <CheckBox Grid.Row="3" Grid.Column="4" x:Name="makeDoseTable" Content="Produce Dose Comparison Table" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0, 5"/>
+        <ProgressBar Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5"
                      x:Name="statusBar" Height="auto" MinHeight="20" Margin="30, 5" Value="{Binding ProgressValue}" Maximum="100" Minimum="0"
                      />
 
         <!--#endregion-->
 
         <!--#region DTA Settings-->
-        <Label Grid.Row="0" Grid.Column="3" Content="Tolerance (%)" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="0" Grid.Column="4" x:Name="valueTolerance" VerticalAlignment="Center"/>
-        <Label Grid.Row="1" Grid.Column="3" Content="DTA" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="1" Grid.Column="4" x:Name="valueDTA" VerticalAlignment="Center"/>
-        <Label Grid.Row="2" Grid.Column="3" Content="Threshhold (%)" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="2" Grid.Column="4" x:Name="valueThreshhold" VerticalAlignment="Center"/>
+        <Label Grid.Row="6" Grid.Column="0" Content="Tolerance (%)" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="6" Grid.Column="1" x:Name="valueTolerance" VerticalAlignment="Center"/>
+        <Label Grid.Row="7" Grid.Column="0" Content="DTA" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="7" Grid.Column="1" x:Name="valueDTA" VerticalAlignment="Center"/>
+        <Label Grid.Row="8" Grid.Column="0" Content="Threshhold (%)" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="8" Grid.Column="1" x:Name="valueThreshhold" VerticalAlignment="Center"/>
         <!-- TODO: Add tool tip for the Global checkbox -->
-        <CheckBox Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" Content="Global" x:Name="useGlobalAnalysis" Margin="0, 5"/>
+        <CheckBox Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2" Content="Global" x:Name="useGlobalAnalysis" Margin="0, 5"/>
         <!-- TODO: Add tool tip for the Gamma checkbox -->
-        <CheckBox Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" Content="Gamma" x:Name="useGammaAlgorithm" Margin="0, 5" />
-        <Button Grid.Row="5" Grid.Column="3" Grid.ColumnSpan="2" Content="Run" Margin="0, 5" x:Name="RunButton" Click="RunButton_Click"/>
+        <CheckBox Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Content="Gamma" x:Name="useGammaAlgorithm" Margin="0, 5" />
+        <Button Grid.Row="6" Grid.Column="3" Grid.ColumnSpan="2" Content="Run" Margin="0, 5" x:Name="RunButton" Click="RunButton_Click"/>
+        <Button Grid.Row="7" Grid.Column="3" Grid.ColumnSpan="2" Content="Save Settings" Margin="0, 5" x:Name="SaveButton" Click="SaveSettins_Click"/>
         <!--#endregion-->
-        
+
         <!--#region How to:-->
-        <FlowDocumentReader Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5"
+        <FlowDocumentReader Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="5"
                x:Name="introParagraphReader"
                HorizontalAlignment="Stretch"
                HorizontalContentAlignment="Center"

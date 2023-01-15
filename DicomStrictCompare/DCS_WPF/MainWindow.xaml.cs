@@ -112,8 +112,17 @@ namespace DCS_WPF
             }
         }
 
+        /// <summary>
+        /// Shows the number of DICOM dose files found in the SOURCE directory of interest 
+        /// </summary>
+        //TODO: not implimented 
         public int SourceDoseFileCount { get; private set; } = -1;
 
+
+        /// <summary>
+        /// Shows the number of DICOM dose files found in the TARGET directory of interest
+        /// </summary>
+        //TODO: Not Implimented 
         public int TargetDoseFileCount { get; private set; } = -1;
 
         public int ProgressValue
@@ -137,14 +146,14 @@ namespace DCS_WPF
         {
 
             InitializeComponent();
-            _sourceLabelString = Properties.Resources.DefaultSourceLabel;
-            _targetLabelString = Properties.Resources.DefaultTargetLabel;
-            _saveLabelString = Properties.Resources.DefaultSaveLabel;
-            _sourceDirectoryPathString = Properties.Resources.DefaultSourceDirectory;
-            _targetDirectoryPathString = Properties.Resources.DefaultTargetDirectory;
-            _saveDirectoryPathString= Properties.Resources.DefaultSaveDirectory;
+            SourceLabelString = Properties.Settings.Default.DefaultSourceLabel;
+            TargetLabelString = Properties.Settings.Default.DefaultTargetLabel;
+            SaveLabelString = Properties.Settings.Default.DefaultSaveLabel;
+            SourceDirectoryPathString = Properties.Settings.Default.DefaultSourceDirectory;
+            TargetDirectoryPathString = Properties.Settings.Default.DefaultTargetDirectory;
+            SaveDirectoryPathString = Properties.Settings.Default.DefaultSaveDirectory;
             mainWindowMV = new ModelViews.MainWindowMV();
-            
+
             MainGrid.DataContext = this; // This is what binds this window's properties to the xaml view!
         }
 
@@ -204,7 +213,13 @@ namespace DCS_WPF
 
         private void RunButton_Click(object sender, RoutedEventArgs e)
         {
+            System.Windows.MessageBox.Show("Not yet Implimented");
+        }
 
+        private void SaveSettins_Click(object sender, RoutedEventArgs e)
+        {
+            Properties.Settings.Default.Save();
+            System.Windows.MessageBox.Show("Updated Settings");
         }
     }
 }

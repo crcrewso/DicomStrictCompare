@@ -1,0 +1,24 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DCS_WPF.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="DefaultSaveDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\Temp\DSCsave</Value>
+    </Setting>
+    <Setting Name="DefaultSaveLabel" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Output</Value>
+    </Setting>
+    <Setting Name="DefaultSourceDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\Temp\Source</Value>
+    </Setting>
+    <Setting Name="DefaultSourceLabel" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Reference</Value>
+    </Setting>
+    <Setting Name="DefaultTargetDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\Temp\Target</Value>
+    </Setting>
+    <Setting Name="DefaultTargetLabel" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Investigation</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

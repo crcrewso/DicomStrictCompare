@@ -61,60 +61,6 @@ namespace DCS_WPF.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to c:\Temp\DSCsave.
-        /// </summary>
-        internal static string DefaultSaveDirectory {
-            get {
-                return ResourceManager.GetString("DefaultSaveDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to MyAnalysis.
-        /// </summary>
-        internal static string DefaultSaveLabel {
-            get {
-                return ResourceManager.GetString("DefaultSaveLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to c:\Temp\Source.
-        /// </summary>
-        internal static string DefaultSourceDirectory {
-            get {
-                return ResourceManager.GetString("DefaultSourceDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Name the reference dataset.
-        /// </summary>
-        internal static string DefaultSourceLabel {
-            get {
-                return ResourceManager.GetString("DefaultSourceLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to c:\Temp\Target.
-        /// </summary>
-        internal static string DefaultTargetDirectory {
-            get {
-                return ResourceManager.GetString("DefaultTargetDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Describe the dataset to be investigated.
-        /// </summary>
-        internal static string DefaultTargetLabel {
-            get {
-                return ResourceManager.GetString("DefaultTargetLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Welcome to the Dicom Dose Batch Comparison Utility.
         ///        Expects  - Two folders, each filled with dicom dose files from the same patient,
         ///                 - The expected difference is that they were in some way calculated differently
