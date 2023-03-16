@@ -432,5 +432,15 @@ namespace DSClibraryTests.Properties {
                 return ResourceManager.GetString("TextFile1", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] X06_OPEN_30X30_PDDCRIN_TBA_180406_16_02_52 {
+            get {
+                object obj = ResourceManager.GetObject("X06_OPEN_30X30_PDDCRIN_TBA_180406_16_02_52", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

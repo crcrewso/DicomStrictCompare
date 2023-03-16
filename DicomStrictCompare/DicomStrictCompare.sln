@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DSClibrary", "DSClibrary\DS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DSClibraryTests", "DSClibraryTests\DSClibraryTests.csproj", "{70EE91F6-0029-4F92-9E28-76F3E32D44F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSCprofiles", "DSCprofiles\DSCprofiles.csproj", "{691537B9-982A-4197-82C9-B5ECACBCB44C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DSCprofiles", "DSCprofiles\DSCprofiles.csproj", "{691537B9-982A-4197-82C9-B5ECACBCB44C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

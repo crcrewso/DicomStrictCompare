@@ -229,4 +229,7 @@
   <data name="TextFile1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\textfile1.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="X06_OPEN_30X30_PDDCRIN_TBA_180406_16_02_52" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PTW Scans\X06 OPEN 30X30 PDDCRIN TBA 180406 16'02'52.mcc;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
