@@ -13,10 +13,11 @@ namespace DSClibrary
     /// </summary>
     public class ParsePTW
     {
-        public string filename { get; init; }
-        public string filePath;
-        public string fileFormat;
-        public List<PTWScan> pTWScans;
+        public string Filename { get; init; }
+
+        public string FilePath { get; init; }
+        public string FileFormat { get; init; }
+        public List<PTWScan> PTWScans { get; init; }
 
         /// <summary>
         /// Expects the full path of a file of interest
@@ -24,9 +25,9 @@ namespace DSClibrary
         /// <param name="file"></param>
         public ParsePTW(string file)
         {
-            filename = Path.GetFileName(file);
-            filePath = Path.GetFullPath(file);
-            pTWScans = new List<PTWScan>();
+            Filename = Path.GetFileName(file);
+            FilePath = Path.GetFullPath(file);
+            PTWScans = new List<PTWScan>();
             string[] lines = System.IO.File.ReadAllLines(file);
             if (lines.Length < 2)
                 throw new FileLoadException("File is either empty or unreadable");
@@ -34,7 +35,9 @@ namespace DSClibrary
                 throw new ArgumentException("File is not a MCC file");
             string formatLine = lines[1];
             if (formatLine.Contains("FORMAT="))
-                fileFormat = formatLine.Split('=')[1].Trim();
+                FileFormat = formatLine.Split('=')[1].Trim();
+            else
+                FileFormat = "Unknown";
             List<long> beginLines = new List<long>();
             List<long> endLines = new List<long>();
             for (long line = 2; line < lines.Length; line++)
@@ -56,7 +59,7 @@ namespace DSClibrary
                 string[] scanBody = new string[length];
                 Array.Copy(lines, beginMarker, scanBody, 0, length);
                 PTWScan tempScan = new PTWScan(scanBody);
-                pTWScans.Add(tempScan);
+                PTWScans.Add(tempScan);
             }
 
         }

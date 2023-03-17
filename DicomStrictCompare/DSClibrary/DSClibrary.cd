@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Alphabetical" MembersFormat="FullSignature">
+  <Class Name="DSClibrary.DoseMatrixOptimal" Collapsed="true">
+    <Position X="6" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>ICAAAAKAAAEAAAAAAC0AQARQAIAAAQAEYAEgAAIAAAA=</HashCode>
+      <FileName>DoseMatrixOptimal.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DSClibrary.Dta" Collapsed="true">
+    <Position X="7.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAABAAAAACIEAEgAAAAAAACAAAAABAAQAAAAQBABA=</HashCode>
+      <FileName>dta.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DSClibrary.IMathematics" Collapsed="true">
+    <Position X="6" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAABAAAABAAAAAAAABAAAAA=</HashCode>
+      <FileName>Mathematics.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DSClibrary.ParsePTW">
+    <Position X="0.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAAAAAAAgAAAAAAAAAAAAAAEAAAAAAAAwACAA=</HashCode>
+      <FileName>ParsePTW.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="PTWScans" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="DSClibrary.PTWScan">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAAIABAACEAAAAAAAAAAAAgAAIEAAAJAA=</HashCode>
+      <FileName>ParsePTW.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DSClibrary.ProfileTools" Collapsed="true">
+    <Position X="7.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAAAAAAAAAAAAAABAAAAACAAAAAE=</HashCode>
+      <FileName>ProfileTools.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

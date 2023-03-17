@@ -65,14 +65,14 @@ namespace DSClibrary.Tests
         public void PTWFileReadTest()
         {
             var temp = new ParsePTW(Path.Join(testFilePath, testFileName));
-            Assert.IsTrue(temp.pTWScans.Count > 0);
+            Assert.IsTrue(temp.PTWScans.Count > 0);
         }
 
         [TestMethod()]
         public void PTWFileCorrectCount()
         {
             var temp = new ParsePTW(Path.Join(testFilePath, testFileName));
-            Assert.AreEqual(11, temp.pTWScans.Count);
+            Assert.AreEqual(11, temp.PTWScans.Count);
         }
 
 
@@ -80,7 +80,7 @@ namespace DSClibrary.Tests
         public void PTWFileFormatCorrect()
         {
             var temp = new ParsePTW(Path.Join(testFilePath, testFileName));
-            Assert.AreEqual("CC-Export V1.9", temp.fileFormat);
+            Assert.AreEqual("CC-Export V1.9", temp.FileFormat);
         }
 
     }

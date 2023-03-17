@@ -7,6 +7,7 @@ namespace DSClibrary
 {
     public static class ProfileTools
     {
+
         /// <summary>
         /// Outputs the distance between two points. Uses the Pythagorean theorum to do it. 
         /// </summary>
