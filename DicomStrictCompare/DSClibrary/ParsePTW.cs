@@ -93,10 +93,14 @@ namespace DSClibrary
         public string LINAC { get; init; }
         public string Modality { get; init; }
         public double Energy { get; init; }
+        public bool IsFFF { get; init; } = false;
         public string InPlaneAxis { get; init; }
         public string CrossPlaneAxis { get; init; }
         public string InPlaneDirection { get; init; }
         public string CrossPlaneDirection { get; init; }
+        public string DepthAxis { get; init; }
+        public string DepthDirection { get; init; }
+        public double SSD { get; init; }
 
         public double Field_Inplane { get; init; }
         public double Field_Crossplane { get; init; }
@@ -134,6 +138,7 @@ namespace DSClibrary
             #endregion
             #region Header
             // Populate Dictionary
+            // depends on header being of the form \t\t<key>=<value>
             for (int i = 1; i < beginDataLine -1; i++)
             {
                 string[] temp = sourceScan[i].Split('=');;
@@ -144,6 +149,17 @@ namespace DSClibrary
             LINAC = _scanHeaders.GetValueOrDefault("LINAC", "");
             Modality = _scanHeaders.GetValueOrDefault("MODALITY", "");
             Energy = double.Parse(_scanHeaders.GetValueOrDefault("ENERGY","0"));
+            InPlaneAxis = _scanHeaders.GetValueOrDefault("INPLANE_AXIS", "Inplane");
+            CrossPlaneAxis = _scanHeaders.GetValueOrDefault("CROSSPLANE_AXIS", "Crossplane");
+            InPlaneDirection = _scanHeaders.GetValueOrDefault("INPLANE_AXIS_DIR", "GUN_TARGET");
+            CrossPlaneDirection = _scanHeaders.GetValueOrDefault("CROSSPLANE_AXIS_DIR", "LEFT_RIGHT");
+            DepthAxis = _scanHeaders.GetValueOrDefault("CROSSPLANE_AXIS_DIR", "Depth");
+            DepthDirection = _scanHeaders.GetValueOrDefault("CROSSPLANE_AXIS_DIR", "DOWN_UP");
+            SSD = double.Parse(_scanHeaders.GetValueOrDefault("SSD", "0")) / 10.0; // PTW stores ssd in millimeters 
+            Field_Inplane = double.Parse(_scanHeaders.GetValueOrDefault("FIELD_INPLANE", "0")) / 10.0; // PTW stores ssd in millimeters 
+            Field_Crossplane = double.Parse(_scanHeaders.GetValueOrDefault("FIELD_CROSSPLANE", "0")) / 10.0; // PTW stores ssd in millimeters 
+            IsFFF = _scanHeaders.GetValueOrDefault("FILTER", "FF") == "FFF" ? true : false;
+
             #endregion
 
 
