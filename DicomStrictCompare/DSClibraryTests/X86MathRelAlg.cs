@@ -60,11 +60,6 @@ namespace DSClibraryTests
         [TestCleanup()]
         public void Cleanup()
         {
-            source = null;
-            target = null;
-            sourceFile = null;
-            targetFile = null;
-
         }
 
         /// <summary>

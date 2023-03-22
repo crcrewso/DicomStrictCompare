@@ -16,12 +16,12 @@ namespace DSClibraryTests
     public class X86MathSimpleTests : X86Mathematics
     {
 
-        DoseMatrixOptimal source;
+        DoseMatrixOptimal? source;
         IMathematics mathematics;
 
-        byte[] sourceFile;
+        byte[]? sourceFile;
 
-        Dta dta00a;
+        Dta? dta00a;
 
         [TestInitialize]
         public void Initialize()

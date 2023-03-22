@@ -26,7 +26,7 @@ namespace DSClibraryTests
                 [DtaTypes.t0d0p0voxTrim10] = new Dta(false, 0, 0, 0, false, false, 10)
             };
 
-        DoseMatrixOptimal refDose, targetDose;
+        DoseMatrixOptimal? refDose, targetDose;
 
         [TestInitialize()]
         public void Initialize()
@@ -37,7 +37,7 @@ namespace DSClibraryTests
         [TestCleanup()]
         public void Cleanup()
         {
-            mathematics = null;
+           
         }
 
 

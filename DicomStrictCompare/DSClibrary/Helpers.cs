@@ -22,7 +22,7 @@ namespace DSClibrary
             _uuid = uuid;
         }
 
-        public static implicit operator UUID(string uuid)
+        public static implicit operator UUID(string? uuid)
         {
             if (ReferenceEquals(null, uuid))
                 return null;
@@ -30,7 +30,7 @@ namespace DSClibrary
             return new UUID(uuid);
         }
 
-        public static implicit operator string(UUID uuid)
+        public static implicit operator string(UUID? uuid)
         {
             if (ReferenceEquals(null, uuid))
                 return null;
@@ -44,13 +44,13 @@ namespace DSClibrary
         {
             return !Equals(left, right);
         }
-        public bool Equals(UUID other)
+        public bool Equals(UUID? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return _uuid == other._uuid;
         }
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
