@@ -21,7 +21,7 @@ namespace DSClibraryTests
 
         byte[]? sourceFile;
 
-        Dta? dta00a;
+        Dta dta00a;
 
         [TestInitialize]
         public void Initialize()

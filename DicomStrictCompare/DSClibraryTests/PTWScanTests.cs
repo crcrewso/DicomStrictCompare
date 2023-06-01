@@ -12,10 +12,10 @@ namespace DSClibrary.Tests
     [TestClass()]
     public class PTWScanTests
     {
-        string basicScan;
-        string[] basicScanSplit;
-        string testFileName;
-        string testFilePath;
+        string? basicScan;
+        string[]? basicScanSplit;
+        string? testFileName;
+        string? testFilePath;
 
         [ClassInitialize()]
         public static void Setup(TestContext context)

@@ -21,8 +21,10 @@ namespace DSClibrary
 
         /// <summary>
         /// Expects the full path of a file of interest
+        /// First scans each file for all 'BEGIN_SCAN' references, and forms lists of beam starting points
+        /// then parses each scan start using PTWScan
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="file">MCC File containing 1 or more scans</param>
         public ParsePTW(string file)
         {
             Filename = Path.GetFileName(file);

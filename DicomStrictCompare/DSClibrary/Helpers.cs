@@ -11,6 +11,10 @@ namespace DSClibrary
 {
 
     public enum DoseType { Relative, Absolute}
+    public enum Device { Profiler2, ICProfiler, LA48 }
+    public enum FileExtension { prm, prs, mcc}
+    public enum DetectorType { IonChamber, Diode, ICArray, DiodeArray}
+
 
 
     public class UUID :IEquatable<UUID>
@@ -25,7 +29,7 @@ namespace DSClibrary
         public static implicit operator UUID(string? uuid)
         {
             if (ReferenceEquals(null, uuid))
-                return null;
+                return uuid;
 
             return new UUID(uuid);
         }
@@ -33,7 +37,7 @@ namespace DSClibrary
         public static implicit operator string(UUID? uuid)
         {
             if (ReferenceEquals(null, uuid))
-                return null;
+                return uuid;
             return uuid._uuid;
         }
         public static bool operator ==(UUID left, UUID right)
