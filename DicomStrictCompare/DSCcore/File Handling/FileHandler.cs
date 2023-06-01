@@ -1,19 +1,12 @@
 ﻿using System;
-using System.CodeDom;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using EvilDICOM.Core;
-using EvilDICOM.Core.Element;
 using EvilDICOM.Core.Helpers;
-using EvilDICOM.Core.Modules;
 using EvilDICOM.RT;
-using EvilDICOM.CV;
 
 namespace DCSCore
 {
