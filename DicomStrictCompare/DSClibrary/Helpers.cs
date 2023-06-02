@@ -1,11 +1,5 @@
 ﻿using EvilDICOM.Core.Helpers;
 using EvilDICOM.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SqlTypes;
 
 namespace DSClibrary
 {
@@ -14,6 +8,8 @@ namespace DSClibrary
     public enum Device { Profiler2, ICProfiler, LA48 }
     public enum FileExtension { prm, prs, mcc}
     public enum DetectorType { IonChamber, Diode, ICArray, DiodeArray}
+    public enum ProfileType { PDD, X, Y, Diagonal }
+    public enum NormalizationType { Absolute, CAX, Max}
 
 
 
@@ -80,14 +76,16 @@ namespace DSClibrary
     {
         public static bool IsPlanFile(this DICOMObject dcm)
         {
-            if ((dcm.FindFirst(TagHelper.Modality).ToString() ?? "").Contains("RTPLAN"))
+            string _dcmTag = dcm.FindFirst(TagHelper.Modality).ToString() ?? "";
+            if (_dcmTag.Contains("RTPLAN"))
                 return true;
             return false;
         }
 
         public static bool IsDoseFile(this DICOMObject dcm)
         {
-            if ((dcm.FindFirst(TagHelper.Modality).ToString() ?? "").Contains("RTDOSE"))
+            string _dcmTag = dcm.FindFirst(TagHelper.Modality).ToString() ?? "";
+            if (_dcmTag.Contains("RTDOSE"))
                 return true;
             return false;
         }

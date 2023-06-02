@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DSClibraryTests
+namespace DSClibrary.Tests
 {
     [TestClass()]
     public class IMathematicsTests

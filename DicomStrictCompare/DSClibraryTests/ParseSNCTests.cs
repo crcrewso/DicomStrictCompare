@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DSClibrary.Parsers;
 
-namespace DSClibrary.Tests
+
+namespace DSClibrary.Parsers.Tests
 {
     [TestClass()]
     public class ParseSNCTests

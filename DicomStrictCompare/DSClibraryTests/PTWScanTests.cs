@@ -1,8 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
-using DSClibrary.Parsers;
 
-namespace DSClibrary.Tests
+namespace DSClibrary.Parsers.Tests
 {
     [TestClass()]
     public class PTWScanTests
@@ -19,7 +18,7 @@ namespace DSClibrary.Tests
             setupPath = Path.Join(setupPath, "PTWScanTest");
             string setupTestFile = "scanTestFile.mcc";
             System.IO.Directory.CreateDirectory(setupPath);
-            System.IO.File.WriteAllBytes(Path.Join(setupPath, setupTestFile), Properties.Resources.X06_OPEN_30X30_PDDCRIN_TBA_180406_16_02_52);
+            System.IO.File.WriteAllBytes(Path.Join(setupPath, setupTestFile), DSClibrary.Tests.Properties.Resources.X06_OPEN_30X30_PDDCRIN_TBA_180406_16_02_52);
             
         }
 
