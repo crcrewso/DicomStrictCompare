@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace DSClibrary
+namespace DSClibrary.Parsers
 {
     /// <summary>
     /// This class is able to take a PTW profile file and parse the individual profiles, including profile type, beam settings, and individual profiles. 
@@ -30,7 +30,7 @@ namespace DSClibrary
             Filename = Path.GetFileName(file);
             FilePath = Path.GetFullPath(file);
             PTWScans = new List<PTWScan>();
-            string[] lines = System.IO.File.ReadAllLines(file);
+            string[] lines = File.ReadAllLines(file);
             if (lines.Length < 2)
                 throw new FileLoadException("File is either empty or unreadable");
             if (!lines[0].Contains("BEGIN_SCAN_DATA"))
@@ -141,16 +141,16 @@ namespace DSClibrary
             #region Header
             // Populate Dictionary
             // depends on header being of the form \t\t<key>=<value>
-            for (int i = 1; i < beginDataLine -1; i++)
+            for (int i = 1; i < beginDataLine - 1; i++)
             {
-                string[] temp = sourceScan[i].Split('=');;
+                string[] temp = sourceScan[i].Split('='); ;
                 _scanHeaders.Add(temp[0].Trim(), temp[1].Trim());
             }
 
             Task_Name = _scanHeaders.GetValueOrDefault("TASK_NAME", "");
             LINAC = _scanHeaders.GetValueOrDefault("LINAC", "");
             Modality = _scanHeaders.GetValueOrDefault("MODALITY", "");
-            Energy = double.Parse(_scanHeaders.GetValueOrDefault("ENERGY","0"));
+            Energy = double.Parse(_scanHeaders.GetValueOrDefault("ENERGY", "0"));
             InPlaneAxis = _scanHeaders.GetValueOrDefault("INPLANE_AXIS", "Inplane");
             CrossPlaneAxis = _scanHeaders.GetValueOrDefault("CROSSPLANE_AXIS", "Crossplane");
             InPlaneDirection = _scanHeaders.GetValueOrDefault("INPLANE_AXIS_DIR", "GUN_TARGET");

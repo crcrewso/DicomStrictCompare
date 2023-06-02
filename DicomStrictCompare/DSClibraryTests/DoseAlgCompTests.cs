@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
 
-namespace DSClibraryTests
+namespace DSClibrary.Tests
 {
     /// <summary>
     /// Compares the various algorithm methods to allow for regression testing. 
@@ -37,7 +37,7 @@ namespace DSClibraryTests
         [TestCleanup()]
         public void Cleanup()
         {
-           
+
         }
 
 

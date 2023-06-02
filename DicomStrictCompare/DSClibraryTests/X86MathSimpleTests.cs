@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DSClibrary;
 
-namespace DSClibraryTests
+namespace DSClibrary.Tests
 {
     /// <summary>
     /// Basic functionality testing, no math, 

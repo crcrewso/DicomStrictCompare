@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
 
-namespace DSClibraryTests
+namespace DSClibrary.Tests
 {
     [TestClass]
     public class X86MathRelAlg

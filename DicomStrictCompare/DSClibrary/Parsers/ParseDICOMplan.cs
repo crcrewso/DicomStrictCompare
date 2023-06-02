@@ -9,7 +9,7 @@ using EvilDICOM;
 using EvilDICOM.Core;
 using EvilDICOM.Core.Helpers;
 
-namespace DSClibrary
+namespace DSClibrary.Parsers
 {
     public class ParseDICOMplan : List<DICOMdose>
     {

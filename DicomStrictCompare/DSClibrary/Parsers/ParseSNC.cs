@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DSClibrary
+namespace DSClibrary.Parsers
 {
     public class ParseSNC
     {
@@ -20,7 +20,7 @@ namespace DSClibrary
             }
             Filename = Path.GetFileName(file);
             FilePath = Path.GetFullPath(file);
-            string[] lines = System.IO.File.ReadAllLines(file);
+            string[] lines = File.ReadAllLines(file);
             if (lines.Length < 2)
                 throw new FileLoadException("File is either empty or unreadable");
             if (!lines[lines.Length - 2].StartsWith("Data:"))
@@ -75,15 +75,15 @@ namespace DSClibrary
             yAxis = new List<int>();
             posDiag = new List<int>();
             negDiag = new List<int>();
-            CaxCount = Int32.Parse(array[36]);
+            CaxCount = int.Parse(array[36]);
             for (int i = xstart; i < ystart; i++)
-                xAxis.Add(Int32.Parse(array[i]));
+                xAxis.Add(int.Parse(array[i]));
             for (int i = ystart; i < posDiagStart; i++)
-                yAxis.Add(Int32.Parse(array[i]));
+                yAxis.Add(int.Parse(array[i]));
             for (int i = posDiagStart; i < negDiagStart; i++)
-                posDiag.Add(Int32.Parse(array[i]));
+                posDiag.Add(int.Parse(array[i]));
             for (int i = negDiagStart; i < end; i++)
-                negDiag.Add(Int32.Parse(array[i]));
+                negDiag.Add(int.Parse(array[i]));
             XAxis = Normalize(xAxis);
             YAxis = Normalize(yAxis);
             PosDiag = Normalize(posDiag);
@@ -100,7 +100,7 @@ namespace DSClibrary
             double[] ret = new double[list.Count];
             for (int i = 0; i < list.Count; i++)
             {
-                ret[i] = (double)list[i] / (double)CaxCount;
+                ret[i] = list[i] / (double)CaxCount;
             }
 
 
