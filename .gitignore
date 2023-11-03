@@ -332,3 +332,5 @@ ASALocalRun/
 */log.txt
 /DicomStrictCompare/DSCcore/log.txt
 /DicomStrictCompare/DSClibrary/log.txt
+
+.idea

@@ -14,11 +14,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="docfx" Version="2.59.3" />
-    <PackageReference Include="docfx.console" Version="2.59.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="EvilDICOM" Version="2.0.6.5" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>

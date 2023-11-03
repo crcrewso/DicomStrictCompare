@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSClibrary", "DSClibrary\DS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSClibraryTests", "DSClibraryTests\DSClibraryTests.csproj", "{70EE91F6-0029-4F92-9E28-76F3E32D44F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSCavalonia", "DSCavalonia\DSCavalonia.csproj", "{9F67F753-7879-49EA-A856-3949BA5A6A8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,14 @@ Global
 		{70EE91F6-0029-4F92-9E28-76F3E32D44F2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{70EE91F6-0029-4F92-9E28-76F3E32D44F2}.Release|x64.ActiveCfg = Release|Any CPU
 		{70EE91F6-0029-4F92-9E28-76F3E32D44F2}.Release|x64.Build.0 = Release|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{9F67F753-7879-49EA-A856-3949BA5A6A8B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
