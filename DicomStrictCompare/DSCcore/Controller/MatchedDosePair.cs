@@ -41,7 +41,7 @@ namespace DCSCore
 
         }
 
-        readonly Model.Dta[] _dtas;
+        readonly Dta[] _dtas;
         readonly SingleComparison[] _comparisons;
         public int TotalCount { get; private set; }
         public int TotalCompared { get; private set; } = 0;
@@ -69,7 +69,7 @@ namespace DCSCore
         public string ResultString => String.Join(",", ResultArray());
         public string ResultHeader => String.Join(",", ResultArrayHeaderRow0()) + "\n" + String.Join(",", ResultArrayHeaderRow1()) + "\n";
 
-        public static string StaticResultHeader(Model.Dta[] dtas)
+        public static string StaticResultHeader(Dta[] dtas)
         {
             return String.Join(",", ResultArrayHeaderRow0(dtas)) + "\n" + String.Join(",", ResultArrayHeaderRow1(dtas)) + "\n";
         }
@@ -131,7 +131,7 @@ namespace DCSCore
 
             return ret.ToArray();
         }
-        static string[] ResultArrayHeaderRow0(Model.Dta[] dtas)
+        static string[] ResultArrayHeaderRow0(Dta[] dtas)
         {
             List<string> ret = new List<string>();
             ret.AddRange(Enumerable.Repeat(" ", 2));
@@ -162,7 +162,7 @@ namespace DCSCore
             return ret.ToArray();
         }
 
-        static string[] ResultArrayHeaderRow1(Model.Dta[] dtas)
+        static string[] ResultArrayHeaderRow1(Dta[] dtas)
         {
             List<string> ret = new List<string>
             {
@@ -237,12 +237,12 @@ namespace DCSCore
         /// </summary>
         public void Evaluate(IMathematics mathematics)
         {
-            Model.DoseMatrixOptimal sourceDose = new Model.DoseMatrixOptimal(_source.DoseMatrix());
-            Model.DoseMatrixOptimal targetDose = new Model.DoseMatrixOptimal(_target.DoseMatrix());
+            DoseMatrixOptimal sourceDose = new DoseMatrixOptimal(_source.DoseMatrix());
+            DoseMatrixOptimal targetDose = new DoseMatrixOptimal(_target.DoseMatrix());
             TotalCount = targetDose.Length;
             Debug.WriteLine("\n\n\nEvaluating " + _source.FileName + " and " + _target.FileName + " Dimensions disagree");
             Debug.WriteLine("Max dose: Source - " + sourceDose.MaxPointDose.Dose + " Target - " + targetDose.MaxPointDose.Dose);
-            Model.SingleComparison ret;
+            SingleComparison ret;
             for (int i = 0; i < _dtas.Length; i++)
             {
                 if (_dtas[i].Global)

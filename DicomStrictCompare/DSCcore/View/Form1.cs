@@ -192,6 +192,7 @@ namespace DSC
         {
             //TODO: impliment proper threadding request
             DCSCore.Controller.Settings settings = new DCSCore.Controller.Settings(Dtas.ToArray(), chkDoseCompare.Checked, chkPDDCompare.Checked, false, Environment.ProcessorCount);
+            settings.Save();
             //TODO: make Fuzzy res width gui configurable  
             //TODO: Impliment gamma
 

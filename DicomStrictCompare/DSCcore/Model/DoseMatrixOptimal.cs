@@ -27,7 +27,7 @@ namespace DCSCore.Model
         public int Length { get; }
         public int Count { get; }
 
-        public DoseMatrixOptimal(EvilDICOM.RT.RTDose doseMatrix)
+        public DoseMatrixOptimal(RTDose doseMatrix)
         {
             if (doseMatrix == null)
                 throw new ArgumentNullException(nameof(doseMatrix));

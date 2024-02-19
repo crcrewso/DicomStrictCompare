@@ -214,12 +214,12 @@ namespace DCSCore
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Cannot call for dose on a Dicom file that is not a dose file</exception>
-        public EvilDICOM.RT.RTDose DoseMatrix()
+        public RTDose DoseMatrix()
         {
             if (IsDoseFile)
             {
                 DICOMObject dcm1 = DICOMObject.Read(FileName);
-                EvilDICOM.RT.RTDose dcmMatrix = new EvilDICOM.RT.RTDose(dcm1);
+                RTDose dcmMatrix = new RTDose(dcm1);
                 X = dcmMatrix.DimensionX;
                 Y = dcmMatrix.DimensionY;
                 Z = dcmMatrix.DimensionZ;

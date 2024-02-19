@@ -15,9 +15,9 @@ namespace DCSCore
         /// <param name="dta">distance to agreement parameters</param>
         /// <returns> The total failed voxels and total number of voxels compared</returns>
         /// 
-        public abstract SingleComparison CompareAbsolute(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, Model.Dta dta);
-        public abstract SingleComparison CompareRelative(in Model.DoseMatrixOptimal source, in Model.DoseMatrixOptimal target, Model.Dta dta);
-        public abstract SingleComparison CompareParallel( Model.DoseMatrixOptimal source,  Model.DoseMatrixOptimal target, Model.Dta dta, int cpuParallel);
+        public abstract SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta);
+        public abstract SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta);
+        public abstract SingleComparison CompareParallel(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, int cpuParallel);
     }
 
 

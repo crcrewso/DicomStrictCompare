@@ -57,7 +57,7 @@ namespace DCSCore
         }
 
 
-        public DscDataHandler(DCSCore.Controller.Settings settings)
+        public DscDataHandler(Controller.Settings settings)
         {
             this.Settings = settings;
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
