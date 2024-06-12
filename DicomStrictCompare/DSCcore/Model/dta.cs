@@ -130,14 +130,16 @@ namespace DCSCore.Model
         /// Shorter Summary 
         /// </summary>
         /// <returns></returns>
-        public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + " % " + Distance.ToString() + (Global? " Global": " Local") +  (UseMM ? " mm" : " voxels");
+        public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + " % " + Distance.ToString() + (Global ? " Global" : " Local") + (UseMM ? " mm" : " voxels");
+        //public string ShortToString() => (Tolerance * 100.0).ToString("0.0") + "%, " + Distance.ToString() + (UseMM ? " mm, " : " voxels, ") + (Threshhold *100).ToString("0.0") + "%, " + (Global? "Global": "Local") ;
+
 
         /// <summary>
         /// Impliments standard tostring with comma. old way of reporting results
         /// </summary>
         /// <returns></returns>
         public override string ToString() => String.Join(", ", Summary);
-        
+
         /// <summary>
         /// Returns the header for the ToString() function
         /// </summary>

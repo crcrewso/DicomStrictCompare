@@ -49,6 +49,7 @@ namespace DSC
                 WorkerSupportsCancellation = true
             };
             worker.DoWork += Worker_DoWork;
+            worker.WorkerSupportsCancellation = true;
             worker.ProgressChanged += Worker_ProgressChanged;
             worker.RunWorkerCompleted += WorkerRunWorkerCompleted;
             _isRunning = false;
@@ -199,6 +200,7 @@ namespace DSC
 
             if (!_isRunning)
             {
+                _isRunning = true;
                 _dataHandler.Settings = settings;
                 _dataHandler.SourceAliasName = SourceAliasName;
                 _dataHandler.TargetAliasName = TargetAliasName;
@@ -227,17 +229,26 @@ namespace DSC
             }
             else
                 worker.CancelAsync();
+ 
         }
 
         void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             _isRunning = true;
+            
             results = _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
+            if (results != null)
+            {
+                MessageBox.Show("No matches were found");
+                _isRunning = false;
+                return;
+            }
             if (chkDoseCompare.Checked == true)
             {
                 SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
                 saveFile.Save(results.ToString());
             }
+            _isRunning = false;
         }
 
         void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -323,6 +334,11 @@ namespace DSC
                 txtBxTrim.Text = DSCcore.Properties.Resources.minDTAtrim;
             }
 
+            if (Dtas.Count > 8)
+            {
+                MessageBox.Show("I cannot add more analysis settings");
+                return;
+            }
 
             var temp = new DCSCore.Model.Dta(isMM
                , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text) / 100)
@@ -330,31 +346,51 @@ namespace DSC
                , distance, chkBoxDArel.Checked
                , chkBoxGamma.Checked
                , Math.Abs(Convert.ToInt32(txtBxTrim.Text)));
-            Dtas.Add(temp);
-
+            bool canadd = true;
+            foreach (var item in Dtas)
+            {
+                
+                if (item.Equals(temp))
+                    canadd = false;
+            }
+            if (canadd)
+            {
+                Dtas.Add(temp);
+            }
             txtBoxDAdta.Clear();
             txtBoxDAthres.Clear();
             txtBoxDAtol.Clear();
             txtBxTrim.Clear();
+            
             units.ClearSelected();
             chkBoxDArel.Checked = false;
-
+            dtaListPairs.ClearSelected();
         }
 
         private void lblIntro_Click(object sender, EventArgs e)
         {
             string boxMessage = "DTA Definitions"
-                + "\nTolerance\t- Percent Deviation of Target dose at each point to pass agreement"
-                + "\nDTA\t- Distance to agreement in units of mm or voxels, can be 0"
+                + "\nTolerance  - Percent Deviation of Target dose at each point to pass agreement"
+                + "\nDTA        - Distance to agreement in units of mm or voxels, can be 0"
                 + "\nThreshhold - Percent of Max source below which comparisons will not be made"
-                + "\nTrim - Allows the user to remove a number of skin voxels from the phantom"
-                + "\n\t\tUseful if there is a known discrepancy in skin dose between two algorithims"
-                + "\n\t\tthat the user would like to remove from analysis"
-                + "\nGamma\t- if Checked a gamma calculation will be used for comparison,"
-                + "\n\t\tIf not software defaults to dta ";
+                + "\nTrim       - Allows the user to remove a number of skin voxels from the phantom"
+                + "\n\tUseful if there is a known discrepancy in skin dose between two algorithims"
+                + "\n\tthat the user would like to remove from analysis"
+                + "\nGamma\t    - if Checked a gamma calculation will be used for comparison,"
+                + "\n\tIf not software defaults to dta ";
 
             System.Windows.Forms.MessageBox.Show(boxMessage);
 
+        }
+
+        private void btnDRemove_Click(object sender, EventArgs e)
+        {
+            if (dtaListPairs.SelectedItems.Count > 0)
+            {
+                Dtas.RemoveAt(dtaListPairs.SelectedIndex);
+            }
+            else
+                MessageBox.Show("No item was selected to be removed");
         }
     }
 }
