@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using DCSCore;
 using DSCcore.Properties;
+using DSClibrary;
 
 namespace DSC
 {
@@ -26,7 +27,7 @@ namespace DSC
         public string SourceAliasName { get; private set; } = "Reference";
         public string TargetAliasName { get; private set; } = "New Model";
 
-        public BindingList<DCSCore.Model.Dta> Dtas { get; private set; }
+        public BindingList<Dta> Dtas { get; private set; }
 
         private readonly DscDataHandler _dataHandler;
         public DCSCore.Controller.Results results;
@@ -37,7 +38,7 @@ namespace DSC
         public Form1()
         {
             InitializeComponent();
-            Dtas = new BindingList<DCSCore.Model.Dta>();
+            Dtas = new BindingList<Dta>();
             this.dtaListPairs.DataSource = Dtas;
             tbxSourceLabel.Text = SourceAliasName.ToString();
             tbxTargetLabel.Text = TargetAliasName.ToString();
@@ -237,7 +238,7 @@ namespace DSC
             _isRunning = true;
             
             results = _dataHandler.Run(chkDoseCompare.Checked, chkPDDCompare.Checked, SaveDirectory, sender);
-            if (results != null)
+            if (results == null)
             {
                 MessageBox.Show("No matches were found");
                 _isRunning = false;
@@ -340,7 +341,7 @@ namespace DSC
                 return;
             }
 
-            var temp = new DCSCore.Model.Dta(isMM
+            var temp = new Dta(isMM
                , Math.Abs(Convert.ToDouble(txtBoxDAthres.Text) / 100)
                , Math.Abs(Convert.ToDouble(txtBoxDAtol.Text) / 100)
                , distance, chkBoxDArel.Checked

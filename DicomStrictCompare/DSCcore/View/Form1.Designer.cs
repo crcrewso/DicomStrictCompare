@@ -56,6 +56,7 @@
             panel2 = new System.Windows.Forms.Panel();
             dtaListPairs = new System.Windows.Forms.ListBox();
             addDTAs = new System.Windows.Forms.GroupBox();
+            btnDRemove = new System.Windows.Forms.Button();
             chkBoxGamma = new System.Windows.Forms.CheckBox();
             txtBxTrim = new System.Windows.Forms.TextBox();
             lblTrim = new System.Windows.Forms.Label();
@@ -69,7 +70,6 @@
             txtBoxDAtol = new System.Windows.Forms.TextBox();
             lblDAtol = new System.Windows.Forms.Label();
             dtaListBoxTitle = new System.Windows.Forms.TextBox();
-            btnDRemove = new System.Windows.Forms.Button();
             testAndRunBox.SuspendLayout();
             panel2.SuspendLayout();
             addDTAs.SuspendLayout();
@@ -78,7 +78,7 @@
             // lblIntro
             // 
             lblIntro.AutoSize = true;
-            lblIntro.Location = new System.Drawing.Point(3, 238);
+            lblIntro.Location = new System.Drawing.Point(9, 238);
             lblIntro.Name = "lblIntro";
             lblIntro.Size = new System.Drawing.Size(623, 432);
             lblIntro.TabIndex = 0;
@@ -92,7 +92,7 @@
             tbxSource.Location = new System.Drawing.Point(106, 32);
             tbxSource.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSource.Name = "tbxSource";
-            tbxSource.Size = new System.Drawing.Size(362, 21);
+            tbxSource.Size = new System.Drawing.Size(496, 21);
             tbxSource.TabIndex = 2;
             tbxSource.TextChanged += TbxSource_TextChanged;
             // 
@@ -103,7 +103,7 @@
             tbxTarget.Location = new System.Drawing.Point(106, 85);
             tbxTarget.MinimumSize = new System.Drawing.Size(314, 20);
             tbxTarget.Name = "tbxTarget";
-            tbxTarget.Size = new System.Drawing.Size(362, 21);
+            tbxTarget.Size = new System.Drawing.Size(496, 21);
             tbxTarget.TabIndex = 5;
             tbxTarget.TextChanged += TbxTarget_TextChanged;
             // 
@@ -119,7 +119,7 @@
             // 
             // btnSourceDir
             // 
-            btnSourceDir.Location = new System.Drawing.Point(9, 30);
+            btnSourceDir.Location = new System.Drawing.Point(6, 30);
             btnSourceDir.Name = "btnSourceDir";
             btnSourceDir.Size = new System.Drawing.Size(75, 23);
             btnSourceDir.TabIndex = 1;
@@ -175,7 +175,7 @@
             // 
             // btnSaveDir
             // 
-            btnSaveDir.Location = new System.Drawing.Point(4, 135);
+            btnSaveDir.Location = new System.Drawing.Point(6, 135);
             btnSaveDir.Name = "btnSaveDir";
             btnSaveDir.Size = new System.Drawing.Size(75, 23);
             btnSaveDir.TabIndex = 7;
@@ -190,7 +190,7 @@
             tbxSaveDir.Location = new System.Drawing.Point(106, 137);
             tbxSaveDir.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSaveDir.Name = "tbxSaveDir";
-            tbxSaveDir.Size = new System.Drawing.Size(362, 21);
+            tbxSaveDir.Size = new System.Drawing.Size(496, 21);
             tbxSaveDir.TabIndex = 8;
             tbxSaveDir.TextChanged += TbxSaveDir_TextChanged;
             // 
@@ -199,14 +199,14 @@
             tbxSaveName.Location = new System.Drawing.Point(106, 111);
             tbxSaveName.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSaveName.Name = "tbxSaveName";
-            tbxSaveName.Size = new System.Drawing.Size(362, 21);
+            tbxSaveName.Size = new System.Drawing.Size(496, 21);
             tbxSaveName.TabIndex = 6;
             tbxSaveName.TextChanged += TbxSaveName_TextChanged;
             // 
             // lblSaveName
             // 
             lblSaveName.AutoSize = true;
-            lblSaveName.Location = new System.Drawing.Point(16, 114);
+            lblSaveName.Location = new System.Drawing.Point(6, 113);
             lblSaveName.Name = "lblSaveName";
             lblSaveName.Size = new System.Drawing.Size(70, 16);
             lblSaveName.TabIndex = 21;
@@ -239,7 +239,7 @@
             doseProgressBar.Location = new System.Drawing.Point(3, 169);
             doseProgressBar.MinimumSize = new System.Drawing.Size(400, 25);
             doseProgressBar.Name = "doseProgressBar";
-            doseProgressBar.Size = new System.Drawing.Size(465, 25);
+            doseProgressBar.Size = new System.Drawing.Size(599, 25);
             doseProgressBar.TabIndex = 25;
             // 
             // testDirectories
@@ -257,7 +257,7 @@
             tbxTargetLabel.Location = new System.Drawing.Point(106, 58);
             tbxTargetLabel.MinimumSize = new System.Drawing.Size(314, 20);
             tbxTargetLabel.Name = "tbxTargetLabel";
-            tbxTargetLabel.Size = new System.Drawing.Size(362, 21);
+            tbxTargetLabel.Size = new System.Drawing.Size(496, 21);
             tbxTargetLabel.TabIndex = 3;
             tbxTargetLabel.TextChanged += TbxTargetLabel_TextChanged;
             // 
@@ -266,14 +266,14 @@
             tbxSourceLabel.Location = new System.Drawing.Point(106, 6);
             tbxSourceLabel.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSourceLabel.Name = "tbxSourceLabel";
-            tbxSourceLabel.Size = new System.Drawing.Size(362, 21);
+            tbxSourceLabel.Size = new System.Drawing.Size(496, 21);
             tbxSourceLabel.TabIndex = 0;
             tbxSourceLabel.TextChanged += TbxSourceLabel_TextChanged;
             // 
             // lblTargetRefName
             // 
             lblTargetRefName.AutoSize = true;
-            lblTargetRefName.Location = new System.Drawing.Point(14, 61);
+            lblTargetRefName.Location = new System.Drawing.Point(6, 61);
             lblTargetRefName.Name = "lblTargetRefName";
             lblTargetRefName.Size = new System.Drawing.Size(91, 16);
             lblTargetRefName.TabIndex = 31;
@@ -282,7 +282,7 @@
             // lblSourceRefName
             // 
             lblSourceRefName.AutoSize = true;
-            lblSourceRefName.Location = new System.Drawing.Point(11, 9);
+            lblSourceRefName.Location = new System.Drawing.Point(6, 9);
             lblSourceRefName.Name = "lblSourceRefName";
             lblSourceRefName.Size = new System.Drawing.Size(91, 16);
             lblSourceRefName.TabIndex = 32;
@@ -291,7 +291,7 @@
             // lblRunStatus
             // 
             lblRunStatus.AutoSize = true;
-            lblRunStatus.Location = new System.Drawing.Point(540, 169);
+            lblRunStatus.Location = new System.Drawing.Point(637, 169);
             lblRunStatus.Name = "lblRunStatus";
             lblRunStatus.Size = new System.Drawing.Size(49, 16);
             lblRunStatus.TabIndex = 33;
@@ -308,7 +308,7 @@
             testAndRunBox.Controls.Add(lblTargetFilesFoundText);
             testAndRunBox.Controls.Add(lblSourceFilesFoundText);
             testAndRunBox.Controls.Add(btnExecute);
-            testAndRunBox.Location = new System.Drawing.Point(523, 12);
+            testAndRunBox.Location = new System.Drawing.Point(620, 12);
             testAndRunBox.Name = "testAndRunBox";
             testAndRunBox.Size = new System.Drawing.Size(352, 154);
             testAndRunBox.TabIndex = 35;
@@ -330,15 +330,15 @@
             panel2.Controls.Add(btnSourceDir);
             panel2.Controls.Add(tbxTarget);
             panel2.Controls.Add(tbxSource);
-            panel2.Location = new System.Drawing.Point(3, 12);
+            panel2.Location = new System.Drawing.Point(9, 12);
             panel2.Name = "panel2";
-            panel2.Size = new System.Drawing.Size(496, 197);
+            panel2.Size = new System.Drawing.Size(605, 197);
             panel2.TabIndex = 38;
             // 
             // dtaListPairs
             // 
             dtaListPairs.FormattingEnabled = true;
-            dtaListPairs.Location = new System.Drawing.Point(658, 268);
+            dtaListPairs.Location = new System.Drawing.Point(755, 268);
             dtaListPairs.Name = "dtaListPairs";
             dtaListPairs.Size = new System.Drawing.Size(217, 164);
             dtaListPairs.TabIndex = 39;
@@ -359,12 +359,22 @@
             addDTAs.Controls.Add(lblDAthresh);
             addDTAs.Controls.Add(txtBoxDAtol);
             addDTAs.Controls.Add(lblDAtol);
-            addDTAs.Location = new System.Drawing.Point(644, 442);
+            addDTAs.Location = new System.Drawing.Point(741, 442);
             addDTAs.Name = "addDTAs";
             addDTAs.Size = new System.Drawing.Size(231, 228);
             addDTAs.TabIndex = 40;
             addDTAs.TabStop = false;
             addDTAs.Text = "Add DTA's";
+            // 
+            // btnDRemove
+            // 
+            btnDRemove.Location = new System.Drawing.Point(112, 199);
+            btnDRemove.Name = "btnDRemove";
+            btnDRemove.Size = new System.Drawing.Size(75, 23);
+            btnDRemove.TabIndex = 28;
+            btnDRemove.Text = "Remove";
+            btnDRemove.UseVisualStyleBackColor = true;
+            btnDRemove.Click += btnDRemove_Click;
             // 
             // chkBoxGamma
             // 
@@ -473,35 +483,26 @@
             // 
             // dtaListBoxTitle
             // 
-            dtaListBoxTitle.Location = new System.Drawing.Point(628, 238);
+            dtaListBoxTitle.Location = new System.Drawing.Point(725, 238);
             dtaListBoxTitle.Name = "dtaListBoxTitle";
             dtaListBoxTitle.Size = new System.Drawing.Size(247, 21);
             dtaListBoxTitle.TabIndex = 41;
             dtaListBoxTitle.Text = "Tolerance, Distance, Threshhold, Global?, Unit";
             // 
-            // btnDRemove
-            // 
-            btnDRemove.Location = new System.Drawing.Point(112, 199);
-            btnDRemove.Name = "btnDRemove";
-            btnDRemove.Size = new System.Drawing.Size(75, 23);
-            btnDRemove.TabIndex = 28;
-            btnDRemove.Text = "Remove";
-            btnDRemove.UseVisualStyleBackColor = true;
-            btnDRemove.Click += btnDRemove_Click;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            ClientSize = new System.Drawing.Size(883, 680);
+            ClientSize = new System.Drawing.Size(984, 681);
+            Controls.Add(lblRunStatus);
             Controls.Add(dtaListPairs);
             Controls.Add(dtaListBoxTitle);
             Controls.Add(lblIntro);
             Controls.Add(addDTAs);
-            Controls.Add(lblRunStatus);
             Controls.Add(panel2);
             Controls.Add(testAndRunBox);
             Font = new System.Drawing.Font("Cascadia Code", 9F);
+            MinimumSize = new System.Drawing.Size(1000, 720);
             Name = "Form1";
             Text = "Dicom Dose Comparison";
             Load += Form1_Load;

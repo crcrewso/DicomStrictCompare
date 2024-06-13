@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
+using DSClibrary;
 
 namespace DCSCore.Controller
 {
@@ -13,7 +14,7 @@ namespace DCSCore.Controller
     /// Consolidated settings collection to undo feature creep spaghettification.  
     /// </summary>
     public class Settings(
-        Model.Dta[] dtas
+        DSClibrary.Dta[] dtas
             , bool runDoseComparisons
             , bool runPDDComparisons
             , bool runProfileComparisons
@@ -26,7 +27,7 @@ namespace DCSCore.Controller
         /// </summary>
 
 
-        public Model.Dta[] Dtas { get; } = dtas;
+        public Dta[] Dtas { get; } = dtas;
         public bool RunDoseComparisons { get; } = runDoseComparisons;
         public bool RunPDDComparisons { get; } = runPDDComparisons;
         public bool RunProfileComparisons { get; } = runProfileComparisons;
