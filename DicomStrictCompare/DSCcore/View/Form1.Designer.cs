@@ -89,10 +89,10 @@
             // 
             tbxSource.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             tbxSource.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystemDirectories;
-            tbxSource.Location = new System.Drawing.Point(106, 32);
+            tbxSource.Location = new System.Drawing.Point(103, 32);
             tbxSource.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSource.Name = "tbxSource";
-            tbxSource.Size = new System.Drawing.Size(496, 21);
+            tbxSource.Size = new System.Drawing.Size(499, 21);
             tbxSource.TabIndex = 2;
             tbxSource.TextChanged += TbxSource_TextChanged;
             // 
@@ -100,10 +100,10 @@
             // 
             tbxTarget.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             tbxTarget.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystemDirectories;
-            tbxTarget.Location = new System.Drawing.Point(106, 85);
+            tbxTarget.Location = new System.Drawing.Point(103, 85);
             tbxTarget.MinimumSize = new System.Drawing.Size(314, 20);
             tbxTarget.Name = "tbxTarget";
-            tbxTarget.Size = new System.Drawing.Size(496, 21);
+            tbxTarget.Size = new System.Drawing.Size(499, 21);
             tbxTarget.TabIndex = 5;
             tbxTarget.TextChanged += TbxTarget_TextChanged;
             // 
@@ -121,7 +121,7 @@
             // 
             btnSourceDir.Location = new System.Drawing.Point(6, 30);
             btnSourceDir.Name = "btnSourceDir";
-            btnSourceDir.Size = new System.Drawing.Size(75, 23);
+            btnSourceDir.Size = new System.Drawing.Size(91, 23);
             btnSourceDir.TabIndex = 1;
             btnSourceDir.Text = "Source";
             btnSourceDir.UseVisualStyleBackColor = true;
@@ -131,7 +131,7 @@
             // 
             btnTargetDir.Location = new System.Drawing.Point(6, 83);
             btnTargetDir.Name = "btnTargetDir";
-            btnTargetDir.Size = new System.Drawing.Size(75, 23);
+            btnTargetDir.Size = new System.Drawing.Size(91, 23);
             btnTargetDir.TabIndex = 4;
             btnTargetDir.Text = "Target";
             btnTargetDir.UseVisualStyleBackColor = true;
@@ -177,7 +177,7 @@
             // 
             btnSaveDir.Location = new System.Drawing.Point(6, 135);
             btnSaveDir.Name = "btnSaveDir";
-            btnSaveDir.Size = new System.Drawing.Size(75, 23);
+            btnSaveDir.Size = new System.Drawing.Size(91, 23);
             btnSaveDir.TabIndex = 7;
             btnSaveDir.Text = "Save Location";
             btnSaveDir.UseVisualStyleBackColor = true;
@@ -187,19 +187,19 @@
             // 
             tbxSaveDir.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             tbxSaveDir.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.FileSystemDirectories;
-            tbxSaveDir.Location = new System.Drawing.Point(106, 137);
+            tbxSaveDir.Location = new System.Drawing.Point(103, 137);
             tbxSaveDir.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSaveDir.Name = "tbxSaveDir";
-            tbxSaveDir.Size = new System.Drawing.Size(496, 21);
+            tbxSaveDir.Size = new System.Drawing.Size(499, 21);
             tbxSaveDir.TabIndex = 8;
             tbxSaveDir.TextChanged += TbxSaveDir_TextChanged;
             // 
             // tbxSaveName
             // 
-            tbxSaveName.Location = new System.Drawing.Point(106, 111);
+            tbxSaveName.Location = new System.Drawing.Point(103, 111);
             tbxSaveName.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSaveName.Name = "tbxSaveName";
-            tbxSaveName.Size = new System.Drawing.Size(496, 21);
+            tbxSaveName.Size = new System.Drawing.Size(499, 21);
             tbxSaveName.TabIndex = 6;
             tbxSaveName.TextChanged += TbxSaveName_TextChanged;
             // 
@@ -254,19 +254,19 @@
             // 
             // tbxTargetLabel
             // 
-            tbxTargetLabel.Location = new System.Drawing.Point(106, 58);
+            tbxTargetLabel.Location = new System.Drawing.Point(103, 58);
             tbxTargetLabel.MinimumSize = new System.Drawing.Size(314, 20);
             tbxTargetLabel.Name = "tbxTargetLabel";
-            tbxTargetLabel.Size = new System.Drawing.Size(496, 21);
+            tbxTargetLabel.Size = new System.Drawing.Size(499, 21);
             tbxTargetLabel.TabIndex = 3;
             tbxTargetLabel.TextChanged += TbxTargetLabel_TextChanged;
             // 
             // tbxSourceLabel
             // 
-            tbxSourceLabel.Location = new System.Drawing.Point(106, 6);
+            tbxSourceLabel.Location = new System.Drawing.Point(103, 6);
             tbxSourceLabel.MinimumSize = new System.Drawing.Size(314, 20);
             tbxSourceLabel.Name = "tbxSourceLabel";
-            tbxSourceLabel.Size = new System.Drawing.Size(496, 21);
+            tbxSourceLabel.Size = new System.Drawing.Size(499, 21);
             tbxSourceLabel.TabIndex = 0;
             tbxSourceLabel.TextChanged += TbxSourceLabel_TextChanged;
             // 
