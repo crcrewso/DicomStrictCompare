@@ -14,10 +14,11 @@ namespace DCSCore
     {
         public string SaveFileName { get; }
         public string SaveFileDir { get; } 
+        public string[] Errors { get;  }
 
-        public SaveFile(string FileName, string FileDirectory)
+        public SaveFile(string FileName, string FileDirectory, string[] errors = null)
         {
-            if (Directory.Exists(FileDirectory) )
+            if (Directory.Exists(FileDirectory))
             {
                 SaveFileDir = FileDirectory;
             }
@@ -32,6 +33,7 @@ namespace DCSCore
             {
                 SaveFileName = FileDirectory + '/' + FileName + ".csv";
             }
+            Errors = errors;
         }
 
         /// <summary>
@@ -53,6 +55,18 @@ namespace DCSCore
             StreamWriter outfile = new StreamWriter(SaveFileName);
             outfile.Write(csvMessage);
             outfile.Close();
+        }
+
+
+        public void SaveErrors()
+        {
+            var errorFileName = SaveFileName.Replace(".csv", "-errors.txt");
+            if (Errors != null)
+            {
+                StreamWriter outfile = new StreamWriter(errorFileName);
+                outfile.Write(String.Join("\n", Errors));
+                outfile.Close();
+            }
         }
 
 

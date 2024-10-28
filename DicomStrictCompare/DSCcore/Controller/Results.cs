@@ -9,19 +9,21 @@ namespace DCSCore.Controller
 {
     public record Results
     {
-        public Results(string sourceAlias, string targetAlias, string[] resultStrings, string resultMessageHeader)
+        public Results(string sourceAlias, string targetAlias, string[] resultStrings, string resultMessageHeader, string[]? unmatchedDoseFiles = null)
         {
             SourceAlias = sourceAlias;
             TargetAlias = targetAlias;
             ResultStrings = resultStrings;
             Array.Sort(ResultStrings);
             ResultMessageHeader = resultMessageHeader;
+            UnmatchedFileList = unmatchedDoseFiles;
         }
 
         string SourceAlias { get; init; }
         string TargetAlias {  get; init;}
         public string[] ResultStrings { get; init; }
         public string ResultMessageHeader {  get; init; }
+        public string[] UnmatchedFileList { get; init; }
 
 
         public override string ToString()

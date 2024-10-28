@@ -97,6 +97,7 @@ namespace DCSCore
             mathematics = new X86Mathematics();
             parallel = cpuParallel;
 
+            var unmatchedTargetFiles = new ConcurrentBag<string>();
 
             double progress = 0;
             #region safetyChecks
@@ -143,6 +144,7 @@ namespace DCSCore
 
             progress += 5;
 
+            // Scans all of the source files
             ((BackgroundWorker)sender).ReportProgress((int)progress, "Scanning Source Folder");
             _ = Parallel.ForEach(SourceDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
               {
@@ -150,6 +152,7 @@ namespace DCSCore
 
               });
 
+            // Scans all of the target files
             progress += 5;
             ((BackgroundWorker)sender).ReportProgress((int)progress, "Scanning Target Folder");
             _ = Parallel.ForEach(TargetDosesList, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, doseFile =>
@@ -172,7 +175,11 @@ namespace DCSCore
                       Debug.WriteLine("matched " + dose.FileName + " and " + sourceDose.FileName);
                       DosePairsList.Add(new MatchedDosePair(sourceDose, dose, Settings));
                   }
-
+                  else
+                  {
+                      Debug.WriteLine("unable to match "+ dose.FileName);
+                      unmatchedTargetFiles.Add(dose.FileName);
+                  }
               });
             if (DosePairsList.Count <= 0)
                 return null;
@@ -236,9 +243,9 @@ namespace DCSCore
                   });
             }
 
-            
 
-            return new Controller.Results(SourceAliasName, TargetAliasName, resultsStrings.ToArray(), MatchedDosePair.StaticResultHeader(Settings.Dtas));
+
+            return new Controller.Results(SourceAliasName, TargetAliasName, resultsStrings.ToArray(), MatchedDosePair.StaticResultHeader(Settings.Dtas), unmatchedTargetFiles.ToArray()) ;
 
         }
 
