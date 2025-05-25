@@ -269,6 +269,32 @@ namespace DSC
                 {
                     MessageBox.Show(results.GetUnmatchedFilesReport(), "Unmatched Files");
                 }
+                
+                // Show detailed results for each item if requested
+                if (results.ParsedResults.Count > 0 && 
+                    MessageBox.Show("Would you like to see detailed results?", "Show Details", 
+                                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    StringBuilder detailedResults = new StringBuilder();
+                    foreach (var result in results.ParsedResults)
+                    {
+                        detailedResults.AppendLine($"Plan: {result.PlanName}, Field: {result.FieldName}");
+                        
+                        for (int i = 0; i < result.PercentFailed.Length; i++)
+                        {
+                            detailedResults.AppendLine($"  DTA {i+1}: Failed {result.PercentFailed[i]:F2}%, " +
+                                                     $"Compared {result.TotalCompared[i]}, " +
+                                                     $"Failed {result.TotalFailed[i]:F2}");
+                        }
+                        
+                        detailedResults.AppendLine($"  Source: {result.SourceFileName}, Target: {result.TargetFileName}");
+                        detailedResults.AppendLine($"  MUs: Source {result.SourceMUs}, Target {result.TargetMUs}");
+                        detailedResults.AppendLine($"  PDD Status: {result.PDDStatus}");
+                        detailedResults.AppendLine();
+                    }
+                    
+                    MessageBox.Show(detailedResults.ToString(), "Detailed Results");
+                }
             }
             _isRunning = false;
         }
