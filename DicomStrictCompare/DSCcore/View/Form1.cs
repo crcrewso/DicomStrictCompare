@@ -246,8 +246,20 @@ namespace DSC
             }
             if (chkDoseCompare.Checked == true)
             {
-                SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
-                saveFile.Save(results.ToString());
+                // Use the SaveNamePrefix and SaveDirectory to create the file path
+                string filePath = Path.Combine(SaveDirectory, SaveNamePrefix + ".txt");
+                
+                // Use the Results class to save the file directly
+                if (results.SaveToFile(filePath))
+                {
+                    // Additionally, save as CSV if needed
+                    string csvPath = Path.Combine(SaveDirectory, SaveNamePrefix + ".csv");
+                    results.SaveToCSV(csvPath);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to save results to {filePath}", "Save Error");
+                }
                 
                 // Additionally, show a summary message
                 MessageBox.Show(results.GetSummary(), "Comparison Results Summary");

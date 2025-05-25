@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -74,6 +75,32 @@ namespace DCSCore.Controller
                 csv += result + ",";
             }
             return csv;
+        }
+        
+        public bool SaveToFile(string filePath)
+        {
+            try
+            {
+                File.WriteAllText(filePath, ToString());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        
+        public bool SaveToCSV(string filePath)
+        {
+            try
+            {
+                File.WriteAllText(filePath, GetResultsAsCSV());
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 
