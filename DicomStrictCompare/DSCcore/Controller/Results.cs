@@ -49,6 +49,32 @@ namespace DCSCore.Controller
             
             return summary;
         }
+        
+        public string GetUnmatchedFilesReport()
+        {
+            if (UnmatchedFileList == null || UnmatchedFileList.Length == 0)
+            {
+                return "No unmatched files.";
+            }
+            
+            string report = "Unmatched Files:\n";
+            foreach (string file in UnmatchedFileList)
+            {
+                report += $"- {file}\n";
+            }
+            
+            return report;
+        }
+        
+        public string GetResultsAsCSV()
+        {
+            string csv = ResultMessageHeader.Replace("\n", ",");
+            foreach (string result in ResultStrings)
+            {
+                csv += result + ",";
+            }
+            return csv;
+        }
     }
 
 

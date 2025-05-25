@@ -248,6 +248,15 @@ namespace DSC
             {
                 SaveFile saveFile = new SaveFile(SaveNamePrefix, SaveDirectory);
                 saveFile.Save(results.ToString());
+                
+                // Additionally, show a summary message
+                MessageBox.Show(results.GetSummary(), "Comparison Results Summary");
+                
+                // If there are unmatched files, show them in a separate message
+                if (results.UnmatchedFileList != null && results.UnmatchedFileList.Length > 0)
+                {
+                    MessageBox.Show(results.GetUnmatchedFilesReport(), "Unmatched Files");
+                }
             }
             _isRunning = false;
         }
