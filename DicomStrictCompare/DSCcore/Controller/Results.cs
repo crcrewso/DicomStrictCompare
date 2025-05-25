@@ -19,8 +19,8 @@ namespace DCSCore.Controller
             UnmatchedFileList = unmatchedDoseFiles;
         }
 
-        string SourceAlias { get; init; }
-        string TargetAlias {  get; init;}
+        public string SourceAlias { get; init; }
+        public string TargetAlias {  get; init;}
         public string[] ResultStrings { get; init; }
         public string ResultMessageHeader {  get; init; }
         public string[] UnmatchedFileList { get; init; }
@@ -34,7 +34,20 @@ namespace DCSCore.Controller
                 ret += result + "\n";
             }
             return ret;
-
+        }
+        
+        public string GetSummary()
+        {
+            int totalPairs = ResultStrings.Length;
+            int unmatchedCount = UnmatchedFileList?.Length ?? 0;
+            
+            string summary = $"Comparison Summary:\n";
+            summary += $"Source: {SourceAlias}\n";
+            summary += $"Target: {TargetAlias}\n";
+            summary += $"Total pairs compared: {totalPairs}\n";
+            summary += $"Unmatched files: {unmatchedCount}\n";
+            
+            return summary;
         }
     }
 
