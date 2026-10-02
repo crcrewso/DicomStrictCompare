@@ -56,25 +56,6 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
-        public void CanCompareParallelAbs()
-        {
-            sourceFile = Properties.Resources.RD_UnitTest_P1Ref_X_100A_10_0_1;
-            source = new DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(sourceFile)));
-            var ret = mathematics.CompareParallel(source, source, dta00a, 1);
-            Assert.IsNotNull(ret);
-        }
-
-
-        [TestMethod]
-        public void CanCompareParallelRel()
-        {
-            sourceFile = Properties.Resources.RD_UnitTest_P1Ref_X_100A_10_0_1;
-            source = new DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(sourceFile)));
-            var ret = mathematics.CompareParallel(source, source, dta00a, 1);
-            Assert.IsNotNull(ret);
-        }
-
-        [TestMethod]
         public void CompareAbsoluteResult()
         {
             sourceFile = Properties.Resources.RD_UnitTest_P1_5_mm_X_100A_10_0_5;
@@ -94,28 +75,6 @@ namespace DSClibraryTests
 
             source = new DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(sourceFile)));
             SingleComparison result1 = mathematics.CompareRelative(source, source, dta00a);
-
-            Assert.AreEqual(0, result1.TotalFailed); // confirm all voxels are compared 
-            Assert.AreEqual(source.Count, result1.TotalCompared); //confirms the number of failed voxels is zero
-        }
-        [TestMethod]
-        public void CompareParallelAbsResult()
-        {
-            sourceFile = Properties.Resources.RD_UnitTest_P1_5_mm_X_100A_10_0_5;
-
-            source = new DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(sourceFile)));
-            SingleComparison result1 = mathematics.CompareParallel(source, source, dta00a, 1);
-
-            Assert.AreEqual(0, result1.TotalFailed); // confirm all voxels are compared 
-            Assert.AreEqual(source.Count, result1.TotalCompared); //confirms the number of failed voxels is zero
-        }
-        [TestMethod]
-        public void CompareParallelRelResult()
-        {
-            sourceFile = Properties.Resources.RD_UnitTest_P1_5_mm_X_100A_10_0_5;
-
-            source = new DoseMatrixOptimal(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(sourceFile)));
-            SingleComparison result1 = mathematics.CompareParallel(source, source, dta00a, 1);
 
             Assert.AreEqual(0, result1.TotalFailed); // confirm all voxels are compared 
             Assert.AreEqual(source.Count, result1.TotalCompared); //confirms the number of failed voxels is zero

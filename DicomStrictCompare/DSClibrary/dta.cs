@@ -13,14 +13,15 @@ namespace DSClibrary
     {
 
         /// <summary>
-        /// Setting to keep track of unit of distance for dta 
-        /// if true unit of distance is in mm
-        /// if false unit of distance in voxels
+        /// Distance unit for the DTA test. Should be true: Distance is in mm.
+        /// If false (reserved for a future voxel-based mode), the dose difference alone decides pass or fail
+        /// and Distance is ignored.
         /// </summary>
         public bool UseMM { get; }
 
         /// <summary>
-        /// Fraction of peak dose below which comparison is ignored
+        /// Fraction of the source (reference) maximum dose below which a point is not evaluated.
+        /// Only the source dose is tested against it.
         /// </summary>
         public double Threshhold { get; }
 

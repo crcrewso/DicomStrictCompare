@@ -47,11 +47,45 @@ namespace DSClibrary
             MaxPointDose = doseMatrix.MaxPointDose;
         }
 
+        /// <summary>
+        /// Builds a dose grid directly from values, mainly for tests. Values are ordered x fastest, then y,
+        /// then z, as in RT Dose. Positions are those of the voxel centres.
+        /// </summary>
+        public DoseMatrixOptimal(int dimX, int dimY, int dimZ, double x0, double y0, double z0,
+            double xRes, double yRes, double zRes, double[] doseValues)
+        {
+            if (doseValues == null)
+                throw new ArgumentNullException(nameof(doseValues));
+            if (doseValues.Length != dimX * dimY * dimZ)
+                throw new ArgumentException("doseValues length must equal dimX * dimY * dimZ", nameof(doseValues));
+            DimensionX = dimX;
+            DimensionY = dimY;
+            DimensionZ = dimZ;
+            DoseValues = (double[])doseValues.Clone();
+            Scaling = 1.0;
+            X0 = x0;
+            Y0 = y0;
+            Z0 = z0;
+            XRes = xRes;
+            YRes = yRes;
+            ZRes = zRes;
+            XMax = x0 + (dimX - 1) * xRes;
+            YMax = y0 + (dimY - 1) * yRes;
+            ZMax = z0 + (dimZ - 1) * zRes;
+            Length = DoseValues.Length;
+            Count = Length;
+            int maxIndex = Array.IndexOf(DoseValues, DoseValues.Max());
+            int mx = maxIndex % dimX;
+            int my = (maxIndex / dimX) % dimY;
+            int mz = maxIndex / (dimX * dimY);
+            MaxPointDose = new DoseValue(x0 + mx * xRes, y0 + my * yRes, z0 + mz * zRes, DoseValues[maxIndex]);
+        }
+
         public bool IsInBounds(Vector3 pt)
         {
             if (null == pt)
                 throw new ArgumentNullException(nameof(pt));
-            return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= X0 && pt.Z < ZMax;
+            return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= Z0 && pt.Z <= ZMax;
         }
 
         public DoseValue GetPointDose(double x, double y, double z)
