@@ -145,6 +145,53 @@ namespace DSClibraryTests
             Assert.AreEqual(0, withDta.TotalFailed);
         }
 
+        static System.Collections.Generic.IEnumerable<(double, double, double)> GridPoints(DoseMatrixOptimal g)
+        {
+            for (int k = 0; k < g.DimensionZ; k++)
+                for (int j = 0; j < g.DimensionY; j++)
+                    for (int i = 0; i < g.DimensionX; i++)
+                        yield return (g.X0 + i * g.XRes, g.Y0 + j * g.YRes, g.Z0 + k * g.ZRes);
+        }
+
+        [TestMethod]
+        public void CompareAtEveryGridPointMatchesWholeGridComparison()
+        {
+            var rng = new Random(1);
+            double[] a = Enumerable.Range(0, 5 * 4 * 3).Select(_ => 10 + 90 * rng.NextDouble()).ToArray();
+            double[] b = a.Select(v => v * (1 + 0.05 * (rng.NextDouble() - 0.5))).ToArray();
+            var source = new DoseMatrixOptimal(5, 4, 3, 0, 0, 0, 1, 1, 2, a);
+            var target = new DoseMatrixOptimal(5, 4, 3, 0, 0, 0, 1, 1, 2, b);
+            foreach (var dta in new[] { Global(0.02, 1, 0.2), Local(0.02, 1, 0.2), Global(0.01), Local(0.03, 2) })
+            {
+                var whole = dta.Global ? mathematics.CompareRelative(source, target, dta) : mathematics.CompareAbsolute(source, target, dta);
+                var atPoints = X86Mathematics.CompareAtPoints(source, target, dta, GridPoints(source));
+                Assert.AreEqual(whole.TotalCount, atPoints.TotalCount, dta.ShortToString());
+                Assert.AreEqual(whole.TotalCompared, atPoints.TotalCompared, dta.ShortToString());
+                Assert.AreEqual(whole.TotalFailed, atPoints.TotalFailed, dta.ShortToString());
+            }
+        }
+
+        [TestMethod]
+        public void CompareAtPointsUsesOnlyTheGivenPoints()
+        {
+            // Only the middle point differs. Comparing at the two outer points finds no failure; at the middle, one.
+            var source = Row(40, 50, 60);
+            var target = Row(40, 80, 60);
+            var outer = X86Mathematics.CompareAtPoints(source, target, Global(0.03), new[] { (0.0, 0.0, 0.0), (2.0, 0.0, 0.0) });
+            var middle = X86Mathematics.CompareAtPoints(source, target, Global(0.03), new[] { (1.0, 0.0, 0.0) });
+            Assert.AreEqual(0, outer.TotalFailed);
+            Assert.AreEqual(1, middle.TotalFailed);
+        }
+
+        [TestMethod]
+        public void CompareAtPointsCountsButSkipsPointsOutsideTheGrids()
+        {
+            var grid = Row(40, 50, 60);
+            var result = X86Mathematics.CompareAtPoints(grid, grid, Global(0.03), new[] { (1.0, 0.0, 0.0), (5.0, 0.0, 0.0) });
+            Assert.AreEqual(2, result.TotalCount);
+            Assert.AreEqual(1, result.TotalCompared);
+        }
+
         [TestMethod]
         public void SelfComparisonCountsEveryPointAndFailsNone()
         {

@@ -79,10 +79,7 @@ namespace DSClibrary
             int ny = StepCount(yMin, yMax, yRes);
             int nz = StepCount(zMin, zMax, zRes);
 
-            double maxSource = source.MaxPointDose.Dose;
-            double minDoseEvaluated = maxSource * dta.Threshhold;
-            double globalAllowed = maxSource * dta.Tolerance;
-            bool useDta = dta.UseMM && dta.Distance > 0;
+            var region = new Region(xMin, xMax, yMin, yMax, zMin, zMax);
 
             int voxelsRead = 0;
             int compared = 0;
@@ -99,38 +96,99 @@ namespace DSClibrary
                     {
                         double z = zMin + k * zRes;
                         voxelsRead++;
-                        double sourcei = source.GetPointDose(x, y, z).Dose;
-                        if (sourcei < minDoseEvaluated) { continue; }
-
-                        compared++;
-                        double targeti = target.GetPointDose(x, y, z).Dose;
-                        double allowed = global ? globalAllowed : dta.Tolerance * sourcei;
-                        if (Math.Abs(targeti - sourcei) <= allowed) { continue; }
-
-                        if (!useDta)
+                        switch (EvaluatePoint(source, target, dta, global, region, x, y, z, neighbouringDoses))
                         {
-                            failed++;
-                            continue;
-                        }
-
-                        neighbouringDoses.Clear();
-                        double d = dta.Distance;
-                        if (x - d >= xMin) { neighbouringDoses.Add(source.GetPointDose(x - d, y, z).Dose); }
-                        if (x + d <= xMax) { neighbouringDoses.Add(source.GetPointDose(x + d, y, z).Dose); }
-                        if (y - d >= yMin) { neighbouringDoses.Add(source.GetPointDose(x, y - d, z).Dose); }
-                        if (y + d <= yMax) { neighbouringDoses.Add(source.GetPointDose(x, y + d, z).Dose); }
-                        if (z - d >= zMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - d).Dose); }
-                        if (z + d <= zMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + d).Dose); }
-
-                        if (neighbouringDoses.Count == 0 || targeti < neighbouringDoses.Min() || targeti > neighbouringDoses.Max())
-                        {
-                            failed++;
+                            case PointResult.Passed: compared++; break;
+                            case PointResult.Failed: compared++; failed++; break;
                         }
                     }
                 }
             }
             System.Diagnostics.Debug.WriteLine((global ? "Global" : "Local") + " failed: " + failed + " of " + compared);
             return new SingleComparison(dta, voxelsRead, compared, failed);
+        }
+
+        /// <summary>
+        /// Compares source and target only at the given points (mm, DICOM patient coordinates), with exactly
+        /// the same rules as the whole-grid comparison. Use it to compare like for like with another
+        /// system's point set (for example the points a Sun Nuclear analysis evaluated), or along a line.
+        ///
+        /// Points outside the region where both grids overlap are counted in TotalCount but not evaluated.
+        /// DTA neighbours are limited to the same overlap region. TrimWidth is not applied: the point list
+        /// defines what is compared.
+        /// </summary>
+        public static SingleComparison CompareAtPoints(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta,
+            IEnumerable<(double X, double Y, double Z)> points)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (dta == null) throw new ArgumentNullException(nameof(dta));
+            if (points == null) throw new ArgumentNullException(nameof(points));
+
+            var region = new Region(
+                Math.Max(source.X0, target.X0), Math.Min(source.XMax, target.XMax),
+                Math.Max(source.Y0, target.Y0), Math.Min(source.YMax, target.YMax),
+                Math.Max(source.Z0, target.Z0), Math.Min(source.ZMax, target.ZMax));
+
+            int count = 0, compared = 0, failed = 0;
+            var neighbouringDoses = new List<double>(6);
+            foreach (var (x, y, z) in points)
+            {
+                count++;
+                if (!region.Contains(x, y, z)) { continue; }
+                switch (EvaluatePoint(source, target, dta, dta.Global, region, x, y, z, neighbouringDoses))
+                {
+                    case PointResult.Passed: compared++; break;
+                    case PointResult.Failed: compared++; failed++; break;
+                }
+            }
+            return new SingleComparison(dta, count, compared, failed);
+        }
+
+        private enum PointResult { BelowThreshold, Passed, Failed }
+
+        private readonly struct Region
+        {
+            public readonly double XMin, XMax, YMin, YMax, ZMin, ZMax;
+            public Region(double xMin, double xMax, double yMin, double yMax, double zMin, double zMax)
+            {
+                XMin = xMin; XMax = xMax; YMin = yMin; YMax = yMax; ZMin = zMin; ZMax = zMax;
+            }
+            public bool Contains(double x, double y, double z) =>
+                x >= XMin && x <= XMax && y >= YMin && y <= YMax && z >= ZMin && z <= ZMax;
+        }
+
+        /// <summary>
+        /// The comparison rules for one point (see Compare). neighbouringDoses is scratch space, reused to avoid
+        /// allocating per point.
+        /// </summary>
+        private static PointResult EvaluatePoint(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global,
+            in Region region, double x, double y, double z, List<double> neighbouringDoses)
+        {
+            double maxSource = source.MaxPointDose.Dose;
+            double sourcei = source.GetPointDose(x, y, z).Dose;
+            if (sourcei < maxSource * dta.Threshhold) { return PointResult.BelowThreshold; }
+
+            double targeti = target.GetPointDose(x, y, z).Dose;
+            double allowed = global ? maxSource * dta.Tolerance : dta.Tolerance * sourcei;
+            if (Math.Abs(targeti - sourcei) <= allowed) { return PointResult.Passed; }
+
+            if (!(dta.UseMM && dta.Distance > 0)) { return PointResult.Failed; }
+
+            neighbouringDoses.Clear();
+            double d = dta.Distance;
+            if (x - d >= region.XMin) { neighbouringDoses.Add(source.GetPointDose(x - d, y, z).Dose); }
+            if (x + d <= region.XMax) { neighbouringDoses.Add(source.GetPointDose(x + d, y, z).Dose); }
+            if (y - d >= region.YMin) { neighbouringDoses.Add(source.GetPointDose(x, y - d, z).Dose); }
+            if (y + d <= region.YMax) { neighbouringDoses.Add(source.GetPointDose(x, y + d, z).Dose); }
+            if (z - d >= region.ZMin) { neighbouringDoses.Add(source.GetPointDose(x, y, z - d).Dose); }
+            if (z + d <= region.ZMax) { neighbouringDoses.Add(source.GetPointDose(x, y, z + d).Dose); }
+
+            if (neighbouringDoses.Count == 0 || targeti < neighbouringDoses.Min() || targeti > neighbouringDoses.Max())
+            {
+                return PointResult.Failed;
+            }
+            return PointResult.Passed;
         }
 
         /// <summary>
