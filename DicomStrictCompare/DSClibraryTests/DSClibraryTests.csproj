@@ -32,4 +32,11 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <!-- The PTW scan the profile tests measure against. Linked rather than copied, so the test data
+         stays in resources/ as the single copy that 820c145 established. -->
+    <Content Include="..\resources\ptw scans\x06 open 30x30 pddcrin tba 180406 16'02'52.mcc" Link="TestData\ptw-scan.mcc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
