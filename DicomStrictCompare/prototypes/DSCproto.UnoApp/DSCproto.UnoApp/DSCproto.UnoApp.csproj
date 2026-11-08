@@ -1,0 +1,42 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+
+    <!-- Display name -->
+    <ApplicationTitle>DSCproto.UnoApp</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.companyname.dscproto-unoapp</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>DSCproto.UnoApp</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>DSCproto.UnoApp powered by Uno Platform.</Description>
+
+    <!--
+      UnoFeatures are used to quickly add and manage features enabled for your app.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      CSharpMarkup;
+      Mvvm;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <!--
+    Uno prototype, in Uno's own idiom: a single project with platform heads under Platforms/, the
+    WinUI object model, and the UI written in C# Markup (Uno's first-class no-XAML route) over the
+    view model shared with the Avalonia prototype. Only the desktop head (Skia) is enabled here;
+    WebAssembly, Android and iOS are a TargetFrameworks edit away, which is the point of Uno.
+    Generated from the unoapp template (Uno.Sdk 6.7.45) and edited. crane-dsc, 2026-11-08.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\DSCprototypes.Shared\DSCprototypes.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
