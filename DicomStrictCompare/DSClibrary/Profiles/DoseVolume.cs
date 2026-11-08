@@ -76,6 +76,24 @@ namespace DSClibrary.Profiles
         public Provenance Source { get; }
 
         /// <summary>
+        /// FrameOfReferenceUID (0020,0052): the coordinate system this grid's positions are in.
+        /// <para>
+        /// This is what makes an RT Dose to RT Dose comparison safe without any transform. Two grids
+        /// sharing a frame of reference have coordinates that mean the same thing, so they can be
+        /// compared where they overlap. Two grids in different frames cannot, however similar their
+        /// numbers look. Measured: all 26 reference doses and all 9 plans share one frame.
+        /// </para>
+        /// </summary>
+        public string? FrameOfReferenceUID { get; }
+
+        /// <summary>
+        /// How the phantom was positioned and where the gantry was, which is what fixes the mapping
+        /// from a scan's axes onto this grid's coordinates. Null when the plan was not available to
+        /// say.
+        /// </summary>
+        public ScanGeometry? Geometry { get; }
+
+        /// <summary>
         /// Takes a grid whose values are <b>already in centigray</b>. Private, so that every caller
         /// goes through a factory that names the unit it is handing over - the same principle as
         /// <see cref="Dose.FromGray"/>, and the thing that prevents a silent factor of a hundred.
@@ -86,7 +104,9 @@ namespace DSClibrary.Profiles
             ValueScale scale,
             double? monitorUnits,
             MeasurementConditions? conditions,
-            Provenance? source)
+            Provenance? source,
+            string? frameOfReferenceUid,
+            ScanGeometry? geometry)
         {
             Beam = beam ?? throw new ArgumentNullException(nameof(beam));
             Grid = grid ?? throw new ArgumentNullException(nameof(grid));
@@ -100,6 +120,8 @@ namespace DSClibrary.Profiles
             MonitorUnits = monitorUnits;
             Conditions = conditions ?? MeasurementConditions.Empty;
             Source = source ?? Provenance.Unknown;
+            FrameOfReferenceUID = frameOfReferenceUid;
+            Geometry = geometry;
         }
 
         /// <summary>
@@ -112,8 +134,10 @@ namespace DSClibrary.Profiles
             ValueScale scale = ValueScale.AbsoluteCentigray,
             double? monitorUnits = null,
             MeasurementConditions? conditions = null,
-            Provenance? source = null) =>
-            new(beam, grid, scale, monitorUnits, conditions, source);
+            Provenance? source = null,
+            string? frameOfReferenceUid = null,
+            ScanGeometry? geometry = null) =>
+            new(beam, grid, scale, monitorUnits, conditions, source, frameOfReferenceUid, geometry);
 
         /// <summary>
         /// For a grid whose values are in gray - which is what EvilDICOM returns, since it applies
@@ -131,7 +155,9 @@ namespace DSClibrary.Profiles
             ValueScale scale = ValueScale.AbsoluteCentigray,
             double? monitorUnits = null,
             MeasurementConditions? conditions = null,
-            Provenance? source = null)
+            Provenance? source = null,
+            string? frameOfReferenceUid = null,
+            ScanGeometry? geometry = null)
         {
             if (grayGrid is null) throw new ArgumentNullException(nameof(grayGrid));
 
@@ -145,7 +171,8 @@ namespace DSClibrary.Profiles
                 grayGrid.XRes, grayGrid.YRes, grayGrid.ZRes,
                 centigray);
 
-            return new DoseVolume(beam, converted, scale, monitorUnits, conditions, source);
+            return new DoseVolume(beam, converted, scale, monitorUnits, conditions, source,
+                frameOfReferenceUid, geometry);
         }
 
         public bool IsAbsolute => Scale == ValueScale.AbsoluteCentigray;
@@ -163,12 +190,41 @@ namespace DSClibrary.Profiles
             IsAbsolute ? null : Grid.MaxPointDose.Dose;
 
         /// <summary>
-        /// Whether this volume can be compared with another. Two volumes in different scales cannot
-        /// be: converting between absolute and relative needs a normalisation point that only the user
-        /// knows, so the mismatch is an error to report rather than something to paper over.
+        /// Whether this volume can be compared with another, for the RT Dose to RT Dose case.
+        /// <para>
+        /// Two conditions, and no transform. The scales must match, because converting between
+        /// absolute and relative needs a normalisation point only the user knows. And the frames of
+        /// reference must match, because that is what makes two sets of coordinates mean the same
+        /// thing - without it the grids might overlap numerically while describing different space.
+        /// </para>
+        /// <para>
+        /// A frame of reference that is unknown on either side is treated as a mismatch. Comparing on
+        /// the hope that two grids share a coordinate system is exactly the kind of assumption that
+        /// produces a confident wrong answer.
+        /// </para>
         /// </summary>
-        public bool IsComparableWith(DoseVolume other) =>
-            other is not null && other.Scale == Scale;
+        public bool IsComparableWith(DoseVolume other)
+        {
+            if (other is null) return false;
+            if (other.Scale != Scale) return false;
+            return FrameOfReferenceUID is { Length: > 0 }
+                   && string.Equals(FrameOfReferenceUID, other.FrameOfReferenceUID, StringComparison.Ordinal);
+        }
+
+        /// <summary>Why <see cref="IsComparableWith"/> said no, for a message a user can act on.</summary>
+        public string DescribeIncomparability(DoseVolume other)
+        {
+            if (other is null) return "the other volume is null";
+            if (IsComparableWith(other)) return "nothing";
+            if (other.Scale != Scale)
+                return $"this volume is {Scale} and the other is {other.Scale}";
+            if (FrameOfReferenceUID is not { Length: > 0 })
+                return "this volume has no FrameOfReferenceUID, so its coordinates cannot be known to "
+                     + "mean the same as another's";
+            if (other.FrameOfReferenceUID is not { Length: > 0 })
+                return "the other volume has no FrameOfReferenceUID";
+            return $"different frames of reference: {FrameOfReferenceUID} and {other.FrameOfReferenceUID}";
+        }
 
         public override string ToString()
         {

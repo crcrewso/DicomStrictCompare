@@ -91,7 +91,9 @@ namespace DSClibrary.Mapping.DICOM
                 scale,
                 pairing.MonitorUnits,
                 MapConditions(pairing),
-                new Provenance(dose.SourcePath, Vendor, ReaderName, dose.ReferencedBeamNumber));
+                new Provenance(dose.SourcePath, Vendor, ReaderName, dose.ReferencedBeamNumber),
+                dose.FrameOfReferenceUID,
+                MapGeometry(pairing));
         }
 
         /// <summary>
@@ -176,6 +178,25 @@ namespace DSClibrary.Mapping.DICOM
                 gantryAngleDegrees: beam.GantryAngle,
                 collimatorAngleDegrees: beam.BeamLimitingDeviceAngle,
                 wedgeAngleDegrees: null);
+        }
+
+        /// <summary>
+        /// How the phantom was positioned and where the gantry was, from the plan. Null when there is
+        /// no plan, because neither is in the dose file.
+        /// <para>
+        /// Measured: every setup in all nine plans is HFS and every beam is at gantry 0, so every
+        /// reference volume maps to a supported geometry. Cody, 2026-11-08, on why that is not a
+        /// guarantee: HFS is normally chosen because it is the planning system default.
+        /// </para>
+        /// </summary>
+        private static ScanGeometry? MapGeometry(RTDoseWithPlan pairing)
+        {
+            if (pairing.Plan is null || pairing.Beam is null) return null;
+
+            var setup = pairing.Plan.SetupFor(pairing.Beam);
+            return new ScanGeometry(
+                PatientOrientations.Parse(setup?.PatientPosition),
+                pairing.Beam.GantryAngle ?? double.NaN);
         }
 
         internal static Modality MapModality(string? radiationType) =>

@@ -146,14 +146,40 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
-        public void VolumesInDifferentScalesAreNotComparable()
+        public void ComparabilityNeedsBothTheScaleAndTheFrameToMatch()
         {
-            var absolute = DoseVolume.FromCentigrayGrid(Beam(), Grid(), ValueScale.AbsoluteCentigray);
-            var relative = DoseVolume.FromCentigrayGrid(Beam(), Grid(), ValueScale.RelativePercent);
+            const string frame = "1.2.3.4";
 
-            Assert.IsFalse(absolute.IsComparableWith(relative));
-            Assert.IsTrue(absolute.IsComparableWith(
-                DoseVolume.FromCentigrayGrid(Beam(), Grid(), ValueScale.AbsoluteCentigray)));
+            DoseVolume Volume(ValueScale scale, string? uid) => DoseVolume.FromCentigrayGrid(
+                Beam(), Grid(), scale, frameOfReferenceUid: uid);
+
+            var absolute = Volume(ValueScale.AbsoluteCentigray, frame);
+
+            Assert.IsTrue(absolute.IsComparableWith(Volume(ValueScale.AbsoluteCentigray, frame)));
+
+            Assert.IsFalse(absolute.IsComparableWith(Volume(ValueScale.RelativePercent, frame)));
+            StringAssert.Contains(
+                absolute.DescribeIncomparability(Volume(ValueScale.RelativePercent, frame)), "RelativePercent");
+
+            Assert.IsFalse(absolute.IsComparableWith(Volume(ValueScale.AbsoluteCentigray, "9.9.9")));
+            StringAssert.Contains(
+                absolute.DescribeIncomparability(Volume(ValueScale.AbsoluteCentigray, "9.9.9")),
+                "different frames of reference");
+        }
+
+        [TestMethod]
+        public void AnUnknownFrameOfReferenceIsTreatedAsAMismatch()
+        {
+            // Comparing on the hope that two grids share a coordinate system is exactly how a
+            // confident wrong answer happens, so absent is a refusal rather than a wildcard.
+            var noFrame = DoseVolume.FromCentigrayGrid(Beam(), Grid(), ValueScale.AbsoluteCentigray);
+            var withFrame = DoseVolume.FromCentigrayGrid(
+                Beam(), Grid(), ValueScale.AbsoluteCentigray, frameOfReferenceUid: "1.2.3.4");
+
+            Assert.IsFalse(noFrame.IsComparableWith(withFrame));
+            Assert.IsFalse(withFrame.IsComparableWith(noFrame));
+            Assert.IsFalse(noFrame.IsComparableWith(noFrame), "even against itself");
+            StringAssert.Contains(noFrame.DescribeIncomparability(withFrame), "no FrameOfReferenceUID");
         }
 
         [TestMethod]
