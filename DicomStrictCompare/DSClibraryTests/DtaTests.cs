@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace DSClibraryTests
         [TestMethod()]
         public void ExceptionInitializationTest()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => new Dta(null));
+            Assert.ThrowsExactly<ArgumentNullException>(() => new Dta(null));
         }
 
         [TestMethod()]

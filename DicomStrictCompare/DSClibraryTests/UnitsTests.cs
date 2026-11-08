@@ -44,8 +44,8 @@ namespace DSClibraryTests
         [TestMethod]
         public void RejectsNonFiniteValues()
         {
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Distance.FromMillimetres(double.NaN));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Distance.FromMillimetres(double.PositiveInfinity));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Distance.FromMillimetres(double.NaN));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Distance.FromMillimetres(double.PositiveInfinity));
         }
 
         [TestMethod]

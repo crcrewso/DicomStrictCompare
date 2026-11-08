@@ -84,7 +84,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void ReadingADoseAsAPlanIsRefused()
         {
-            Assert.ThrowsException<DicomFormatException>(
+            Assert.ThrowsExactly<DicomFormatException>(
                 () => RTPlanResult.ReadFile(TestData.DoseFiles[0]));
         }
 

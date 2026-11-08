@@ -29,7 +29,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void EmptyProfileIsRejected()
         {
-            Assert.ThrowsException<ArgumentException>(() => Make());
+            Assert.ThrowsExactly<ArgumentException>(() => Make());
         }
 
         [TestMethod]
@@ -45,9 +45,9 @@ namespace DSClibraryTests
         {
             // Extrapolating a penumbra gives a plausible number that means nothing.
             var profile = Make((0, 0), (10, 10));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(
                 () => profile.ValueAt(Distance.FromMillimetres(11)));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(
                 () => profile.ValueAt(Distance.FromMillimetres(-1)));
         }
 
@@ -73,14 +73,14 @@ namespace DSClibraryTests
         {
             // The second scaling would silently be relative to the first.
             var once = Make((0, 1), (10, 2)).Normalize(NormalizationType.Maximum);
-            Assert.ThrowsException<InvalidOperationException>(() => once.Normalize(NormalizationType.CentralAxis));
+            Assert.ThrowsExactly<InvalidOperationException>(() => once.Normalize(NormalizationType.CentralAxis));
         }
 
         [TestMethod]
         public void NormalizingByZeroIsRefused()
         {
             var flat = Make((0, 0), (10, 0));
-            Assert.ThrowsException<InvalidOperationException>(() => flat.Normalize(NormalizationType.Maximum));
+            Assert.ThrowsExactly<InvalidOperationException>(() => flat.Normalize(NormalizationType.Maximum));
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace DSClibraryTests
             // The whole reason the state is an enum and not a bool: a double correction is not
             // detectable from the values afterwards, so it has to be prevented beforehand.
             var once = Make((0, 1), (10, 2)).WithDetectorCorrection(new IdentityDetectorCorrection());
-            Assert.ThrowsException<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
                 () => once.WithDetectorCorrection(new IdentityDetectorCorrection()));
         }
 
@@ -116,7 +116,7 @@ namespace DSClibraryTests
                 new[] { new ProfilePoint(Distance.Zero, 1, null), new ProfilePoint(Distance.FromMillimetres(10), 2, null) },
                 correction: DetectorGeometryCorrection.AppliedBySource);
 
-            Assert.ThrowsException<InvalidOperationException>(
+            Assert.ThrowsExactly<InvalidOperationException>(
                 () => profile.WithDetectorCorrection(new IdentityDetectorCorrection()));
         }
     }

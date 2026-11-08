@@ -166,7 +166,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void RejectsAFileThatIsNotMCC()
         {
-            Assert.ThrowsException<MCCFormatException>(
+            Assert.ThrowsExactly<MCCFormatException>(
                 () => MCCParser.Parse(new[] { "Version:\t25", "Filename:\tsomething.prm" }));
         }
 
@@ -182,14 +182,14 @@ namespace DSClibraryTests
                 "\tEND_SCAN  2",
                 "END_SCAN_DATA"
             };
-            Assert.ThrowsException<MCCFormatException>(() => MCCParser.Parse(lines));
+            Assert.ThrowsExactly<MCCFormatException>(() => MCCParser.Parse(lines));
         }
 
         [TestMethod]
         public void RejectsAnUnclosedScan()
         {
             string[] lines = { "BEGIN_SCAN_DATA", "\tBEGIN_SCAN  1", "\t\tSCAN_CURVETYPE=PDD" };
-            Assert.ThrowsException<MCCFormatException>(() => MCCParser.Parse(lines));
+            Assert.ThrowsExactly<MCCFormatException>(() => MCCParser.Parse(lines));
         }
 
         [TestMethod]

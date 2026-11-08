@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
 using System;
 using System.Collections.Generic;
@@ -52,7 +52,7 @@ namespace DSClibraryTests
             Assert.IsFalse(dose.IsInBounds(At(0, 0, dose.ZMax + 1)), "z upper bound");
             Assert.IsFalse(dose.IsInBounds(At(0, 0, dose.Z0 - 1)), "z lower bound, against Z0 not X0");
 
-            Assert.ThrowsException<ArgumentNullException>(() => dose.IsInBounds(null!));
+            Assert.ThrowsExactly<ArgumentNullException>(() => dose.IsInBounds(null!));
         }
 
         [TestMethod()]
@@ -76,7 +76,7 @@ namespace DSClibraryTests
                 dose.GetPointDose(dose.X0, dose.Y0, dose.Z0).Dose,
                 dose.GetPointDose(At(dose.X0, dose.Y0, dose.Z0)).Dose, 1e-12);
 
-            Assert.ThrowsException<ArgumentNullException>(() => dose.GetPointDose(null!));
+            Assert.ThrowsExactly<ArgumentNullException>(() => dose.GetPointDose(null!));
         }
 
         [TestMethod()]

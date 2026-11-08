@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ public class SingleComparisonTests
     [TestMethod()]
     public void CreateWithNullExceptionTest()
     {
-        Assert.ThrowsException<ArgumentNullException>(() => new SingleComparison(null, 0, 0, 0));
+        Assert.ThrowsExactly<ArgumentNullException>(() => new SingleComparison(null, 0, 0, 0));
     }
 
     [TestMethod()]
@@ -48,7 +48,7 @@ public class SingleComparisonTests
     {
         var dta = new Dta(false, 0, 0);
         var ret = new SingleComparison(dta, 0, 0, 0);
-        Assert.ThrowsException<ArgumentNullException>(() => ret.Equals(null));
+        Assert.ThrowsExactly<ArgumentNullException>(() => ret.Equals(null));
     }
 
     [TestMethod()]
@@ -81,14 +81,14 @@ public class SingleComparisonTests
     public void InvalidComparedException()
     {
         var dta = new Dta(false, 0, 0);
-        Assert.ThrowsException<ArgumentException>(() => new SingleComparison(dta, 100, 101, 1));
+        Assert.ThrowsExactly<ArgumentException>(() => new SingleComparison(dta, 100, 101, 1));
     }
 
     [TestMethod()]
     public void InvalidFailedException()
     {
         var dta = new Dta(false, 0, 0);
-        Assert.ThrowsException<ArgumentException>(() => new SingleComparison(dta, 100, 10, 1000));
+        Assert.ThrowsExactly<ArgumentException>(() => new SingleComparison(dta, 100, 10, 1000));
     }
 
 }

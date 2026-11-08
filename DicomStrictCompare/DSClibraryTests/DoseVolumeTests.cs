@@ -36,15 +36,15 @@ namespace DSClibraryTests
         [TestMethod]
         public void RejectsNonFiniteValues()
         {
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Dose.FromCentigray(double.NaN));
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Dose.FromGray(double.PositiveInfinity));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Dose.FromCentigray(double.NaN));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Dose.FromGray(double.PositiveInfinity));
         }
 
         [TestMethod]
         public void FractionOfRefusesAZeroReference()
         {
             Assert.AreEqual(0.5, Dose.FromCentigray(50).FractionOf(Dose.FromCentigray(100)), 1e-12);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(
                 () => Dose.FromCentigray(50).FractionOf(Dose.Zero));
         }
 
@@ -85,7 +85,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void AVolumeMustStateItsScale()
         {
-            Assert.ThrowsException<ArgumentOutOfRangeException>(
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(
                 () => DoseVolume.FromCentigrayGrid(Beam(), Grid(), (ValueScale)0));
         }
 

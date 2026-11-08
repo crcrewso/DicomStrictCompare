@@ -52,7 +52,7 @@ namespace DSClibraryTests
             var prone = new ScanGeometry(PatientOrientation.HeadFirstProne, 0);
             Assert.IsFalse(prone.IsSupported);
             StringAssert.Contains(prone.DescribeUnsupported(), "HeadFirstProne");
-            Assert.ThrowsException<InvalidOperationException>(() => prone.DirectionFor(CurveType.Pdd));
+            Assert.ThrowsExactly<InvalidOperationException>(() => prone.DirectionFor(CurveType.Pdd));
 
             var unknown = new ScanGeometry(PatientOrientation.Unknown, 0);
             Assert.IsFalse(unknown.IsSupported);
@@ -74,7 +74,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void DiagonalsHaveNoDirectionYet()
         {
-            Assert.ThrowsException<NotSupportedException>(
+            Assert.ThrowsExactly<NotSupportedException>(
                 () => ScanGeometry.HeadFirstSupineGantryZero.DirectionFor(CurveType.PositiveDiagonal));
         }
 

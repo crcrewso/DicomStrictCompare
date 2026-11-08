@@ -148,16 +148,16 @@ namespace DSClibraryTests
             // No file uses DoseUnits RELATIVE, so nothing establishes whether its stored values are a
             // fraction or already a percentage - and those differ by a factor of a hundred. Cody is
             // producing a sample file; until then a clear refusal beats a guessed factor.
-            var relative = Assert.ThrowsException<DicomFormatException>(
+            var relative = Assert.ThrowsExactly<DicomFormatException>(
                 () => RTDoseVolumeMapper.MapValueScale("RELATIVE"));
             StringAssert.Contains(relative.Message, "no sample file");
 
             Assert.AreEqual(ValueScale.AbsoluteCentigray, RTDoseVolumeMapper.MapValueScale("GY"));
             Assert.AreEqual(ValueScale.AbsoluteCentigray, RTDoseVolumeMapper.MapValueScale(" gy "));
 
-            Assert.ThrowsException<DicomFormatException>(() => RTDoseVolumeMapper.MapValueScale(""));
-            Assert.ThrowsException<DicomFormatException>(() => RTDoseVolumeMapper.MapValueScale((string?)null));
-            Assert.ThrowsException<DicomFormatException>(() => RTDoseVolumeMapper.MapValueScale("RADIOACTIVITY"));
+            Assert.ThrowsExactly<DicomFormatException>(() => RTDoseVolumeMapper.MapValueScale(""));
+            Assert.ThrowsExactly<DicomFormatException>(() => RTDoseVolumeMapper.MapValueScale((string?)null));
+            Assert.ThrowsExactly<DicomFormatException>(() => RTDoseVolumeMapper.MapValueScale("RADIOACTIVITY"));
         }
     }
 }
