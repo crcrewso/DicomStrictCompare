@@ -118,13 +118,16 @@ public static class ComparisonRunner
         var started = DateTimeOffset.UtcNow;
         var clock = Stopwatch.StartNew();
 
-        progress?.Report($"Reading source folder {request.SourceFolder}");
-        var source = RTFolderReader.Read(request.SourceFolder);
+        // Subfolders included (Cody, 2026-11-08: "all guis should scan subfolders"). A TPS export is
+        // usually one folder per plan or per patient, and the matching is by UID, so where a file
+        // sits does not matter to it.
+        progress?.Report($"Reading source folder {request.SourceFolder} and its subfolders");
+        var source = RTFolderReader.Read(request.SourceFolder, recursive: true);
         progress?.Report(source.ToString());
         cancellation.ThrowIfCancellationRequested();
 
-        progress?.Report($"Reading target folder {request.TargetFolder}");
-        var target = RTFolderReader.Read(request.TargetFolder);
+        progress?.Report($"Reading target folder {request.TargetFolder} and its subfolders");
+        var target = RTFolderReader.Read(request.TargetFolder, recursive: true);
         progress?.Report(target.ToString());
         cancellation.ThrowIfCancellationRequested();
 
