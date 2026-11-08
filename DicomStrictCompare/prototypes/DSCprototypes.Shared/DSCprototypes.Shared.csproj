@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The workflow the three front-end prototypes share, so that they differ only in their UI layer:
+    read two folders of RT files, match the doses by UID (or identifier), run each Dta over the
+    matched pairs through DSClibrary's BatchComparer, and write the result as a spreadsheet (CSV).
+    Nothing here draws anything. crane-dsc, 2026-11-08.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The view model the two XAML-family prototypes (Avalonia, Uno) share. Eto does not use it. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\DSClibrary\DSClibrary.csproj" />
+  </ItemGroup>
+
+</Project>

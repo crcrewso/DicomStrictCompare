@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/DSCproto.UnoApp/">
+    <Project Path="DSCproto.UnoApp/DSCproto.UnoApp/DSCproto.UnoApp.csproj" />
+  </Folder>
+  <Project Path="../DSClibrary/DSClibrary.csproj" />
+  <Project Path="DSCproto.AvaloniaApp/DSCproto.AvaloniaApp.csproj" />
+  <Project Path="DSCproto.EtoApp/DSCproto.EtoApp.csproj" />
+  <Project Path="DSCprototypes.Shared.Tests/DSCprototypes.Shared.Tests.csproj" />
+  <Project Path="DSCprototypes.Shared/DSCprototypes.Shared.csproj" />
+</Solution>
