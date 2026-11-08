@@ -2,7 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using DSClibrary.Documents.PTW;
+using DSClibrary.Results.PTW;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DSClibraryTests
@@ -10,12 +10,12 @@ namespace DSClibraryTests
     /// <summary>
     /// Fidelity tests. Every assertion here is about <b>what the file says</b>, in PTW's own names and
     /// units, and none of them is about what this project does with it. That separation is why the
-    /// document layer exists: a unit mistake belongs to the mapper's tests, not these.
+    /// result layer exists: a unit mistake belongs to the mapper's tests, not these.
     /// </summary>
     [TestClass]
     public class MCCParserTests
     {
-        private static MCCDocument Document() => MCCParser.ParseFile(TestData.PTWScan);
+        private static MCCResult Result() => MCCParser.ParseFile(TestData.PTWScan);
 
         [TestMethod]
         public void TheTestFileIsWhereTheProjectFileSaysItIs()
@@ -28,7 +28,7 @@ namespace DSClibraryTests
         {
             // The file has 12 lines containing BEGIN_SCAN, one of which is BEGIN_SCAN_DATA, and 12
             // containing END_SCAN, one of which is END_SCAN_DATA.
-            Assert.AreEqual(11, Document().Scans.Count);
+            Assert.AreEqual(11, Result().Scans.Count);
         }
 
         [TestMethod]
@@ -36,25 +36,25 @@ namespace DSClibraryTests
         {
             CollectionAssert.AreEqual(
                 Enumerable.Range(1, 11).ToArray(),
-                Document().Scans.Select(s => s.ScanNumber).ToArray());
+                Result().Scans.Select(s => s.ScanNumber).ToArray());
         }
 
         [TestMethod]
         public void ReadsTheFileLevelFormat()
         {
-            StringAssert.StartsWith(Document().Format, "CC-Export");
+            StringAssert.StartsWith(Result().Format, "CC-Export");
         }
 
         [TestMethod]
         public void FirstScanHasSeventyOneHeaders()
         {
-            Assert.AreEqual(71, Document().Scans[0].Headers.Count);
+            Assert.AreEqual(71, Result().Scans[0].Headers.Count);
         }
 
         [TestMethod]
         public void CurveTypesAreTheVendorsOwnStrings()
         {
-            var types = Document().Scans
+            var types = Result().Scans
                 .GroupBy(s => s.ScanCurvetype)
                 .ToDictionary(g => g.Key, g => g.Count());
 
@@ -66,7 +66,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void LengthsAreTheFilesOwnNumbersUnconverted()
         {
-            var scan = Document().Scans[0];
+            var scan = Result().Scans[0];
             Assert.AreEqual(1000.00, scan.Ssd!.Value, 1e-9, "SSD=1000.00 is read as 1000, not 100");
             Assert.AreEqual(300.00, scan.FieldInplane!.Value, 1e-9);
             Assert.AreEqual(300.00, scan.FieldCrossplane!.Value, 1e-9);
@@ -75,7 +75,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void ReadsTheFirstDataPointExactly()
         {
-            var first = Document().Scans[0].Data[0];
+            var first = Result().Scans[0].Data[0];
             Assert.AreEqual(-5.00, first.Position, 1e-9);
             Assert.AreEqual(1.0570E+00, first.Value, 1e-12);
             Assert.AreEqual(3.6648E+00, first.ReferenceValue!.Value, 1e-12);
@@ -84,13 +84,13 @@ namespace DSClibraryTests
         [TestMethod]
         public void CapturesTheReferenceColumnOnEveryPoint()
         {
-            Assert.IsTrue(Document().Scans.SelectMany(s => s.Data).All(p => p.ReferenceValue.HasValue));
+            Assert.IsTrue(Result().Scans.SelectMany(s => s.Data).All(p => p.ReferenceValue.HasValue));
         }
 
         [TestMethod]
         public void DataPointCountsMatchTheFile()
         {
-            var scans = Document().Scans;
+            var scans = Result().Scans;
             Assert.AreEqual(51, scans[0].Data.Count, "the PDD has 51 points");
             Assert.IsTrue(scans.Skip(1).All(s => s.Data.Count == 93), "each profile has 93 points");
         }
@@ -100,8 +100,8 @@ namespace DSClibraryTests
         {
             // The 2024 ParsePTW read CROSSPLANE_AXIS_DIR into both of its depth fields. Here the
             // property and the key it reads are checkable side by side, which is what a faithful
-            // document layer buys.
-            var scan = Document().Scans[0];
+            // result layer buys.
+            var scan = Result().Scans[0];
             Assert.AreEqual("Depth", scan.DepthAxis);
             Assert.AreEqual("UP_DOWN", scan.DepthAxisDir);
             Assert.AreEqual("LEFT_RIGHT", scan.CrossplaneAxisDir);
@@ -113,7 +113,7 @@ namespace DSClibraryTests
         {
             // A sequential acquisition needs a reference chamber to correct for output drift across
             // the scan, and the file declares a whole second one.
-            var scan = Document().Scans[0];
+            var scan = Result().Scans[0];
             Assert.AreEqual("THIMBLE_CHAMBER", scan.Detector);
             Assert.AreEqual("SEMIFLEX", scan.DetectorSubcode);
             Assert.AreEqual(2.75, scan.DetectorRadius!.Value, 1e-9);
@@ -124,7 +124,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void ReadsEnvironmentAndCorrectionHeaders()
         {
-            var scan = Document().Scans[0];
+            var scan = Result().Scans[0];
             Assert.AreEqual(20.00, scan.Temperature!.Value, 1e-9);
             Assert.AreEqual(1013.25, scan.Pressure!.Value, 1e-9);
             Assert.AreEqual(1.0000, scan.CorrectionFactor!.Value, 1e-9);
@@ -136,7 +136,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void MissingHeadersAreEmptyOrNullRatherThanAnException()
         {
-            var scan = Document().Scans[0];
+            var scan = Result().Scans[0];
             Assert.AreEqual(string.Empty, scan.Text("NO_SUCH_KEY"));
             Assert.IsNull(scan.Number("NO_SUCH_KEY"));
             Assert.IsNull(scan.Flag("NO_SUCH_KEY"));
@@ -152,7 +152,7 @@ namespace DSClibraryTests
             try
             {
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("de-DE");
-                var scan = Document().Scans[0];
+                var scan = Result().Scans[0];
                 Assert.AreEqual(1000.00, scan.Ssd!.Value, 1e-9);
                 Assert.AreEqual(1.0570E+00, scan.Data[0].Value, 1e-12);
                 Assert.AreEqual(-5.00, scan.Data[0].Position, 1e-9);
@@ -209,9 +209,9 @@ namespace DSClibraryTests
                 "\tEND_SCAN  1",
                 "END_SCAN_DATA"
             };
-            var document = MCCParser.Parse(lines);
-            Assert.AreEqual(1, document.Scans.Count);
-            Assert.AreEqual(1, document.Scans[0].Data.Count);
+            var parsed = MCCParser.Parse(lines);
+            Assert.AreEqual(1, parsed.Scans.Count);
+            Assert.AreEqual(1, parsed.Scans[0].Data.Count);
         }
     }
 }

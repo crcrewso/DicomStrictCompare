@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using DSClibrary.Documents.PTW;
+using DSClibrary.Results.PTW;
 using DSClibrary.Mapping;
 using DSClibrary.Profiles;
 using DSClibrary.Units;
@@ -10,7 +10,7 @@ using DSClibrary.Units;
 namespace DSClibrary.Mapping.PTW
 {
     /// <summary>
-    /// Maps a PTW <see cref="MCCDocument"/> onto the canonical model.
+    /// Maps a PTW <see cref="MCCResult"/> onto the canonical model.
     /// <para>
     /// <b>Units.</b> PTW states lengths in millimetres and the canonical model uses millimetres, so
     /// nothing is scaled. Measured on the committed test file: SSD=1000.00 with FIELD_INPLANE=300.00
@@ -31,19 +31,19 @@ namespace DSClibrary.Mapping.PTW
     /// calibration - neither states whether the values were adjusted for the detector's volume.
     /// </para>
     /// </summary>
-    public sealed class MCCMeasurementMapper : IMeasurementMapper<MCCDocument>
+    public sealed class MCCMeasurementMapper : IMeasurementMapper<MCCResult>
     {
         public string Vendor => "PTW";
 
         private const string ReaderName = nameof(MCCMeasurementMapper);
 
-        public MeasurementSet Map(MCCDocument document)
+        public MeasurementSet Map(MCCResult result)
         {
-            if (document is null) throw new ArgumentNullException(nameof(document));
-            return MeasurementSet.Create(document.Scans.Select(s => MapScan(s, document)));
+            if (result is null) throw new ArgumentNullException(nameof(result));
+            return MeasurementSet.Create(result.Scans.Select(s => MapScan(s, result)));
         }
 
-        public Profile MapScan(MCCScan scan, MCCDocument document)
+        public Profile MapScan(MCCScan scan, MCCResult result)
         {
             if (scan is null) throw new ArgumentNullException(nameof(scan));
 
@@ -78,7 +78,7 @@ namespace DSClibrary.Mapping.PTW
                 key,
                 points,
                 MapConditions(scan),
-                new Provenance(document.SourcePath, Vendor, ReaderName, scan.ScanNumber),
+                new Provenance(result.SourcePath, Vendor, ReaderName, scan.ScanNumber),
                 NormalizationType.AsMeasured,
                 DetectorGeometryCorrection.Unknown);
         }

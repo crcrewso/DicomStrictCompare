@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace DSClibrary.Documents.PTW
+namespace DSClibrary.Results.PTW
 {
     /// <summary>
     /// A PTW mcc file, as the file has it. Vendor names, vendor units, no interpretation.
@@ -20,7 +20,7 @@ namespace DSClibrary.Documents.PTW
     /// is kept on purpose: it signals that you are holding vendor data.
     /// </para>
     /// </summary>
-    public sealed class MCCDocument
+    public sealed class MCCResult
     {
         public string Format { get; }
         public string FileCreationDate { get; }
@@ -29,7 +29,7 @@ namespace DSClibrary.Documents.PTW
         public IReadOnlyDictionary<string, string> FileHeaders { get; }
         public string SourcePath { get; }
 
-        internal MCCDocument(
+        internal MCCResult(
             string sourcePath,
             IReadOnlyDictionary<string, string> fileHeaders,
             IReadOnlyList<MCCScan> scans)
@@ -140,7 +140,7 @@ namespace DSClibrary.Documents.PTW
 
         /// <summary>
         /// DEPTH_AXIS, not CROSSPLANE_AXIS_DIR. The 2024 ParsePTW read the crossplane direction key
-        /// into both of its depth fields, which is the sort of mistake a faithful document layer makes
+        /// into both of its depth fields, which is the sort of mistake a faithful result layer makes
         /// visible: here the property name and the key it reads are checkable side by side.
         /// </summary>
         public string DepthAxis => Text("DEPTH_AXIS");

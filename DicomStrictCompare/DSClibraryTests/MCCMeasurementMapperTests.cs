@@ -1,5 +1,5 @@
 using System.Linq;
-using DSClibrary.Documents.PTW;
+using DSClibrary.Results.PTW;
 using DSClibrary.Mapping.PTW;
 using DSClibrary.Profiles;
 using DSClibrary.Units;

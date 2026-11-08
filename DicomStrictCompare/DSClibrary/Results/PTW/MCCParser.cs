@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace DSClibrary.Documents.PTW
+namespace DSClibrary.Results.PTW
 {
     /// <summary>
-    /// Reads a PTW mcc file into an <see cref="MCCDocument"/>. It converts nothing and interprets
+    /// Reads a PTW mcc file into an <see cref="MCCResult"/>. It converts nothing and interprets
     /// nothing: units, enum translation and canonical naming are the mapper's job.
     /// <para>
     /// The structure it expects, measured from the committed test file:
@@ -34,7 +34,7 @@ namespace DSClibrary.Documents.PTW
         private const string BeginData = "BEGIN_DATA";
         private const string EndData = "END_DATA";
 
-        public static MCCDocument ParseFile(string path)
+        public static MCCResult ParseFile(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 throw new ArgumentException("A path is required.", nameof(path));
@@ -48,7 +48,7 @@ namespace DSClibrary.Documents.PTW
             return Parse(lines, path);
         }
 
-        public static MCCDocument Parse(IReadOnlyList<string> lines, string sourcePath = "")
+        public static MCCResult Parse(IReadOnlyList<string> lines, string sourcePath = "")
         {
             if (lines is null) throw new ArgumentNullException(nameof(lines));
             if (lines.Count < 2)
@@ -149,7 +149,7 @@ namespace DSClibrary.Documents.PTW
             if (openScanNumber.HasValue)
                 throw new MCCFormatException($"Scan {openScanNumber.Value} was never closed by {EndScan}.");
 
-            return new MCCDocument(sourcePath, fileHeaders, scans);
+            return new MCCResult(sourcePath, fileHeaders, scans);
         }
 
         /// <summary>
