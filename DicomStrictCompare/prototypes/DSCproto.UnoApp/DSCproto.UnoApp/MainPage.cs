@@ -165,10 +165,26 @@ public sealed partial class MainPage : Page
             new Button().Content("Cancel").Command(() => vm.CancelCommand).Grid(column: 3),
             new Button().Content("Export spreadsheet (CSV)").Command(() => vm.ExportCommand).Grid(column: 4));
 
-    /// <summary>The platform folder picker, through WinRT's picker API as Uno implements it on desktop.</summary>
-    private static async Task<string?> PickFolderAsync(string title)
+    /// <summary>
+    /// The platform folder picker, through WinRT's picker API as Uno implements it on desktop.
+    /// <para>
+    /// The start folder the view model computes (the parent of the previous choice) cannot be
+    /// passed: WinRT's FolderPicker takes only a <see cref="PickerLocationId"/>, and Uno's own
+    /// documentation says SuggestedStartLocation "has currently no effect in Uno Platform targets".
+    /// The nearest available behaviour is the dialog's own memory, keyed per field through
+    /// SettingsIdentifier, so each Browse button reopens where it was last used. Recorded as a
+    /// difference between the frameworks, not hidden.
+    /// </para>
+    /// </summary>
+    private static async Task<string?> PickFolderAsync(string title, string? startFolder)
     {
-        var picker = new FolderPicker { SuggestedStartLocation = PickerLocationId.DocumentsLibrary, CommitButtonText = title };
+        _ = startFolder;
+        var picker = new FolderPicker
+        {
+            SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+            CommitButtonText = title,
+            SettingsIdentifier = title,
+        };
         picker.FileTypeFilter.Add("*");
         var folder = await picker.PickSingleFolderAsync();
         return folder?.Path;

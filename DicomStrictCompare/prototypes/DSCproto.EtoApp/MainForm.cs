@@ -81,7 +81,7 @@ public sealed class MainForm : Form
             layout.BeginHorizontal();
             layout.Add(new Label { Text = caption, Width = 130, VerticalAlignment = VerticalAlignment.Center });
             layout.Add(folder, xscale: true);
-            layout.Add(BrowseButton(folder, dialogTitle));
+            layout.Add(BrowseButton(folder, dialogTitle, ReferenceEquals(folder, _sourceFolder) ? _targetFolder : _sourceFolder));
             layout.Add(new Label { Text = "Alias", VerticalAlignment = VerticalAlignment.Center });
             layout.Add(alias);
             layout.EndHorizontal();
@@ -166,14 +166,35 @@ public sealed class MainForm : Form
     private static TabPage Placeholder(string title, string text) =>
         new(new Label { Text = text, Wrap = WrapMode.Word }) { Text = title, Padding = new Padding(12) };
 
-    private Button BrowseButton(TextBox target, string title)
+    private string? _lastPicked;
+    private string? _lastExportFolder;
+
+    /// <summary>
+    /// Where a Browse dialog opens: the parent of this field's previous choice (Cody, 2026-11-08),
+    /// else the parent of the other field's folder, else the last folder picked anywhere.
+    /// </summary>
+    private string? StartFor(string? own, string? other) =>
+        DSCprototypes.Shared.ViewModels.MainViewModel.ParentOf(own)
+        ?? DSCprototypes.Shared.ViewModels.MainViewModel.ParentOf(other)
+        ?? _lastPicked;
+
+    private string? PickFolder(string title, string? start)
+    {
+        // Eto's dialog is the platform's own folder dialog on every OS; Directory is its start folder.
+        var dialog = new SelectFolderDialog { Title = title };
+        if (start is not null) dialog.Directory = start;
+        if (dialog.ShowDialog(this) != DialogResult.Ok) return null;
+        _lastPicked = dialog.Directory;
+        return dialog.Directory;
+    }
+
+    private Button BrowseButton(TextBox target, string title, TextBox other)
     {
         var button = new Button { Text = "Browse" };
         button.Click += (_, _) =>
         {
-            // Eto's dialog is the platform's own folder dialog on every OS.
-            var dialog = new SelectFolderDialog { Title = title };
-            if (dialog.ShowDialog(this) == DialogResult.Ok) target.Text = dialog.Directory;
+            var picked = PickFolder(title, StartFor(target.Text, other.Text));
+            if (picked is not null) target.Text = picked;
         };
         return button;
     }
@@ -289,9 +310,10 @@ public sealed class MainForm : Form
     private void Export()
     {
         if (_session is null) return;
-        var dialog = new SelectFolderDialog { Title = "Folder for the spreadsheet" };
-        if (dialog.ShowDialog(this) != DialogResult.Ok) return;
-        var written = CsvReport.Write(_session, dialog.Directory);
+        var folder = PickFolder("Folder for the spreadsheet", StartFor(_lastExportFolder, _sourceFolder.Text));
+        if (folder is null) return;
+        _lastExportFolder = folder;
+        var written = CsvReport.Write(_session, folder);
         _status.Text = "Wrote " + string.Join(" and ", written.Select(Path.GetFileName));
     }
 

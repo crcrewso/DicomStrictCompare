@@ -33,13 +33,45 @@ public sealed partial class CriterionViewModel : ObservableObject
 /// </summary>
 public sealed partial class MainViewModel : ObservableObject
 {
-    private readonly Func<string, Task<string?>> _pickFolder;
+    /// <summary>(title, suggested start folder or null) to the folder picked or null.</summary>
+    private readonly Func<string, string?, Task<string?>> _pickFolder;
     private CancellationTokenSource? _cancel;
+    private string? _lastPicked;
+    private string? _lastExportFolder;
 
-    public MainViewModel(Func<string, Task<string?>> pickFolder)
+    public MainViewModel(Func<string, string?, Task<string?>> pickFolder)
     {
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
+    }
+
+    /// <summary>
+    /// Where a Browse dialog should open: the parent of this field's previous choice (Cody,
+    /// 2026-11-08), else the parent of the other folder, else the last folder picked anywhere.
+    /// </summary>
+    public static string? ParentOf(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        try
+        {
+            string full = Path.GetFullPath(path.Trim());
+            string? parent = Path.GetDirectoryName(full);
+            if (parent is not null && Directory.Exists(parent)) return parent;
+            return Directory.Exists(full) ? full : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private string? StartFor(string? own, string? other) => ParentOf(own) ?? ParentOf(other) ?? _lastPicked;
+
+    private async Task<string?> PickAsync(string title, string? start)
+    {
+        var picked = await _pickFolder(title, start);
+        if (picked is not null) _lastPicked = picked;
+        return picked;
     }
 
     [ObservableProperty] private string _sourceFolder = "";
@@ -89,14 +121,14 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task BrowseSourceAsync()
     {
-        var picked = await _pickFolder("Source (reference) folder");
+        var picked = await PickAsync("Source (reference) folder", StartFor(SourceFolder, TargetFolder));
         if (picked is not null) SourceFolder = picked;
     }
 
     [RelayCommand]
     private async Task BrowseTargetAsync()
     {
-        var picked = await _pickFolder("Target folder");
+        var picked = await PickAsync("Target folder", StartFor(TargetFolder, SourceFolder));
         if (picked is not null) TargetFolder = picked;
     }
 
@@ -175,8 +207,9 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task ExportAsync()
     {
         if (Session is null) return;
-        var folder = await _pickFolder("Folder for the spreadsheet");
+        var folder = await PickAsync("Folder for the spreadsheet", StartFor(_lastExportFolder, SourceFolder));
         if (folder is null) return;
+        _lastExportFolder = folder;
         var written = CsvReport.Write(Session, folder);
         Status = "Wrote " + string.Join(" and ", written.Select(Path.GetFileName));
     }
