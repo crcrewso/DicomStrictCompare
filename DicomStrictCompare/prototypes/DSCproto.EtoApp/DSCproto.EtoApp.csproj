@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Eto.Forms prototype, in Eto's own idiom: the whole UI is C# objects and layouts (DynamicLayout,
+    TableLayout), events are wired directly, and the controls are the platform's own - WPF on Windows,
+    GTK on Linux, Cocoa on macOS - so the application looks native everywhere. No XAML, no markup
+    dialect, no view-model framework: the form is the controller. crane-dsc, 2026-11-08.
+
+    Multi-targeted so one project builds a WPF-backed exe on Windows and a GTK-backed one elsewhere.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworks>net10.0-windows;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DSCproto.EtoApp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Eto.Forms" Version="2.13.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <PackageReference Include="Eto.Platform.Wpf" Version="2.13.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Eto.Platform.Gtk" Version="2.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DSCprototypes.Shared\DSCprototypes.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
