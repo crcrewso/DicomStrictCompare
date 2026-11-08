@@ -60,6 +60,22 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
+        public void DoseValuesAreAlreadyScaledToGray()
+        {
+            // Read straight from the file: DoseUnits=GY, BitsAllocated=32, maximum stored integer
+            // 2904474, DoseGridScaling 3.5042182425e-07, so the physical maximum is 1.017791 Gy -
+            // 101.78 cGy for this 100 MU beam.
+            //
+            // The question this answers is whether DoseMatrixOptimal's values are physical or raw.
+            // Scaling is stored on the type but multiplied into nothing anywhere in DSClibrary or
+            // DSCcore, so if the values were raw every absolute dose in the project would be in
+            // arbitrary units.
+            var dose = Reference();
+            Assert.AreEqual(1.017791, dose.MaxPointDose.Dose, 1e-5);
+            Assert.AreEqual(3.5042182425e-07, dose.Scaling, 1e-17);
+        }
+
+        [TestMethod]
         public void IsInBoundsNoLongerThrowsOnAValidPoint()
         {
             // This replaces a test that asserted the opposite. The guard read `null == pt`, which

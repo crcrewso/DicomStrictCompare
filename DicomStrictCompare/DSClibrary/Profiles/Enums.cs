@@ -56,6 +56,25 @@ namespace DSClibrary.Profiles
     }
 
     /// <summary>
+    /// What a dose volume's values mean. Cody, 2026-11-08: a dose volume holds either absolute dose
+    /// in centigray or relative dose in percent, both being the stored voxel value times
+    /// DoseGridScaling.
+    /// <para>
+    /// There is no default and no Unknown: a volume whose scale is not known cannot be compared with
+    /// anything, and silently treating a percentage as centigray would be off by whatever the
+    /// normalisation was.
+    /// </para>
+    /// </summary>
+    public enum DoseScale
+    {
+        /// <summary>Absolute dose in centigray. DICOM's DoseUnits of GY, converted.</summary>
+        AbsoluteCentigray = 1,
+
+        /// <summary>Relative dose as a percentage of some reference. DICOM's DoseUnits of RELATIVE.</summary>
+        RelativePercent = 2
+    }
+
+    /// <summary>
     /// Whether the values have been adjusted for the detector's geometry (its finite volume).
     /// <para>
     /// <see cref="Unknown"/> is the zero value deliberately. A PTW mcc file does not record this:
