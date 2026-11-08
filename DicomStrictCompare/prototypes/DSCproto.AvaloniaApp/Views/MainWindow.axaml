@@ -1,0 +1,105 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DSCprototypes.Shared.ViewModels"
+        xmlns:shared="using:DSCprototypes.Shared"
+        x:Class="DSCproto.AvaloniaApp.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="DicomStrictCompare - Avalonia prototype"
+        Width="1280" Height="820" MinWidth="900" MinHeight="600">
+
+  <!-- Compiled bindings throughout: a typo in a binding path is a build error, not a blank control. -->
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="12">
+
+    <!-- Inputs: two folders, two aliases, the matching strategy -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,180" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Source (reference)" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceFolder}" PlaceholderText="Folder of RT Dose and RT Plan files"/>
+      <Button Grid.Row="0" Grid.Column="2" Content="Browse" Command="{Binding BrowseSourceCommand}"/>
+      <TextBlock Grid.Row="0" Grid.Column="3" Text="Alias" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding SourceAlias}"/>
+
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Target" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding TargetFolder}" PlaceholderText="Folder of RT Dose and RT Plan files"/>
+      <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseTargetCommand}"/>
+      <TextBlock Grid.Row="1" Grid.Column="3" Text="Alias" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding TargetAlias}"/>
+
+      <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Orientation="Horizontal" Spacing="16">
+        <TextBlock Text="Match doses by" VerticalAlignment="Center"/>
+        <RadioButton Content="plan UID and beam number" IsChecked="{Binding MatchByUid}" GroupName="match"/>
+        <RadioButton Content="patient, plan label and beam name" IsChecked="{Binding !MatchByUid}" GroupName="match"/>
+      </StackPanel>
+    </Grid>
+
+    <!-- Work area: criteria on the left, results in tabs on the right -->
+    <Grid Grid.Row="1" ColumnDefinitions="340,8,*" Margin="0,12,0,0">
+
+      <DockPanel Grid.Column="0">
+        <TextBlock DockPanel.Dock="Top" Text="Criteria" FontWeight="SemiBold" Margin="0,0,0,6"/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+          <Button Content="Add" Command="{Binding AddCriterionCommand}"/>
+          <Button Content="Remove" Command="{Binding RemoveCriterionCommand}"/>
+        </StackPanel>
+        <DataGrid ItemsSource="{Binding Criteria}" SelectedItem="{Binding SelectedCriterion}"
+                  AutoGenerateColumns="False" CanUserReorderColumns="False" GridLinesVisibility="Horizontal">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Tol %" Binding="{Binding TolerancePercent}" Width="*"/>
+            <DataGridTextColumn Header="DTA mm" Binding="{Binding DistanceMm}" Width="*"/>
+            <DataGridTextColumn Header="Thr %" Binding="{Binding ThresholdPercent}" Width="*"/>
+            <DataGridCheckBoxColumn Header="Global" Binding="{Binding Global}" Width="Auto"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </DockPanel>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+
+      <TabControl Grid.Column="2">
+        <TabItem Header="Results">
+          <DataGrid ItemsSource="{Binding Rows}" IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="2*"/>
+              <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="*"/>
+              <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
+              <DataGridTextColumn Header="Failed" Binding="{Binding Failed, StringFormat=N0}" Width="Auto"/>
+              <DataGridTextColumn Header="% failed" Binding="{Binding PercentFailed, StringFormat=0.000}" Width="Auto"/>
+              <DataGridTextColumn Header="Src MU" Binding="{Binding SourceMonitorUnits}" Width="Auto"/>
+              <DataGridTextColumn Header="Tgt MU" Binding="{Binding TargetMonitorUnits}" Width="Auto"/>
+              <DataGridTextColumn Header="s" Binding="{Binding ElapsedSeconds, StringFormat=0.0}" Width="Auto"/>
+              <DataGridTextColumn Header="Failure" Binding="{Binding Failure}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </TabItem>
+        <TabItem Header="Unmatched">
+          <ListBox ItemsSource="{Binding Unmatched}"/>
+        </TabItem>
+        <TabItem Header="Log">
+          <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Cascadia Mono,Consolas,monospace"/>
+        </TabItem>
+        <TabItem Header="Profiles">
+          <TextBlock Margin="12" TextWrapping="Wrap"
+                     Text="Placeholder: PTW mcc profiles against extracted dose lines, filtered by energy, field size and depth, rendered live from retained Profile objects (backlog D3, D15, D17)."/>
+        </TabItem>
+        <TabItem Header="Detector geometry">
+          <TextBlock Margin="12" TextWrapping="Wrap"
+                     Text="Placeholder: detector geometry correction for PTW scans. IDetectorCorrection exists in DSClibrary; no physical kernel is implemented yet (backlog D4), so there is nothing honest to switch on here."/>
+        </TabItem>
+        <TabItem Header="Archive">
+          <TextBlock Margin="12" TextWrapping="Wrap"
+                     Text="Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - Cody, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."/>
+        </TabItem>
+      </TabControl>
+    </Grid>
+
+    <!-- Actions and status -->
+    <DockPanel Grid.Row="2" Margin="0,12,0,0">
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+        <Button Content="Run comparison" Command="{Binding RunCommand}" Classes="accent"/>
+        <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+        <Button Content="Export spreadsheet (CSV)" Command="{Binding ExportCommand}"/>
+      </StackPanel>
+      <ProgressBar DockPanel.Dock="Right" IsIndeterminate="{Binding IsRunning}" IsVisible="{Binding IsRunning}" Width="160" Margin="0,0,12,0"/>
+      <TextBlock Text="{Binding Status}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+    </DockPanel>
+  </Grid>
+</Window>
