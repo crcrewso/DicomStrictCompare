@@ -83,7 +83,10 @@ namespace DSClibrary
 
         public bool IsInBounds(Vector3 pt)
         {
-            if (null == pt)
+            // `is null` and not `null == pt`: Vector3 overloads ==, and that overload dereferences
+            // the null operand, so the guard itself threw NullReferenceException for every valid
+            // point. `is null` compiles to a reference comparison and does not call the operator.
+            if (pt is null)
                 throw new ArgumentNullException(nameof(pt));
             return pt.X >= X0 && pt.X <= XMax && pt.Y >= Y0 && pt.Y <= YMax && pt.Z >= Z0 && pt.Z <= ZMax;
         }
@@ -151,7 +154,7 @@ namespace DSClibrary
 
         public DoseValue GetPointDose(Vector3 pt)
         {
-            if (pt == null)
+            if (pt is null)   // see IsInBounds: Vector3's == overload throws on a null operand
                 throw new ArgumentNullException(nameof(pt));
             return GetPointDose(pt.X, pt.Y, pt.Z);
         }

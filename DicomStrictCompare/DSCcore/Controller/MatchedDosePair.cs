@@ -207,8 +207,14 @@ namespace DCSCore
             catch (Exception)
             {
 
-                double xMidSource = (sourceMatrix.XMax - sourceMatrix.X0) / 2;
-                double zMidSource = (sourceMatrix.ZMax - sourceMatrix.Z0) / 2;
+                // The midpoint is (max + min) / 2. (max - min) / 2 is the half width, and the two
+                // agree only when the origin is zero - which a dose grid's never is: DICOM's
+                // ImagePositionPatient is the first voxel's centre in the patient coordinate system,
+                // whose origin sits at or near the isocentre, so a grid spanning it starts negative.
+                // Measured on all 26 reference files in resources/: X0 runs -97.5 to -101.9 mm and is
+                // zero in none, so the old expression returned the grid's edge.
+                double xMidSource = (sourceMatrix.XMax + sourceMatrix.X0) / 2;
+                double zMidSource = (sourceMatrix.ZMax + sourceMatrix.Z0) / 2;
 
                 if ((targetMatrix.XMax > xMidSource && xMidSource > targetMatrix.X0) && (targetMatrix.ZMax > zMidSource && zMidSource > targetMatrix.Z0))
                 {

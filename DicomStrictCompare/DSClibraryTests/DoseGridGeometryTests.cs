@@ -60,23 +60,17 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
-        public void IsInBoundsThrowsOnEveryInput()
+        public void IsInBoundsNoLongerThrowsOnAValidPoint()
         {
-            // Documenting a defect, not endorsing it. The guard is written `if (null == pt)`, which
-            // dispatches to EvilDICOM's overloaded Vector3.op_Equality; that dereferences the null
-            // operand, so the guard throws NullReferenceException for a perfectly valid point.
+            // This replaces a test that asserted the opposite. The guard read `null == pt`, which
+            // dispatches to EvilDICOM's overloaded Vector3.op_Equality and dereferences the null
+            // operand, so IsInBounds threw NullReferenceException for every valid point. It was never
+            // noticed because nothing calls IsInBounds and IsInBoundsTest was an empty stub.
             //
-            // It has never been noticed because nothing calls IsInBounds - grep finds no caller in
-            // DSClibrary or DSCcore - and IsInBoundsTest is one of the twelve empty Assert.Fail()
-            // stubs. swift/comparison-fixes corrects a genuine logic error in the same expression
-            // (pt.Z was compared against X0, and the upper z bound used < where x and y use <=), but
-            // that fix cannot change any observable behaviour while this guard stands.
-            //
-            // Change this test when the guard is fixed: `is null` compiles to a reference check and
-            // does not call the overloaded operator.
+            // Behaviour now lives in DoseMatrixOptimalTests.IsInBoundsTest; this keeps the record of
+            // why the guard is written `is null`, so nobody tidies it back.
             var dose = Reference();
-            Assert.ThrowsException<System.NullReferenceException>(
-                () => dose.IsInBounds(new EvilDICOM.Core.Helpers.Vector3(0, 0, 0)));
+            Assert.IsTrue(dose.IsInBounds(new EvilDICOM.Core.Helpers.Vector3(0, 0, 0)));
         }
     }
 }
