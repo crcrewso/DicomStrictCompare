@@ -56,22 +56,40 @@ namespace DSClibrary.Profiles
     }
 
     /// <summary>
-    /// What a dose volume's values mean. Cody, 2026-11-08: a dose volume holds either absolute dose
-    /// in centigray or relative dose in percent, both being the stored voxel value times
-    /// DoseGridScaling.
+    /// What a set of values means. Shared by <see cref="Profile"/> and <see cref="DoseVolume"/> so
+    /// there is one vocabulary rather than two overlapping ones.
     /// <para>
-    /// There is no default and no Unknown: a volume whose scale is not known cannot be compared with
-    /// anything, and silently treating a percentage as centigray would be off by whatever the
-    /// normalisation was.
+    /// Cody, 2026-11-08: a dose volume holds either absolute dose in centigray or relative dose in
+    /// percent, both being the stored voxel value times DoseGridScaling. And: "for the most part
+    /// profiles are treated as relative, and only RD to RD comparisons will be looking for absolute
+    /// dose comparisons."
+    /// </para>
+    /// <para>
+    /// <see cref="ArbitraryUnits"/> is why that split is forced rather than chosen. Measured in the
+    /// committed PTW scan: <c>MEAS_UNIT=A.U.</c> and <c>DETECTOR_IS_CALIBRATED=0</c>, with values
+    /// running 0.4765 to 1.7474. An uncalibrated detector reading is not a dose and cannot be made
+    /// one without a calibration factor the file does not carry, so a measured profile is physically
+    /// incapable of an absolute comparison.
+    /// </para>
+    /// <para>
+    /// There is no default and no Unknown: values whose meaning is not known cannot be compared with
+    /// anything, and silently reading a percentage or an arbitrary unit as centigray would be wrong
+    /// by whatever the normalisation or the calibration was.
     /// </para>
     /// </summary>
-    public enum DoseScale
+    public enum ValueScale
     {
+        /// <summary>
+        /// Detector units, uncalibrated. Comparable only after normalisation, and never as an
+        /// absolute dose. What a water tank scan arrives as.
+        /// </summary>
+        ArbitraryUnits = 1,
+
         /// <summary>Absolute dose in centigray. DICOM's DoseUnits of GY, converted.</summary>
-        AbsoluteCentigray = 1,
+        AbsoluteCentigray = 2,
 
         /// <summary>Relative dose as a percentage of some reference. DICOM's DoseUnits of RELATIVE.</summary>
-        RelativePercent = 2
+        RelativePercent = 3
     }
 
     /// <summary>

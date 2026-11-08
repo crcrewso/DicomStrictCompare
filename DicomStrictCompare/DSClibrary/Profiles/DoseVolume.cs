@@ -37,8 +37,9 @@ namespace DSClibrary.Profiles
         /// <summary>
         /// Whether this volume's values are absolute centigray or a relative percentage. Required:
         /// there is no sensible default, and reading one as the other is silent.
+        /// <see cref="ValueScale.ArbitraryUnits"/> is refused - a calculated dose always has units.
         /// </summary>
-        public DoseScale Scale { get; }
+        public ValueScale Scale { get; }
 
         /// <summary>
         /// The monitor units of the delivery this dose was calculated for, where the source provides
@@ -64,22 +65,26 @@ namespace DSClibrary.Profiles
         public DoseVolume(
             BeamKey beam,
             DoseMatrixOptimal grid,
-            DoseScale scale,
+            ValueScale scale,
             double? monitorUnits = null,
             MeasurementConditions? conditions = null,
             Provenance? source = null)
         {
             Beam = beam ?? throw new ArgumentNullException(nameof(beam));
             Grid = grid ?? throw new ArgumentNullException(nameof(grid));
-            Scale = Enum.IsDefined(typeof(DoseScale), scale)
-                ? scale
-                : throw new ArgumentOutOfRangeException(nameof(scale), "A dose volume must state its scale.");
+            if (!Enum.IsDefined(typeof(ValueScale), scale))
+                throw new ArgumentOutOfRangeException(nameof(scale), "A dose volume must state its scale.");
+            if (scale == ValueScale.ArbitraryUnits)
+                throw new ArgumentOutOfRangeException(nameof(scale),
+                    "A calculated dose is never in arbitrary units - that is what an uncalibrated detector produces. "
+                    + "Use AbsoluteCentigray or RelativePercent.");
+            Scale = scale;
             MonitorUnits = monitorUnits;
             Conditions = conditions ?? MeasurementConditions.Empty;
             Source = source ?? Provenance.Unknown;
         }
 
-        public bool IsAbsolute => Scale == DoseScale.AbsoluteCentigray;
+        public bool IsAbsolute => Scale == ValueScale.AbsoluteCentigray;
 
         /// <summary>
         /// The maximum dose, converted from the grid's gray to canonical centigray. Null for a

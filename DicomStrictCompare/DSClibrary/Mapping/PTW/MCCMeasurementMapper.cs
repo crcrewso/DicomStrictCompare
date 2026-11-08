@@ -80,7 +80,47 @@ namespace DSClibrary.Mapping.PTW
                 MapConditions(scan),
                 new Provenance(result.SourcePath, Vendor, ReaderName, scan.ScanNumber),
                 NormalizationType.AsMeasured,
-                DetectorGeometryCorrection.Unknown);
+                DetectorGeometryCorrection.Unknown,
+                correctionDescription: null,
+                valueScale: MapValueScale(scan));
+        }
+
+        /// <summary>
+        /// What a scan's values mean, established from the file and never from the format.
+        /// <para>
+        /// Measured in the committed test file: <c>MEAS_UNIT=A.U.</c> with
+        /// <c>DETECTOR_IS_CALIBRATED=0</c> and values from 0.4765 to 1.7474. An uncalibrated reading
+        /// in arbitrary units is not a dose and cannot be made one without a calibration factor the
+        /// file does not carry.
+        /// </para>
+        /// <para>
+        /// <b>Absolute requires positive evidence.</b> A recognised dose unit is not enough on its own:
+        /// if <c>DETECTOR_IS_CALIBRATED</c> says 0 the reading is uncalibrated whatever unit it is
+        /// nominally in, so the result is arbitrary units. Claiming absolute wrongly is the dangerous
+        /// direction - it would let an uncalibrated 1.7474 be compared against 101.78 cGy - so
+        /// anything unestablished falls back to <see cref="ValueScale.ArbitraryUnits"/>.
+        /// </para>
+        /// <para>
+        /// <b>The absolute branch is written but unexercised.</b> Cody, 2026-11-08, said some vendors
+        /// may provide absolutely calibrated output and that he has not yet seen one, and no file in
+        /// <c>resources/</c> exercises it. So it is here to be representable, not because it has been
+        /// verified; the first real file that takes this branch should be checked by hand.
+        /// <i>The rule that absolute needs both a dose unit and a non-zero calibration flag is the
+        /// lead's reading, not his instruction.</i>
+        /// </para>
+        /// </summary>
+        internal static ValueScale MapValueScale(MCCScan scan)
+        {
+            if (scan.DetectorIsCalibrated == false)
+                return ValueScale.ArbitraryUnits;
+
+            return scan.MeasUnit.Trim().ToUpperInvariant() switch
+            {
+                "GY" => ValueScale.AbsoluteCentigray,
+                "CGY" => ValueScale.AbsoluteCentigray,
+                "%" => ValueScale.RelativePercent,
+                _ => ValueScale.ArbitraryUnits      // "A.U." and anything unrecognised
+            };
         }
 
         /// <summary>

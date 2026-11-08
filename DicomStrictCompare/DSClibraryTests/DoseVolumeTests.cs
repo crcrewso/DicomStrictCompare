@@ -86,14 +86,14 @@ namespace DSClibraryTests
         public void AVolumeMustStateItsScale()
         {
             Assert.ThrowsException<ArgumentOutOfRangeException>(
-                () => new DoseVolume(Beam(), Grid(), (DoseScale)0));
+                () => new DoseVolume(Beam(), Grid(), (ValueScale)0));
         }
 
         [TestMethod]
         public void AnAbsoluteVolumeReportsItsMaximumInCentigray()
         {
             // The grid is in gray, as EvilDICOM hands it back; the volume converts at its boundary.
-            var volume = new DoseVolume(Beam(), RealReference(), DoseScale.AbsoluteCentigray);
+            var volume = new DoseVolume(Beam(), RealReference(), ValueScale.AbsoluteCentigray);
             Assert.AreEqual(101.7791, volume.MaximumDose!.Value.Centigray, 1e-4);
             Assert.AreEqual(1.017791, volume.MaximumDose!.Value.Gray, 1e-6);
             Assert.IsNull(volume.MaximumRelativePercent);
@@ -102,7 +102,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void ARelativeVolumeHasNoAbsoluteMaximum()
         {
-            var volume = new DoseVolume(Beam(), Grid(max: 100.0), DoseScale.RelativePercent);
+            var volume = new DoseVolume(Beam(), Grid(max: 100.0), ValueScale.RelativePercent);
             Assert.IsNull(volume.MaximumDose);
             Assert.AreEqual(100.0, volume.MaximumRelativePercent!.Value, 1e-9);
         }
@@ -110,7 +110,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void MonitorUnitsAreRecorded()
         {
-            var volume = new DoseVolume(Beam(), Grid(), DoseScale.AbsoluteCentigray, monitorUnits: 95);
+            var volume = new DoseVolume(Beam(), Grid(), ValueScale.AbsoluteCentigray, monitorUnits: 95);
             Assert.AreEqual(95.0, volume.MonitorUnits!.Value, 1e-9);
             StringAssert.Contains(volume.ToString(), "95 MU");
         }
@@ -123,7 +123,7 @@ namespace DSClibraryTests
             // grid at 95, 99 and 101 MU - the P5 Varied MU metersets - must report one dose.
             var grid = Grid();
             var doses = new[] { 95.0, 99.0, 101.0 }
-                .Select(mu => new DoseVolume(Beam(), grid, DoseScale.AbsoluteCentigray, mu))
+                .Select(mu => new DoseVolume(Beam(), grid, ValueScale.AbsoluteCentigray, mu))
                 .Select(v => v.MaximumDose!.Value)
                 .Distinct()
                 .ToArray();
@@ -137,7 +137,7 @@ namespace DSClibraryTests
         {
             // A dose read without its plan: the 1 MU to 1 cGy convention must not be used to invent
             // one, because it is a calibration a site adopts and not a property of the data.
-            var volume = new DoseVolume(Beam(), Grid(), DoseScale.AbsoluteCentigray);
+            var volume = new DoseVolume(Beam(), Grid(), ValueScale.AbsoluteCentigray);
             Assert.IsNull(volume.MonitorUnits);
             Assert.IsNotNull(volume.MaximumDose);
         }
@@ -145,12 +145,12 @@ namespace DSClibraryTests
         [TestMethod]
         public void VolumesInDifferentScalesAreNotComparable()
         {
-            var absolute = new DoseVolume(Beam(), Grid(), DoseScale.AbsoluteCentigray);
-            var relative = new DoseVolume(Beam(), Grid(), DoseScale.RelativePercent);
+            var absolute = new DoseVolume(Beam(), Grid(), ValueScale.AbsoluteCentigray);
+            var relative = new DoseVolume(Beam(), Grid(), ValueScale.RelativePercent);
 
             Assert.IsFalse(absolute.IsComparableWith(relative));
             Assert.IsTrue(absolute.IsComparableWith(
-                new DoseVolume(Beam(), Grid(), DoseScale.AbsoluteCentigray)));
+                new DoseVolume(Beam(), Grid(), ValueScale.AbsoluteCentigray)));
         }
 
         [TestMethod]
@@ -159,7 +159,7 @@ namespace DSClibraryTests
             var beam = Beam();
             var profile = new Profile(beam, new ScanKey(CurveType.Pdd),
                 new[] { new ProfilePoint(Distance.Zero, 1, null), new ProfilePoint(Distance.FromMillimetres(10), 2, null) });
-            var volume = new DoseVolume(beam, Grid(), DoseScale.AbsoluteCentigray, 100);
+            var volume = new DoseVolume(beam, Grid(), ValueScale.AbsoluteCentigray, 100);
 
             var set = MeasurementSet.Create(new[] { profile }, new[] { volume });
 
