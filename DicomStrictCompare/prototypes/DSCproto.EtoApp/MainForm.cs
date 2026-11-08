@@ -71,12 +71,27 @@ public sealed class MainForm : Form
         // sizes. BeginVertical/BeginHorizontal is Eto's own layout idiom.
         var layout = new DynamicLayout { DefaultSpacing = new Size(8, 6), Padding = new Padding(12) };
 
+        // A DynamicLayout shares column widths across every row of one vertical section, so each
+        // part of the window with its own column structure gets its own BeginVertical/EndVertical:
+        // the folder rows, the splitter, and the action bar. (Measured 2026-11-08: without that, the
+        // splitter landed in the status line's first column and the tabs never reached the right edge.)
         layout.BeginVertical();
-        layout.AddRow(new Label { Text = "Source (reference)" }, _sourceFolder, BrowseButton(_sourceFolder, "Source (reference) folder"),
-                      new Label { Text = "Alias" }, _sourceAlias);
-        layout.AddRow(new Label { Text = "Target" }, _targetFolder, BrowseButton(_targetFolder, "Target folder"),
-                      new Label { Text = "Alias" }, _targetAlias);
-        layout.AddRow(new Label { Text = "Match doses by" }, _strategy, null, null, null);
+        void FolderRow(string caption, TextBox folder, string dialogTitle, TextBox alias)
+        {
+            layout.BeginHorizontal();
+            layout.Add(new Label { Text = caption, Width = 130, VerticalAlignment = VerticalAlignment.Center });
+            layout.Add(folder, xscale: true);
+            layout.Add(BrowseButton(folder, dialogTitle));
+            layout.Add(new Label { Text = "Alias", VerticalAlignment = VerticalAlignment.Center });
+            layout.Add(alias);
+            layout.EndHorizontal();
+        }
+        FolderRow("Source (reference)", _sourceFolder, "Source (reference) folder", _sourceAlias);
+        FolderRow("Target", _targetFolder, "Target folder", _targetAlias);
+        layout.BeginHorizontal();
+        layout.Add(new Label { Text = "Match doses by", Width = 130, VerticalAlignment = VerticalAlignment.Center });
+        layout.Add(_strategy, xscale: true);
+        layout.EndHorizontal();
         layout.EndVertical();
 
         var criteriaPanel = new DynamicLayout { DefaultSpacing = new Size(8, 6) };
@@ -104,21 +119,48 @@ public sealed class MainForm : Form
         {
             Orientation = Orientation.Horizontal,
             Position = 340,
+            FixedPanel = SplitterFixedPanel.Panel1,
             Panel1 = criteriaPanel,
             Panel2 = tabs,
         };
 
-        layout.Add(splitter, yscale: true);
+        // The section itself must scale vertically, or it takes its preferred height and pushes the
+        // action bar below the window (measured 2026-11-08).
+        layout.BeginVertical(yscale: true);
+        layout.Add(splitter, xscale: true, yscale: true);
+        layout.EndVertical();
 
+        layout.BeginVertical();
         layout.BeginHorizontal();
+        _status.Wrap = WrapMode.None;
         layout.Add(_status, xscale: true);
         layout.Add(_progress);
         layout.Add(_run);
         layout.Add(_cancel);
         layout.Add(_export);
         layout.EndHorizontal();
+        layout.EndVertical();
 
         Content = layout;
+
+        // Command-line pre-fill and scripted run, the same path a click takes.
+        var options = LaunchOptions.FromCommandLine();
+        if (options.SourceFolder is not null) _sourceFolder.Text = options.SourceFolder;
+        if (options.TargetFolder is not null) _targetFolder.Text = options.TargetFolder;
+        if (options.SourceAlias is not null) _sourceAlias.Text = options.SourceAlias;
+        if (options.TargetAlias is not null) _targetAlias.Text = options.TargetAlias;
+        if (options.CanAutoRun)
+        {
+            Shown += async (_, _) =>
+            {
+                await RunAsync();
+                if (options.ExportFolder is not null && _session is not null)
+                {
+                    var written = CsvReport.Write(_session, options.ExportFolder);
+                    _status.Text = _session.Summary + " - wrote " + string.Join(" and ", written.Select(Path.GetFileName));
+                }
+            };
+        }
     }
 
     private static TabPage Placeholder(string title, string text) =>

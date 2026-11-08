@@ -23,9 +23,9 @@ public partial class App : Application
         Resources.Build(r => r.Merged(
             new XamlControlsResources()));
         MainWindow = new Window();
-#if DEBUG
-        MainWindow.UseStudio();
-#endif
+        MainWindow.Title = "DicomStrictCompare - Uno prototype";
+        // The template's DEBUG-only MainWindow.UseStudio() is left out: it opens Uno Platform Studio's
+        // setup overlay on top of the app at launch, which is tooling, not the prototype.
 
 
         // Do not repeat app initialization when the Window already has content,
@@ -52,6 +52,16 @@ public partial class App : Application
         MainWindow.SetWindowIcon();
         // Ensure the current window is active
         MainWindow.Activate();
+
+        // AppWindow.Resize takes physical pixels. On this desktop head XamlRoot.RasterizationScale, the
+        // window's physical/logical size ratio and Win32 GetDpiForWindow on the WinRT handle all failed
+        // to give the monitor scale at startup (measured 2026-11-08 on a 150% monitor: 1.0, 1.0 and 0).
+        // DisplayInformation is the WinRT way to ask; if it also says 1.0 the window simply opens at
+        // 1280 x 820 physical pixels, which is usable, and the user resizes.
+        double scale = 1.0;
+        try { scale = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel; } catch { }
+        if (scale <= 0) scale = 1.0;
+        MainWindow.AppWindow.Resize(new Windows.Graphics.SizeInt32 { Width = (int)(1280 * scale), Height = (int)(820 * scale) });
     }
 
     /// <summary>

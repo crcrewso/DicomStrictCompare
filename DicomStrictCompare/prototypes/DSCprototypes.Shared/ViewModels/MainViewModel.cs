@@ -61,6 +61,31 @@ public sealed partial class MainViewModel : ObservableObject
 
     public DoseMatchStrategy Strategy => MatchByUid ? DoseMatchStrategy.PlanAndBeamUid : DoseMatchStrategy.Identifier;
 
+    /// <summary>Pre-fills the window from the command line. Nothing runs here.</summary>
+    public void Apply(LaunchOptions options)
+    {
+        if (options.SourceFolder is not null) SourceFolder = options.SourceFolder;
+        if (options.TargetFolder is not null) TargetFolder = options.TargetFolder;
+        if (options.SourceAlias is not null) SourceAlias = options.SourceAlias;
+        if (options.TargetAlias is not null) TargetAlias = options.TargetAlias;
+    }
+
+    /// <summary>
+    /// If the command line asked for it, runs the comparison and, when an export folder was given,
+    /// writes the spreadsheet there without a picker. Called by the view once its window is open, so
+    /// a scripted run exercises the same path a click does.
+    /// </summary>
+    public async Task AutoRunIfRequestedAsync(LaunchOptions options)
+    {
+        if (!options.CanAutoRun) return;
+        await RunCommand.ExecuteAsync(null);
+        if (options.ExportFolder is not null && Session is not null)
+        {
+            var written = CsvReport.Write(Session, options.ExportFolder);
+            Status = Session.Summary + " - wrote " + string.Join(" and ", written.Select(Path.GetFileName));
+        }
+    }
+
     [RelayCommand]
     private async Task BrowseSourceAsync()
     {

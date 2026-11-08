@@ -14,7 +14,12 @@ public sealed partial class MainPage : Page
 {
     public MainPage()
     {
-        this.DataContext(new MainViewModel(PickFolderAsync), (page, vm) => page
+        var options = LaunchOptions.FromCommandLine();
+        var viewModel = new MainViewModel(PickFolderAsync);
+        viewModel.Apply(options);
+        Loaded += async (_, _) => await viewModel.AutoRunIfRequestedAsync(options);
+
+        this.DataContext(viewModel, (page, vm) => page
             .Background(ThemeResource.Get<Brush>("ApplicationPageBackgroundThemeBrush"))
             .Content(new Grid()
                 .Padding(12)

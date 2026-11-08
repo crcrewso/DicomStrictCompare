@@ -44,9 +44,9 @@
         <DataGrid ItemsSource="{Binding Criteria}" SelectedItem="{Binding SelectedCriterion}"
                   AutoGenerateColumns="False" CanUserReorderColumns="False" GridLinesVisibility="Horizontal">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Tol %" Binding="{Binding TolerancePercent}" Width="*"/>
-            <DataGridTextColumn Header="DTA mm" Binding="{Binding DistanceMm}" Width="*"/>
-            <DataGridTextColumn Header="Thr %" Binding="{Binding ThresholdPercent}" Width="*"/>
+            <DataGridTextColumn Header="Tol %" Binding="{Binding TolerancePercent}" Width="*" MinWidth="70"/>
+            <DataGridTextColumn Header="DTA mm" Binding="{Binding DistanceMm}" Width="*" MinWidth="90"/>
+            <DataGridTextColumn Header="Thr %" Binding="{Binding ThresholdPercent}" Width="*" MinWidth="70"/>
             <DataGridCheckBoxColumn Header="Global" Binding="{Binding Global}" Width="Auto"/>
           </DataGrid.Columns>
         </DataGrid>
