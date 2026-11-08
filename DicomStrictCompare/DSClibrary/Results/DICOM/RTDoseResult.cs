@@ -197,6 +197,40 @@ namespace DSClibrary.Results.DICOM
             }
         }
 
+        /// <summary>
+        /// Decodes every voxel, multiplies by <paramref name="factor"/>, and writes the result into
+        /// <paramref name="destination"/> - one traversal, in the reader where
+        /// <see cref="BitsAllocated"/> is known.
+        /// <para>
+        /// This exists so a dose volume can be produced in its final units without the caller reading
+        /// voxels one at a time through <see cref="RawVoxel"/>, each call paying a bounds-checked
+        /// slice. The comparison engine reads each voxel up to eight times, so the scaling belongs
+        /// here, once, and not on the read path.
+        /// </para>
+        /// </summary>
+        public void CopyScaledTo(double[] destination, double factor)
+        {
+            if (destination is null) throw new ArgumentNullException(nameof(destination));
+
+            int bits = BitsAllocated ?? throw new DicomFormatException("BitsAllocated is absent.");
+            var span = PixelData.Span;
+            int count = VoxelCount;
+
+            if (destination.Length < count)
+                throw new ArgumentException(
+                    $"Destination holds {destination.Length} values but the file has {count} voxels.",
+                    nameof(destination));
+
+            if (bits == 32)
+                for (int i = 0; i < count; i++)
+                    destination[i] = BinaryPrimitives.ReadUInt32LittleEndian(span.Slice(i * 4, 4)) * factor;
+            else if (bits == 16)
+                for (int i = 0; i < count; i++)
+                    destination[i] = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(i * 2, 2)) * factor;
+            else
+                throw new DicomFormatException($"BitsAllocated of {bits} is not supported; expected 16 or 32.");
+        }
+
         public override string ToString() =>
             $"{System.IO.Path.GetFileName(SourcePath)}: {Columns}x{Rows}x{NumberOfFrames}, "
             + $"{DoseUnits}, scaling {DoseGridScaling}, beam {ReferencedBeamNumber}";

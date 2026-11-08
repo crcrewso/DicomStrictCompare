@@ -147,7 +147,7 @@ namespace DSClibraryTests
                 2, 2, 2, -5, -5, -5, 5, 5, 5, new[] { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 1.0 });
 
             Assert.ThrowsException<System.ArgumentOutOfRangeException>(
-                () => new DoseVolume(Beam(), grid, ValueScale.ArbitraryUnits));
+                () => DoseVolume.FromCentigrayGrid(Beam(), grid, ValueScale.ArbitraryUnits));
         }
     }
 }

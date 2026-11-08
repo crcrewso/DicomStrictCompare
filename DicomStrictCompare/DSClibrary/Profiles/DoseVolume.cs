@@ -19,11 +19,24 @@ namespace DSClibrary.Profiles
         public BeamKey Beam { get; }
 
         /// <summary>
-        /// The dose grid as the existing engine holds it. Named Grid rather than Dose because its
-        /// values are in <b>gray</b>, not this project's canonical centigray: EvilDICOM applies
-        /// <c>DoseGridScaling</c> when it reads and hands back gray, and the comparison engine in
-        /// X86Mathematics works in those units. The conversion to centigray happens at this type's
-        /// boundary, in <see cref="MaximumDose"/> and in anything else that reports a dose.
+        /// The dose grid, <b>in centigray</b> for an absolute volume (Cody, 2026-11-08: "DoseVolume
+        /// should store the values in cGy inherently"). Named Grid rather than Dose because
+        /// <c>volume.Dose.Dose</c> read badly.
+        /// <para>
+        /// <b>Scaled once, never per voxel.</b> The conversion from stored integers happens in a
+        /// single traversal when the file is read, not on each access. X86Mathematics calls
+        /// GetPointDose eight times per evaluated point - source, target and six DTA neighbours - so
+        /// at 8,080,200 voxels that is about 65 million reads per comparison, and a multiply plus a
+        /// bounds-checked decode on each would be real cost for no benefit. Scaling once is also what
+        /// removes the double-scaling trap: a grid already in dose units has no stray factor left to
+        /// apply by accident.
+        /// </para>
+        /// <para>
+        /// Doubles rather than anything wider. The source carries at most about seven significant
+        /// figures - the reference grids reach 2,904,474 of the 32-bit range - against a double's
+        /// fifteen or sixteen, so there is no precision to be gained; C# has no binary128, and decimal
+        /// is a decimal format with no hardware support and would not work with the existing engine.
+        /// </para>
         /// <para>
         /// <b>Do not multiply by <c>DoseMatrixOptimal.Scaling</c>.</b> Measured 2026-11-08: the values
         /// are already scaled - the maximum of <c>RD.UnitTest.P1Ref.X-100A-10.0-1</c> reads 1.017791
@@ -62,13 +75,18 @@ namespace DSClibrary.Profiles
         public MeasurementConditions Conditions { get; }
         public Provenance Source { get; }
 
-        public DoseVolume(
+        /// <summary>
+        /// Takes a grid whose values are <b>already in centigray</b>. Private, so that every caller
+        /// goes through a factory that names the unit it is handing over - the same principle as
+        /// <see cref="Dose.FromGray"/>, and the thing that prevents a silent factor of a hundred.
+        /// </summary>
+        private DoseVolume(
             BeamKey beam,
             DoseMatrixOptimal grid,
             ValueScale scale,
-            double? monitorUnits = null,
-            MeasurementConditions? conditions = null,
-            Provenance? source = null)
+            double? monitorUnits,
+            MeasurementConditions? conditions,
+            Provenance? source)
         {
             Beam = beam ?? throw new ArgumentNullException(nameof(beam));
             Grid = grid ?? throw new ArgumentNullException(nameof(grid));
@@ -84,15 +102,61 @@ namespace DSClibrary.Profiles
             Source = source ?? Provenance.Unknown;
         }
 
+        /// <summary>
+        /// For a grid whose values are already centigray - what this library's own DICOM reader
+        /// produces, converting in the same pass that decodes the voxels.
+        /// </summary>
+        public static DoseVolume FromCentigrayGrid(
+            BeamKey beam,
+            DoseMatrixOptimal grid,
+            ValueScale scale = ValueScale.AbsoluteCentigray,
+            double? monitorUnits = null,
+            MeasurementConditions? conditions = null,
+            Provenance? source = null) =>
+            new(beam, grid, scale, monitorUnits, conditions, source);
+
+        /// <summary>
+        /// For a grid whose values are in gray - which is what EvilDICOM returns, since it applies
+        /// <c>DoseGridScaling</c> on read. Allocates a converted copy, so prefer the centigray
+        /// factory where the values can be produced in centigray in the first place.
+        /// <para>
+        /// This exists because mixing a gray grid with a centigray one in a single comparison would be
+        /// a hundredfold error that nothing would report, and the only reliable guard is to make every
+        /// caller state the unit it holds.
+        /// </para>
+        /// </summary>
+        public static DoseVolume FromGrayGrid(
+            BeamKey beam,
+            DoseMatrixOptimal grayGrid,
+            ValueScale scale = ValueScale.AbsoluteCentigray,
+            double? monitorUnits = null,
+            MeasurementConditions? conditions = null,
+            Provenance? source = null)
+        {
+            if (grayGrid is null) throw new ArgumentNullException(nameof(grayGrid));
+
+            var centigray = new double[grayGrid.DoseValues.Length];
+            for (int i = 0; i < centigray.Length; i++)
+                centigray[i] = grayGrid.DoseValues[i] * 100.0;
+
+            var converted = new DoseMatrixOptimal(
+                grayGrid.DimensionX, grayGrid.DimensionY, grayGrid.DimensionZ,
+                grayGrid.X0, grayGrid.Y0, grayGrid.Z0,
+                grayGrid.XRes, grayGrid.YRes, grayGrid.ZRes,
+                centigray);
+
+            return new DoseVolume(beam, converted, scale, monitorUnits, conditions, source);
+        }
+
         public bool IsAbsolute => Scale == ValueScale.AbsoluteCentigray;
 
         /// <summary>
-        /// The maximum dose, converted from the grid's gray to canonical centigray. Null for a
-        /// relative volume, whose maximum is a percentage and not a dose - see
+        /// The maximum dose. The grid is already centigray, so this reads it rather than converting.
+        /// Null for a relative volume, whose maximum is a percentage and not a dose - see
         /// <see cref="MaximumRelativePercent"/>.
         /// </summary>
         public Dose? MaximumDose =>
-            IsAbsolute ? Dose.FromGray(Grid.MaxPointDose.Dose) : null;
+            IsAbsolute ? Dose.FromCentigray(Grid.MaxPointDose.Dose) : null;
 
         /// <summary>The maximum value of a relative volume, as a percentage. Null for an absolute one.</summary>
         public double? MaximumRelativePercent =>
