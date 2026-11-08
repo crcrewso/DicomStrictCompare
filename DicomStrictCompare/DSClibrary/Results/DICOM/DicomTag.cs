@@ -41,6 +41,12 @@ namespace DSClibrary.Results.DICOM
         public static readonly DicomTag Modality = new(0x0008, 0x0060);
         public static readonly DicomTag ReferencedSOPInstanceUID = new(0x0008, 0x1155);
 
+        // Identity, for matching a source dose against a target dose
+        public static readonly DicomTag PatientID = new(0x0010, 0x0020);
+        public static readonly DicomTag SeriesDescription = new(0x0008, 0x103E);
+        public static readonly DicomTag StudyInstanceUID = new(0x0020, 0x000D);
+        public static readonly DicomTag SeriesInstanceUID = new(0x0020, 0x000E);
+
         // Frame of reference
         public static readonly DicomTag FrameOfReferenceUID = new(0x0020, 0x0052);
 

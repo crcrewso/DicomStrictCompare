@@ -44,6 +44,12 @@ namespace DSClibrary.Results.DICOM
         public string? SOPInstanceUID => _dataset.GetString(DicomTags.SOPInstanceUID);
         public string? FrameOfReferenceUID => _dataset.GetString(DicomTags.FrameOfReferenceUID);
 
+        /// <summary>PatientID (0010,0020). "UnitTest" in the reference files.</summary>
+        public string? PatientID => _dataset.GetString(DicomTags.PatientID);
+
+        public string? SeriesDescription => _dataset.GetString(DicomTags.SeriesDescription);
+        public string? StudyInstanceUID => _dataset.GetString(DicomTags.StudyInstanceUID);
+
         // ---- geometry, in DICOM's millimetres and DICOM's patient coordinate system ----
 
         /// <summary>

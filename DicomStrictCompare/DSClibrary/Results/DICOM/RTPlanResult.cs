@@ -41,6 +41,7 @@ namespace DSClibrary.Results.DICOM
 
         public string? SOPInstanceUID => _dataset.GetString(DicomTags.SOPInstanceUID);
         public string? FrameOfReferenceUID => _dataset.GetString(DicomTags.FrameOfReferenceUID);
+        public string? PatientID => _dataset.GetString(DicomTags.PatientID);
 
         /// <summary>RTPlanLabel (300A,0002). "P5 Varied MU" in the varied-meterset plan.</summary>
         public string? RTPlanLabel => _dataset.GetString(DicomTags.RTPlanLabel);
