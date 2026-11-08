@@ -19,6 +19,7 @@ namespace DSClibrary.Results.DICOM
         private readonly DicomDataset _dataset;
         private readonly Lazy<IReadOnlyList<RTPlanBeam>> _beams;
         private readonly Lazy<IReadOnlyDictionary<int, double>> _metersets;
+        private readonly Lazy<IReadOnlyDictionary<int, RTPatientSetup>> _setups;
 
         public string SourcePath { get; }
 
@@ -31,6 +32,7 @@ namespace DSClibrary.Results.DICOM
             SourcePath = file.SourcePath;
             _beams = new Lazy<IReadOnlyList<RTPlanBeam>>(ReadBeams);
             _metersets = new Lazy<IReadOnlyDictionary<int, double>>(ReadMetersets);
+            _setups = new Lazy<IReadOnlyDictionary<int, RTPatientSetup>>(ReadSetups);
         }
 
         public static RTPlanResult ReadFile(string path) => new(DicomFileReader.ReadFile(path));
@@ -57,6 +59,22 @@ namespace DSClibrary.Results.DICOM
 
         public RTPlanBeam? Beam(int beamNumber) => Beams.FirstOrDefault(b => b.BeamNumber == beamNumber);
 
+        /// <summary>
+        /// Patient setups by setup number, each giving a setup technique and a patient position. A
+        /// beam names one through <see cref="RTPlanBeam.ReferencedPatientSetupNumber"/>.
+        /// <para>
+        /// This is the only thing in these plans that speaks to SSD at all. Measured across all nine:
+        /// every photon beam is <c>ISOCENTRIC</c>, every electron beam is <c>FIXED_SSD</c>, and every
+        /// setup is <c>HFS</c> - head first supine, which is the orientation the geometry convention
+        /// in swift's 2026-10-02 addendum requires and which is now measured rather than assumed.
+        /// <b>It names the regime and not the distance:</b> no SSD value accompanies it.
+        /// </para>
+        /// </summary>
+        public IReadOnlyDictionary<int, RTPatientSetup> SetupsByNumber => _setups.Value;
+
+        public RTPatientSetup? SetupFor(RTPlanBeam beam) =>
+            beam?.ReferencedPatientSetupNumber is { } n && SetupsByNumber.TryGetValue(n, out var s) ? s : null;
+
         public double? MonitorUnitsFor(int beamNumber) =>
             MonitorUnitsByBeamNumber.TryGetValue(beamNumber, out double mu) ? mu : null;
 
@@ -77,8 +95,53 @@ namespace DSClibrary.Results.DICOM
             return byBeam;
         }
 
+        private IReadOnlyDictionary<int, RTPatientSetup> ReadSetups()
+        {
+            var setups = new Dictionary<int, RTPatientSetup>();
+            foreach (var item in _dataset.GetSequence(DicomTags.PatientSetupSequence))
+            {
+                int? number = item.GetInteger(DicomTags.PatientSetupNumber);
+                if (number.HasValue)
+                    setups[number.Value] = new RTPatientSetup(
+                        number.Value,
+                        item.GetString(DicomTags.SetupTechnique),
+                        item.GetString(DicomTags.PatientPosition),
+                        item.GetString(DicomTags.SetupTechniqueDescription));
+            }
+            return setups;
+        }
+
         public override string ToString() =>
             $"{System.IO.Path.GetFileName(SourcePath)}: {RTPlanLabel}, {Beams.Count} beam(s)";
+    }
+
+    /// <summary>
+    /// One item of PatientSetupSequence: how a beam was set up.
+    /// <para>
+    /// <see cref="SetupTechnique"/> is <c>ISOCENTRIC</c> or <c>FIXED_SSD</c> in these plans - the
+    /// closest thing they contain to a statement about SSD, and it gives the regime without the
+    /// distance.
+    /// </para>
+    /// </summary>
+    /// <param name="Number">PatientSetupNumber (300A,0182).</param>
+    /// <param name="SetupTechnique">SetupTechnique (300A,01B0): ISOCENTRIC or FIXED_SSD here.</param>
+    /// <param name="PatientPosition">PatientPosition (0018,5100): HFS in all nine plans.</param>
+    /// <param name="Description">SetupTechniqueDescription (300A,01B2), where present.</param>
+    public sealed record RTPatientSetup(
+        int Number,
+        string? SetupTechnique,
+        string? PatientPosition,
+        string? Description)
+    {
+        public bool IsFixedSsd =>
+            string.Equals(SetupTechnique, "FIXED_SSD", StringComparison.OrdinalIgnoreCase);
+
+        public bool IsIsocentric =>
+            string.Equals(SetupTechnique, "ISOCENTRIC", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>True for head first supine, which the geometry convention requires.</summary>
+        public bool IsHeadFirstSupine =>
+            string.Equals(PatientPosition, "HFS", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -118,6 +181,9 @@ namespace DSClibrary.Results.DICOM
 
         public int? NumberOfControlPoints => _beam.GetInteger(DicomTags.NumberOfControlPoints);
 
+        /// <summary>ReferencedPatientSetupNumber (300C,006A): which setup this beam used.</summary>
+        public int? ReferencedPatientSetupNumber => _beam.GetInteger(DicomTags.ReferencedPatientSetupNumber);
+
         /// <summary>True when the beam has more than two control points, so its geometry may vary.</summary>
         public bool MayBeDynamic => (NumberOfControlPoints ?? 0) > 2;
 
@@ -128,10 +194,28 @@ namespace DSClibrary.Results.DICOM
         public double? BeamLimitingDeviceAngle => _firstControlPoint?.GetDecimal(DicomTags.BeamLimitingDeviceAngle);
         public double? PatientSupportAngle => _firstControlPoint?.GetDecimal(DicomTags.PatientSupportAngle);
 
+        /// <summary>
+        /// Table top positions from the first control point, millimetres. Measured as vertical 0,
+        /// longitudinal 1000 and lateral 0 in all nine plans. Distances, but not an SSD - the
+        /// longitudinal value coinciding with SourceAxisDistance is noted and not relied upon.
+        /// </summary>
+        public double? TableTopVerticalPosition => _firstControlPoint?.GetDecimal(DicomTags.TableTopVerticalPosition);
+
+        public double? TableTopLongitudinalPosition =>
+            _firstControlPoint?.GetDecimal(DicomTags.TableTopLongitudinalPosition);
+
+        public double? TableTopLateralPosition => _firstControlPoint?.GetDecimal(DicomTags.TableTopLateralPosition);
+
         /// <summary>SourceToSurfaceDistance (300A,0130), millimetres. The SSD a scan's header also states.</summary>
         public double? SourceToSurfaceDistance => _firstControlPoint?.GetDecimal(DicomTags.SourceToSurfaceDistance);
 
-        /// <summary>IsocenterPosition (300A,012C): x, y, z in the patient coordinate system.</summary>
+        /// <summary>
+        /// IsocenterPosition (300A,012C): x, y, z in the patient coordinate system. Measured as
+        /// <c>0, -100.00931966449, ~0</c> in every one of the nine plans - so with SSD taken as equal
+        /// to <see cref="SourceAxisDistance"/>, which places the water surface at the isocentre plane,
+        /// this y is the surface position. <i>That chain rests on the SSD assumption and must be
+        /// revisited.</i>
+        /// </summary>
         public IReadOnlyList<double> IsocenterPosition =>
             _firstControlPoint?.GetDecimals(DicomTags.IsocenterPosition) ?? Array.Empty<double>();
 

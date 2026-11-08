@@ -100,9 +100,38 @@ namespace DSClibraryTests
             Assert.AreEqual(100.0, volume.Beam.FieldInplane!.Value.Millimetres, 1e-9);
             Assert.AreEqual(100.0, volume.Beam.FieldCrossplane!.Value.Millimetres, 1e-9);
 
-            Assert.IsNull(volume.Beam.Ssd, "SSD is not in these plans");
+            // SSD is absent from all nine plans, so the mapper substitutes 100 cm on Cody's
+            // instruction of 2026-11-08 - explicitly to be revisited - and records that it did.
+            Assert.AreEqual(1000.0, volume.Beam.Ssd!.Value.Millimetres, 1e-9);
+            Assert.IsTrue(volume.Beam.IsComplete, "the substitution is what completes the key");
+            StringAssert.Contains(
+                volume.Conditions.RawHeaders[RTDoseVolumeMapper.AssumedSsdHeaderKey], "assumed");
+        }
+
+        [TestMethod]
+        public void AMapperCanRefuseToAssumeAnSsd()
+        {
+            // A front end that would rather refuse than assume passes null, and the key stays
+            // incomplete so the volume will not silently group with a measured profile.
+            var volume = new RTDoseVolumeMapper(assumedSsd: null)
+                .Map(Pairing("RD.UnitTest.P5 Varied MU.X-095A-10.0-1.dcm"));
+
+            Assert.IsNull(volume.Beam.Ssd);
             Assert.IsFalse(volume.Beam.IsComplete);
             StringAssert.Contains(volume.Beam.DescribeMissing(), "Ssd");
+            Assert.IsFalse(volume.Conditions.RawHeaders.ContainsKey(RTDoseVolumeMapper.AssumedSsdHeaderKey));
+        }
+
+        [TestMethod]
+        public void AReadSsdIsNotOverwrittenByTheAssumption()
+        {
+            // Guarding the direction that matters: the substitution must only fill a gap. No plan here
+            // states an SSD, so this asserts the recorded-substitution note is the only signal, and
+            // that it is absent whenever the plan does state one - which a future file will exercise.
+            foreach (string path in TestData.PlanFiles)
+                foreach (var beam in RTPlanResult.ReadFile(path).Beams)
+                    Assert.IsNull(beam.SourceToSurfaceDistance,
+                        "if this fires, a plan now states an SSD and the substitution must stand aside");
         }
 
         [TestMethod]

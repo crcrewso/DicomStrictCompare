@@ -102,6 +102,24 @@ namespace DSClibrary.Results.DICOM
         public static readonly DicomTag SurfaceEntryPoint = new(0x300A, 0x012E);
         public static readonly DicomTag SourceToSurfaceDistance = new(0x300A, 0x0130);
 
+        // Patient setup: how the beam was set up, which is the only thing in these plans that speaks
+        // to SSD at all.
+        public static readonly DicomTag PatientSetupSequence = new(0x300A, 0x0180);
+        public static readonly DicomTag PatientSetupNumber = new(0x300A, 0x0182);
+        public static readonly DicomTag SetupTechnique = new(0x300A, 0x01B0);
+        public static readonly DicomTag SetupTechniqueDescription = new(0x300A, 0x01B2);
+        public static readonly DicomTag PatientPosition = new(0x0018, 0x5100);
+        public static readonly DicomTag ReferencedPatientSetupNumber = new(0x300C, 0x006A);
+
+        // Table top, which carries distances even though none of them is an SSD
+        public static readonly DicomTag TableTopVerticalPosition = new(0x300A, 0x0128);
+        public static readonly DicomTag TableTopLongitudinalPosition = new(0x300A, 0x0129);
+        public static readonly DicomTag TableTopLateralPosition = new(0x300A, 0x012A);
+
+        // Dose at a specification point, where the plan gives one
+        public static readonly DicomTag BeamDose = new(0x300A, 0x0084);
+        public static readonly DicomTag BeamDoseSpecificationPoint = new(0x300A, 0x0082);
+
         // Fluence / FFF detection
         public static readonly DicomTag PrimaryFluenceModeSequence = new(0x3002, 0x0050);
         public static readonly DicomTag FluenceMode = new(0x3002, 0x0051);

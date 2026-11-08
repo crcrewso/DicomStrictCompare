@@ -23,6 +23,47 @@ namespace DSClibrary.Mapping.DICOM
         private const string ReaderName = nameof(RTDoseVolumeMapper);
 
         /// <summary>
+        /// The key under which an assumed SSD is recorded, so a front end can tell a read value from a
+        /// substituted one. Deliberately not a DICOM tag spelling: nothing should mistake it for
+        /// something the file said.
+        /// </summary>
+        public const string AssumedSsdHeaderKey = "(assumed) SourceToSurfaceDistance";
+
+        /// <summary>
+        /// The SSD used when the plan does not state one. <b>100 cm, on Cody's instruction of
+        /// 2026-11-08, explicitly to be revisited.</b>
+        /// <para>
+        /// Why it is needed: <c>SourceToSurfaceDistance</c> (300A,0130) and <c>SurfaceEntryPoint</c>
+        /// (300A,012E) occur zero times in all nine plans, so a beam key cannot be completed from
+        /// DICOM alone and a mapped volume would never group with a measured profile. What the plans
+        /// do contain, measured: <c>SourceAxisDistance</c> 1000 mm, <c>IsocenterPosition</c>
+        /// (0, -100.009, ~0) identical across all nine, table top positions of 0 / 1000 / 0, a
+        /// <c>BeamDose</c> with no <c>BeamDoseSpecificationPoint</c> to locate it, and
+        /// <c>SetupTechnique</c> of ISOCENTRIC for every photon beam and FIXED_SSD for every electron
+        /// beam with <c>PatientPosition</c> HFS throughout. So the plans name the setup regime and
+        /// never the distance.
+        /// </para>
+        /// <para>
+        /// 100 cm also equals the measured <c>SourceAxisDistance</c>, which would put the water surface
+        /// at the isocentre plane and make the measured isocentre y the surface position. That is
+        /// self-consistent and is the usual commissioning setup, but it is a <i>reading</i> resting on
+        /// the assumption and not a measurement.
+        /// </para>
+        /// </summary>
+        public static readonly Distance DefaultSsd = Distance.FromCentimetres(100);
+
+        private readonly Distance? _assumedSsd;
+
+        /// <param name="assumedSsd">
+        /// The SSD to use when the plan does not state one. Defaults to <see cref="DefaultSsd"/>; pass
+        /// null to leave the beam key incomplete instead, which a front end that would rather refuse
+        /// than assume can do.
+        /// </param>
+        public RTDoseVolumeMapper(Distance? assumedSsd) => _assumedSsd = assumedSsd;
+
+        public RTDoseVolumeMapper() : this(DefaultSsd) { }
+
+        /// <summary>
         /// Builds a volume in centigray. The dose is required; the plan may be absent, in which case
         /// the beam key will be incomplete and the volume belongs in
         /// <see cref="MeasurementSet.Unresolved"/>'s equivalent for volumes - the caller's decision.
@@ -118,7 +159,7 @@ namespace DSClibrary.Mapping.DICOM
         /// so the key will be incomplete and the volume will not group with a measured profile until
         /// an SSD is supplied from somewhere, most naturally the scan's own header.
         /// </summary>
-        private static BeamKey MapBeamKey(RTDoseWithPlan pairing)
+        private BeamKey MapBeamKey(RTDoseWithPlan pairing)
         {
             RTPlanBeam? beam = pairing.Beam;
             if (beam is null) return new BeamKey();
@@ -131,7 +172,7 @@ namespace DSClibrary.Mapping.DICOM
                 isFff: beam.IsFluenceModeFff,
                 fieldInplane: Distance.FromMillimetres(inplane),
                 fieldCrossplane: Distance.FromMillimetres(crossplane),
-                ssd: Distance.FromMillimetres(beam.SourceToSurfaceDistance),
+                ssd: Distance.FromMillimetres(beam.SourceToSurfaceDistance) ?? _assumedSsd,
                 gantryAngleDegrees: beam.GantryAngle,
                 collimatorAngleDegrees: beam.BeamLimitingDeviceAngle,
                 wedgeAngleDegrees: null);
@@ -145,7 +186,7 @@ namespace DSClibrary.Mapping.DICOM
                 _ => Modality.Unknown
             };
 
-        private static MeasurementConditions MapConditions(RTDoseWithPlan pairing) => new(
+        private MeasurementConditions MapConditions(RTDoseWithPlan pairing) => new(
             Detector: DetectorConditions.Unknown,
             ReferenceDetector: DetectorConditions.Unknown,
             Environment: EnvironmentConditions.Unknown,
@@ -158,7 +199,25 @@ namespace DSClibrary.Mapping.DICOM
                 LinacName: pairing.Beam?.TreatmentMachineName ?? string.Empty,
                 Electrometer: string.Empty),
             MeasuredAt: null,
-            RawHeaders: pairing.Dose.Dataset.Tags
-                .ToDictionary(t => t.ToString(), t => pairing.Dose.Dataset.GetString(t) ?? string.Empty));
+            RawHeaders: BuildRawHeaders(pairing));
+
+        /// <summary>
+        /// Every element the dose file had, plus a note when the SSD was substituted rather than read.
+        /// A complete beam key built on an assumption is exactly the thing that later prompts "why did
+        /// these two match?", so the substitution travels with the data.
+        /// </summary>
+        private IReadOnlyDictionary<string, string> BuildRawHeaders(RTDoseWithPlan pairing)
+        {
+            var headers = pairing.Dose.Dataset.Tags
+                .ToDictionary(t => t.ToString(), t => pairing.Dose.Dataset.GetString(t) ?? string.Empty);
+
+            bool planStatedSsd = pairing.Beam?.SourceToSurfaceDistance is not null;
+            if (!planStatedSsd && _assumedSsd.HasValue)
+                headers[AssumedSsdHeaderKey] = string.Format(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    "{0} mm (assumed; the plan states none)", _assumedSsd.Value.Millimetres);
+
+            return headers;
+        }
     }
 }
