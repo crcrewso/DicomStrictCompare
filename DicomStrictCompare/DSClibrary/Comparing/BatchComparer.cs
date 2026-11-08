@@ -163,7 +163,7 @@ namespace DSClibrary.Comparing
                     MaxDegreeOfParallelism = parallelism,
                     CancellationToken = cancellation
                 },
-                pair => outcomes.Add(CompareOne(pair, dta, global)));
+                pair => outcomes.Add(CompareOne(pair, dta, global, cancellation)));
 
             batch.Stop();
 
@@ -175,23 +175,33 @@ namespace DSClibrary.Comparing
             return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
         }
 
-        private ComparisonOutcome CompareOne(MatchedDosePair pair, Dta dta, bool global)
+        private ComparisonOutcome CompareOne(MatchedDosePair pair, Dta dta, bool global, CancellationToken cancellation)
         {
             var timer = Stopwatch.StartNew();
             try
             {
+                cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
+                cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal target = _load(pair.Target.Dose.SourcePath);
 
+                // The token goes into the engine, which checks it once per plane, so a cancel stops a
+                // comparison that is under way rather than waiting for it to finish.
                 SingleComparison comparison = global
-                    ? _mathematics.CompareRelative(source, target, dta)
-                    : _mathematics.CompareAbsolute(source, target, dta);
+                    ? _mathematics.CompareRelative(source, target, dta, cancellation)
+                    : _mathematics.CompareAbsolute(source, target, dta, cancellation);
 
                 timer.Stop();
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, comparison, null, timer.Elapsed,
                     pair.Source.MonitorUnits, pair.Target.MonitorUnits);
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
+                // A cancel is not a failed pair: let it out, so Parallel.ForEach ends the batch and the
+                // caller sees OperationCanceledException rather than a report full of "cancelled" rows.
+                throw;
             }
             catch (Exception ex)
             {

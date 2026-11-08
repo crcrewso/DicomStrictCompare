@@ -18,7 +18,7 @@ namespace DSClibrary
         /// </summary>
         public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta)
         {
-            return Compare(source, target, dta, global: false);
+            return Compare(source, target, dta, global: false, System.Threading.CancellationToken.None);
         }
 
         /// <summary>
@@ -26,7 +26,19 @@ namespace DSClibrary
         /// </summary>
         public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta)
         {
-            return Compare(source, target, dta, global: true);
+            return Compare(source, target, dta, global: true, System.Threading.CancellationToken.None);
+        }
+
+        /// <inheritdoc />
+        public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, System.Threading.CancellationToken cancellation)
+        {
+            return Compare(source, target, dta, global: false, cancellation);
+        }
+
+        /// <inheritdoc />
+        public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, System.Threading.CancellationToken cancellation)
+        {
+            return Compare(source, target, dta, global: true, cancellation);
         }
 
         /// <summary>
@@ -48,11 +60,12 @@ namespace DSClibrary
         /// If dta.UseMM is false, the dose test alone decides pass or fail and dta.Distance is ignored. Distances
         /// in voxels are not supported yet.
         /// </summary>
-        private static SingleComparison Compare(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, bool global)
+        private static SingleComparison Compare(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, bool global, System.Threading.CancellationToken cancellation)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (dta == null) throw new ArgumentNullException(nameof(dta));
+            cancellation.ThrowIfCancellationRequested();
 
             double xMin = Math.Max(source.X0, target.X0);
             double xMax = Math.Min(source.XMax, target.XMax);
@@ -88,6 +101,9 @@ namespace DSClibrary
 
             for (int i = 0; i < nx; i++)
             {
+                // Once per x plane: about 200 checks over a 2.6 s comparison on the reference grids, so a
+                // cancel is honoured within tens of milliseconds at a cost too small to measure.
+                cancellation.ThrowIfCancellationRequested();
                 double x = xMin + i * xRes;
                 for (int j = 0; j < ny; j++)
                 {

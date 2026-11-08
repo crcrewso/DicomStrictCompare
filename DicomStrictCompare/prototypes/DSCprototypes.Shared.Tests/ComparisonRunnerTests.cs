@@ -75,6 +75,27 @@ public class ComparisonRunnerTests
         }
     }
 
+    [TestMethod]
+    public async Task CancelFromTheGuiStopsTheRunWithinASecond()
+    {
+        // What the Cancel button does: three default criteria over 26 self-pairs would take about
+        // 50 s; cancel two seconds in, once comparisons are under way, and time the stop.
+        string resources = Resources();
+        var request = new ComparisonRequest(resources, resources, "Ref", "Tgt", DtaSpec.Defaults);
+        using var cts = new CancellationTokenSource();
+        var log = new List<string>();
+
+        var run = ComparisonRunner.RunAsync(request, new SynchronousProgress(log), cts.Token);
+        await Task.Delay(2000);
+        var fromCancel = System.Diagnostics.Stopwatch.StartNew();
+        cts.Cancel();
+
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () => await run);
+        fromCancel.Stop();
+        Assert.IsTrue(fromCancel.ElapsedMilliseconds < 1000, $"stopped {fromCancel.ElapsedMilliseconds} ms after the cancel");
+        Assert.IsTrue(log.Any(l => l.StartsWith("Comparing ")), "the cancel landed while comparisons were running, not during the read");
+    }
+
     private sealed class SynchronousProgress : IProgress<string>
     {
         private readonly List<string> _sink;
