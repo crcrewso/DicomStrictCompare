@@ -24,6 +24,8 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.5" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
+    <!-- Graphs tab (Cody, 2026-11-09). ScottPlot 5.1.59 (June 2026) is the first line to depend on Avalonia 12. -->
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.59" />
   </ItemGroup>
 
   <ItemGroup>

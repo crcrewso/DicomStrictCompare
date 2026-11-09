@@ -3,8 +3,9 @@ namespace DSCprototypes.Shared;
 /// <summary>
 /// What a prototype can be told on its command line, so a run is repeatable from a script and
 /// can be checked by its exported CSV rather than by watching the window:
-/// <code>--source DIR --target DIR [--source-alias A] [--target-alias B] [--export DIR] [--run]</code>
-/// Unknown arguments are ignored rather than fatal; a GUI should still open.
+/// <code>--source DIR --target DIR [--source-alias A] [--target-alias B] [--export DIR] [--run] [--show-graphs]</code>
+/// Unknown arguments are ignored rather than fatal; a GUI should still open. <c>--show-graphs</c>
+/// switches to the Graphs tab once a scripted run has finished, so a capture shows a curve.
 /// </summary>
 public sealed record LaunchOptions(
     string? SourceFolder,
@@ -12,7 +13,8 @@ public sealed record LaunchOptions(
     string? SourceAlias,
     string? TargetAlias,
     string? ExportFolder,
-    bool AutoRun)
+    bool AutoRun,
+    bool ShowGraphs = false)
 {
     public static LaunchOptions None { get; } = new(null, null, null, null, null, false);
 
@@ -24,7 +26,7 @@ public sealed record LaunchOptions(
     public static LaunchOptions Parse(IEnumerable<string> args)
     {
         string? source = null, target = null, sourceAlias = null, targetAlias = null, export = null;
-        bool run = false;
+        bool run = false, showGraphs = false;
         var list = args.ToList();
         for (int i = 0; i < list.Count; i++)
         {
@@ -38,8 +40,9 @@ public sealed record LaunchOptions(
                 case "--target-alias": targetAlias = Next(); break;
                 case "--export": export = Next(); break;
                 case "--run": run = true; break;
+                case "--show-graphs": showGraphs = true; break;
             }
         }
-        return new LaunchOptions(source, target, sourceAlias, targetAlias, export, run);
+        return new LaunchOptions(source, target, sourceAlias, targetAlias, export, run, showGraphs);
     }
 }

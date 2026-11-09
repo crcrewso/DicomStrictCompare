@@ -43,7 +43,11 @@ public sealed partial class MainViewModel : ObservableObject
     {
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
+        Graph = new GraphViewModel(ComparisonRunner.LoadWithEvilDicom);
     }
+
+    /// <summary>The Graphs tab: curves out of the matched pairs of the last run (Cody, 2026-11-09: "implement the graph feature").</summary>
+    public GraphViewModel Graph { get; }
 
     /// <summary>
     /// Where a Browse dialog should open: the parent of this field's previous choice (Cody,
@@ -162,6 +166,7 @@ public sealed partial class MainViewModel : ObservableObject
         Unmatched.Clear();
         Log = "";
         Session = null;
+        Graph.SetSession(null);
         _cancel = new CancellationTokenSource();
 
         var request = new ComparisonRequest(
@@ -178,6 +183,7 @@ public sealed partial class MainViewModel : ObservableObject
             foreach (var u in session.Unmatched) Unmatched.Add(u.ToString());
             foreach (var a in session.Match.AmbiguousKeys) Unmatched.Add(a);
             Session = session;
+            Graph.SetSession(session);
             Status = session.Summary;
         }
         catch (OperationCanceledException)

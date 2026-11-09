@@ -22,7 +22,11 @@ public partial class App : Application
             var options = LaunchOptions.FromCommandLine();
             viewModel.Apply(options);
             window.DataContext = viewModel;
-            window.Opened += async (_, _) => await viewModel.AutoRunIfRequestedAsync(options);
+            window.Opened += async (_, _) =>
+            {
+                await viewModel.AutoRunIfRequestedAsync(options);
+                if (options.ShowGraphs) window.ShowGraphs();
+            };
             desktop.MainWindow = window;
         }
         base.OnFrameworkInitializationCompleted();

@@ -55,9 +55,12 @@ public sealed class MainForm : Form
 
     private ComparisonSession? _session;
     private CancellationTokenSource? _cancelSource;
+    private readonly GraphPage _graphs;
+    private readonly TabControl _tabs = new();
 
     public MainForm()
     {
+        _graphs = new GraphPage(ComparisonRunner.LoadWithEvilDicom, () => (_sourceAlias.Text, _targetAlias.Text));
         Title = "DicomStrictCompare - Eto.Forms prototype";
         ClientSize = new Size(1280, 820);
         MinimumSize = new Size(900, 600);
@@ -104,12 +107,11 @@ public sealed class MainForm : Form
         criteriaPanel.AddRow(new TableLayout(add, remove, null));
         criteriaPanel.Add(null, yscale: true);
 
-        var tabs = new TabControl();
+        var tabs = _tabs;
         tabs.Pages.Add(new TabPage(_resultsGrid) { Text = "Results" });
         tabs.Pages.Add(new TabPage(_unmatched) { Text = "Unmatched" });
         tabs.Pages.Add(new TabPage(_log) { Text = "Log" });
-        tabs.Pages.Add(Placeholder("Profiles",
-            "Placeholder: PTW mcc profiles against extracted dose lines, filtered by energy, field size and depth, rendered live from retained Profile objects (backlog D3, D15, D17)."));
+        tabs.Pages.Add(new TabPage(_graphs) { Text = "Graphs", Padding = new Padding(6) });
         tabs.Pages.Add(Placeholder("Detector geometry",
             "Placeholder: detector geometry correction for PTW scans. IDetectorCorrection exists in DSClibrary; no physical kernel is implemented yet (backlog D4), so there is nothing honest to switch on here."));
         tabs.Pages.Add(Placeholder("Archive",
@@ -159,6 +161,7 @@ public sealed class MainForm : Form
                     var written = CsvReport.Write(_session, options.ExportFolder);
                     _status.Text = _session.Summary + " - wrote " + string.Join(" and ", written.Select(Path.GetFileName));
                 }
+                if (options.ShowGraphs) _tabs.SelectedIndex = 3;
             };
         }
     }
@@ -268,6 +271,7 @@ public sealed class MainForm : Form
         _unmatched.Items.Clear();
         _log.Text = "";
         _session = null;
+        _graphs.SetSession(null);
         _cancelSource = new CancellationTokenSource();
 
         var strategy = _strategy.SelectedIndex == 0 ? DoseMatchStrategy.PlanAndBeamUid : DoseMatchStrategy.Identifier;
@@ -289,6 +293,7 @@ public sealed class MainForm : Form
             foreach (var u in session.Unmatched) _unmatched.Items.Add(u.ToString());
             foreach (var a in session.Match.AmbiguousKeys) _unmatched.Items.Add(a);
             _session = session;
+            _graphs.SetSession(session);
             _status.Text = session.Summary;
         }
         catch (OperationCanceledException)

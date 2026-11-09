@@ -2,6 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:DSCprototypes.Shared.ViewModels"
         xmlns:shared="using:DSCprototypes.Shared"
+        xmlns:graphs="using:DSCprototypes.Shared.Graphs"
+        xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
         x:Class="DSCproto.AvaloniaApp.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="DicomStrictCompare - Avalonia prototype"
@@ -54,7 +56,7 @@
 
       <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
 
-      <TabControl Grid.Column="2">
+      <TabControl Grid.Column="2" x:Name="Tabs">
         <TabItem Header="Results">
           <DataGrid ItemsSource="{Binding Rows}" IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal">
             <DataGrid.Columns>
@@ -76,9 +78,39 @@
         <TabItem Header="Log">
           <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Cascadia Mono,Consolas,monospace"/>
         </TabItem>
-        <TabItem Header="Profiles">
-          <TextBlock Margin="12" TextWrapping="Wrap"
-                     Text="Placeholder: PTW mcc profiles against extracted dose lines, filtered by energy, field size and depth, rendered live from retained Profile objects (backlog D3, D15, D17)."/>
+        <!-- Graphs (Cody, 2026-11-09): curves out of the matched pairs of the last run, filtered by energy
+             and field size, a depth dose or a profile at a depth chosen with the slider. The view model
+             owns the choice and the curve; this view only hands the curve to ScottPlot (code-behind). -->
+        <TabItem Header="Graphs">
+          <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0"
+                DataContext="{Binding Graph}" x:DataType="vm:GraphViewModel">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Energy" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+              <TextBlock Text="Field size" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding FieldSizes}" SelectedItem="{Binding SelectedFieldSize}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+              <TextBlock Text="Beam" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Beams}" SelectedItem="{Binding SelectedBeam}" MinWidth="360" IsEnabled="{Binding HasBeams}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="graphs:BeamDescriptor">
+                    <TextBlock Text="{Binding Label}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Curve" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+              <TextBlock Text="Depth" VerticalAlignment="Center" Margin="12,0,0,0"/>
+              <Slider Minimum="0" Maximum="{Binding DepthMaxIndex}" Value="{Binding DepthSlider}" IsEnabled="{Binding DepthEnabled}"
+                      Width="380" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding DepthText}" VerticalAlignment="Center" MinWidth="70"/>
+              <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Width="120" VerticalAlignment="Center"/>
+            </StackPanel>
+            <sp:AvaPlot Grid.Row="2" x:Name="GraphPlot"/>
+            <TextBlock Grid.Row="3" Text="{Binding Status}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="4" Text="{Binding ConventionNote}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
+          </Grid>
         </TabItem>
         <TabItem Header="Detector geometry">
           <TextBlock Margin="12" TextWrapping="Wrap"

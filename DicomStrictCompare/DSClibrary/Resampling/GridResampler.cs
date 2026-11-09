@@ -80,7 +80,15 @@ namespace DSClibrary.Resampling
         /// Trilinear interpolation with the indices clamped to the grid, so a point a rounding error
         /// past the last voxel reads that voxel instead of one beyond the array. A fractional position
         /// within a millionth of a node is snapped to the node, so coincident grids copy exactly.
+        /// <para>
+        /// Public because a line sampled out of a grid for a graph needs the same guarded read: the
+        /// engine's <see cref="DoseMatrixOptimal.GetPointDose"/> computes its indices unclamped, which
+        /// is fine inside the grid but can step one voxel past the array at the exact far edge when
+        /// <c>(x - X0) / XRes</c> rounds up.
+        /// </para>
         /// </summary>
+        public static double ValueAt(DoseMatrixOptimal g, double x, double y, double z) => Trilinear(g, x, y, z);
+
         internal static double Trilinear(DoseMatrixOptimal g, double x, double y, double z)
         {
             Locate((x - g.X0) / g.XRes, g.DimensionX, out int i0, out int i1, out double tx);

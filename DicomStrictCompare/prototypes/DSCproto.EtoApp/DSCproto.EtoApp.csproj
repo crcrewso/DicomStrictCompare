@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.13.0" />
+    <!-- Graphs tab (Cody, 2026-11-09). The same plotting library as the Avalonia prototype, so the two
+         windows draw the same curve the same way and differ only in their hosting. -->
+    <PackageReference Include="ScottPlot.Eto" Version="5.1.59" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
