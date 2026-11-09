@@ -78,15 +78,20 @@ namespace DSClibraryTests
             var line = Field(100, x => 1 + 0.0004 * x);
             // 80 % region is +-40 mm: 0.984 .. 1.016.
             Assert.AreEqual(100 * (1.016 - 0.984) / (1.016 + 0.984), ProfileMetrics.FlatnessByVariance(line), 1e-9);
-            // IEC region for a 50 mm half-field: 50 - 20 = 30 mm: 0.988 .. 1.012.
-            Assert.AreEqual(100 * 1.012 / 0.988, ProfileMetrics.FlatnessByRatioIec(line), 1e-9);
+            // IEC region for a 10 cm field: field - 2 cm, so +-40 mm: 0.984 .. 1.016 (full-field banding,
+            // the default); FauxPID's half-field banding takes 2 cm off each side, +-30 mm: 0.988 .. 1.012.
+            Assert.AreEqual(100 * 1.016 / 0.984, ProfileMetrics.FlatnessByRatioIec(line), 1e-9);
+            Assert.AreEqual(100 * 1.012 / 0.988, ProfileMetrics.FlatnessByRatioIec(line, banding: IecBanding.HalfField), 1e-9);
+            Assert.AreEqual(100 * 1.012 / 0.988, ProfileMetrics.All(line, banding: IecBanding.HalfField).FlatnessByRatioIecPercent, 1e-9);
+            Assert.AreEqual(IecBanding.HalfField, ProfileMetrics.All(line, banding: IecBanding.HalfField).Banding);
             // Whole field over the CAX value 1: (1.02 - 0.98) / 1.
             Assert.AreEqual(0.04, ProfileMetrics.FlatnessByCaxVariance(line), 1e-9);
             // 90 % region: +-45 mm, max 1.018.
             Assert.AreEqual(1.018, ProfileMetrics.FlatnessByCaxRatio(line), 1e-9);
             // The tilt is also an asymmetry: the largest mirrored difference is at +-40 mm (80 % region).
             Assert.AreEqual((0.984 - 1.016) / 1.0 * 100, ProfileMetrics.SymmetryByCaxPointDifference(line), 1e-9);
-            Assert.AreEqual(100 * 1.012 / 0.988, ProfileMetrics.SymmetryByPointRatioIec(line), 1e-9, "IEC region +-30 mm");
+            Assert.AreEqual(100 * 1.016 / 0.984, ProfileMetrics.SymmetryByPointRatioIec(line), 1e-9, "IEC region +-40 mm");
+            Assert.AreEqual(100 * 1.012 / 0.988, ProfileMetrics.SymmetryByPointRatioIec(line, banding: IecBanding.HalfField), 1e-9, "half-field: +-30 mm");
             Assert.IsTrue(ProfileMetrics.SymmetryByArea(line) > 0, "the right side is higher, so area symmetry is positive");
         }
 
@@ -154,10 +159,13 @@ namespace DSClibraryTests
             {
                 var m = ProfileMetrics.All(profile);
                 Console.WriteLine($"{profile.Scan}: {m}");
-                // 300 mm at SSD 1000 diverges to 300 (1000 + d) / 1000 at depth d.
+                // 300 mm at SSD 1000 diverges to 300 (1000 + d) / 1000 at depth d on the water; All(profile)
+                // projects it back, so the nominal 300 mm field reads about 300 at every depth.
                 double depth = profile.Scan.Depth?.Millimetres ?? 0;
-                double expectedWidth = 300 * (1000 + depth) / 1000;
-                Assert.IsTrue(Math.Abs(m.FieldSizeMm - expectedWidth) < 8, $"{profile.Scan}: field {m.FieldSizeMm}, divergence says {expectedWidth:0.0}");
+                Assert.AreEqual((1000 + depth) / 1000, m.Magnification, 1e-12, $"{profile.Scan}");
+                Assert.IsTrue(Math.Abs(m.FieldSizeMm - 300) < 8, $"{profile.Scan}: nominal field {m.FieldSizeMm}");
+                var raw = ProfileMetrics.All(ProfileLine.From(profile));
+                Assert.IsTrue(Math.Abs(raw.FieldSizeMm - 300 * m.Magnification) < 8, $"{profile.Scan}: field on the water {raw.FieldSizeMm}");
                 Assert.IsTrue(Math.Abs(m.CaxOffsetMm) < 5, $"{profile.Scan}: offset {m.CaxOffsetMm}");
                 Assert.IsTrue(m.FlatnessByVariancePercent >= 0 && m.FlatnessByVariancePercent < 10, $"{profile.Scan}: flatness {m.FlatnessByVariancePercent}");
                 Assert.IsTrue(Math.Abs(m.SymmetryByCaxPointDifferencePercent) < 5, $"{profile.Scan}: symmetry {m.SymmetryByCaxPointDifferencePercent}");
@@ -166,17 +174,62 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
-        public void TheIecRegionIsBandedOnTheHalfFieldAsFauxPidsCodeDoesIt()
+        public void TheIecRegionHasBothBandings()
         {
-            // FauxPID's docs state IEC 60976's bands on the field size X (X - 2 cm up to 10 cm, 80 % up
-            // to 30 cm, X - 6 cm beyond); its code applies the same thresholds, 100 and 300 mm, to each
-            // HALF of the field. The port follows the code. So a 40 cm field (half 200 mm) gets 80 %
-            // here, where the standard's wording would give 140 mm per side.
-            Assert.AreEqual(30, ProfileMetrics.IecRegion(50));       // 10 cm field: half - 20 mm
-            Assert.AreEqual(80, ProfileMetrics.IecRegion(100));      // 20 cm field: 80 %
-            Assert.AreEqual(120, ProfileMetrics.IecRegion(150));     // 30 cm field: 80 %
-            Assert.AreEqual(160, ProfileMetrics.IecRegion(200));     // 40 cm field: 80 % (code), not 140 (docs)
-            Assert.AreEqual(240, ProfileMetrics.IecRegion(300));     // 60 cm field: half - 60 mm
+            // Full field (default): IEC 60976 and FauxPID's docs, X - 2 cm up to 10 cm, 80 % up to 30 cm,
+            // X - 6 cm beyond, on the field size X; each side gives up half the reduction.
+            Assert.AreEqual(40, ProfileMetrics.IecRegion(100, 50));    // 10 cm field: 8 cm region, 40 mm per side
+            Assert.AreEqual(80, ProfileMetrics.IecRegion(200, 100));   // 20 cm field: 80 %
+            Assert.AreEqual(120, ProfileMetrics.IecRegion(300, 150));  // 30 cm field: 80 %
+            Assert.AreEqual(170, ProfileMetrics.IecRegion(400, 200));  // 40 cm field: 34 cm region
+            Assert.AreEqual(20, ProfileMetrics.IecRegion(60, 30));     // 6 cm field: 4 cm region
+            // An asymmetric 10 cm field, 40 mm one side and 60 the other, keeps its asymmetry.
+            Assert.AreEqual(30, ProfileMetrics.IecRegion(100, 40));
+            Assert.AreEqual(50, ProfileMetrics.IecRegion(100, 60));
+
+            // Half field: FauxPID's code, each side banded on its own length with the whole reduction.
+            var half = IecBanding.HalfField;
+            Assert.AreEqual(30, ProfileMetrics.IecRegion(100, 50, half));    // 10 cm field: 20 mm off each side
+            Assert.AreEqual(80, ProfileMetrics.IecRegion(200, 100, half));   // 20 cm field: 80 %
+            Assert.AreEqual(120, ProfileMetrics.IecRegion(300, 150, half));  // 30 cm field: 80 %
+            Assert.AreEqual(160, ProfileMetrics.IecRegion(400, 200, half));  // 40 cm field: still 80 % (band changes at 60 cm)
+            Assert.AreEqual(240, ProfileMetrics.IecRegion(600, 300, half));  // 60 cm field: 60 mm off each side
+            Assert.AreEqual(20, ProfileMetrics.IecRegion(100, 40, half));
+            Assert.AreEqual(40, ProfileMetrics.IecRegion(100, 60, half));
+        }
+
+        [TestMethod]
+        public void AProfileAtDepthIsMeasuredInTheNominalPlane()
+        {
+            // Cody: a 10 cm field at 10 cm depth is 11 cm wide on the water and is still the 10 cm
+            // field. A 110 mm wide field with magnification 1.1 reads 100 mm, offsets scale the same
+            // way, and the ratios do not change.
+            var onWater = Field(110, _ => 1.0, centreMm: 2.2, spacing: 0.5);
+            var nominal = ProfileMetrics.All(onWater, caxPosition: 0, magnification: 1.1);
+            Assert.AreEqual(1.1, nominal.Magnification);
+            Assert.IsTrue(Math.Abs(nominal.FieldSizeMm - 100) <= 0.5 / 1.1 + 1e-9, $"nominal field {nominal.FieldSizeMm}");
+            // The edges snap to samples, so the offset is right to within half a spacing (in the nominal plane).
+            Assert.AreEqual(2.0, nominal.CaxOffsetMm, 0.25 / 1.1 + 1e-9);
+            Assert.AreEqual(0.0, nominal.FlatnessByVariancePercent);
+            Assert.AreEqual(100.0, nominal.SymmetryByPointRatioIecPercent);
+
+            var raw = ProfileMetrics.All(onWater);
+            Assert.IsTrue(Math.Abs(raw.FieldSizeMm - 110) <= 0.5 + 1e-9);
+            Assert.AreEqual(1, raw.Magnification);
+
+            // A depth dose is never projected, nor is a profile without an SSD.
+            Assert.AreEqual(1, ProfileLine.MagnificationOf(FakeProfile(CurveType.Pdd, ssdMm: 1000, depthMm: 100)));
+            Assert.AreEqual(1, ProfileLine.MagnificationOf(FakeProfile(CurveType.Crossplane, ssdMm: null, depthMm: 100)));
+            Assert.AreEqual(1.1, ProfileLine.MagnificationOf(FakeProfile(CurveType.Crossplane, ssdMm: 1000, depthMm: 100)), 1e-12);
+            Assert.AreEqual(1.15, ProfileLine.MagnificationOf(FakeProfile(CurveType.Inplane, ssdMm: 900, depthMm: 135)), 1e-12);
+        }
+
+        private static Profile FakeProfile(CurveType type, double? ssdMm, double depthMm)
+        {
+            var beam = new BeamKey(Modality.Photon, 6, false, null, null, ssdMm is { } s ? DSClibrary.Units.Distance.FromMillimetres(s) : null, null, null);
+            var scan = new ScanKey(type, DSClibrary.Units.Distance.FromMillimetres(depthMm));
+            var points = Enumerable.Range(0, 5).Select(i => new ProfilePoint(DSClibrary.Units.Distance.FromMillimetres(i - 2), 1.0, null));
+            return new Profile(beam, scan, points);
         }
     }
 }

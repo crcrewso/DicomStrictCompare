@@ -44,6 +44,39 @@ namespace DSClibrary.Profiles
                 profile.Points.Select(p => p.Value).ToArray());
         }
 
+        /// <summary>
+        /// The same curve with every position divided by <paramref name="magnification"/>: a profile
+        /// measured at depth, projected back to the plane where field sizes are named.
+        /// <para>
+        /// Cody, 2026-11-09: "The beams we're measuring are divergent. The field size is the nominal
+        /// field size of the projected square at 100 SSD, so a 10 cm depth would be 110 cm from target
+        /// and the field would be 11 cm wide (plus scattering) it would still be called a 10 cm field."
+        /// So the metrics are taken in the nominal plane: positions scaled by SSD / (SSD + depth),
+        /// values untouched. Scatter widens the penumbra a little beyond the projection; that is in the
+        /// measured number, as it is in the TPS's.
+        /// </para>
+        /// </summary>
+        public ProfileLine ProjectedToNominal(double magnification)
+        {
+            if (!(magnification > 0) || !double.IsFinite(magnification))
+                throw new ArgumentOutOfRangeException(nameof(magnification), "must be a positive finite factor");
+            if (magnification == 1) return this;
+            return new ProfileLine(Positions.Select(p => p / magnification).ToArray(), Values);
+        }
+
+        /// <summary>
+        /// (SSD + depth) / SSD for a profile scanned at a depth with a known SSD; 1 when either is
+        /// unknown or the curve is a depth dose (whose positions are depths, not widths).
+        /// </summary>
+        public static double MagnificationOf(Profile profile)
+        {
+            if (profile is null) throw new ArgumentNullException(nameof(profile));
+            if (profile.Scan.CurveType == CurveType.Pdd) return 1;
+            if (profile.Beam.Ssd is not { } ssd || profile.Scan.Depth is not { } depth) return 1;
+            if (!(ssd.Millimetres > 0)) return 1;
+            return (ssd.Millimetres + depth.Millimetres) / ssd.Millimetres;
+        }
+
         /// <summary>Linear interpolation between neighbouring samples; throws outside the measured range.</summary>
         public double ValueAt(double position)
         {
@@ -68,7 +101,31 @@ namespace DSClibrary.Profiles
         }
     }
 
-    /// <summary>The nine FauxPID metrics of one curve, in one record, for a table or a report.</summary>
+    /// <summary>
+    /// How the IEC 60976 flattened region is taken from the field. Both are offered because each has
+    /// its place (Cody, 2026-11-09).
+    /// </summary>
+    public enum IecBanding
+    {
+        /// <summary>
+        /// On the nominal full field size, as the standard and FauxPID's documentation state it: a
+        /// field up to 10 cm less 2 cm, 80 % of one up to 30 cm, a larger one less 6 cm; each side
+        /// gives up half the reduction. The default.
+        /// </summary>
+        FullField,
+
+        /// <summary>
+        /// On each half-field, as FauxPID's <c>metrics.py</c> does it: a side under 100 mm less 20 mm,
+        /// 80 % of one under 300 mm, a longer one less 60 mm. Matches FauxPID's numbers.
+        /// </summary>
+        HalfField,
+    }
+
+    /// <summary>
+    /// The nine FauxPID metrics of one curve, in one record, for a table or a report. Lengths are in
+    /// the nominal plane when <see cref="Magnification"/> is not 1; the two IEC metrics were banded as
+    /// <see cref="Banding"/> says.
+    /// </summary>
     public sealed record ProfileMetricsReport(
         double FieldSizeMm,
         double CaxOffsetMm,
@@ -78,10 +135,14 @@ namespace DSClibrary.Profiles
         double FlatnessByCaxRatio,
         double SymmetryByCaxPointDifferencePercent,
         double SymmetryByPointRatioIecPercent,
-        double SymmetryByAreaPercent)
+        double SymmetryByAreaPercent,
+        double Magnification = 1,
+        IecBanding Banding = IecBanding.FullField)
     {
         public override string ToString() =>
-            $"field {FieldSizeMm:0.0} mm, CAX offset {CaxOffsetMm:+0.00;-0.00} mm; flatness {FlatnessByVariancePercent:0.00}% (variance), "
+            (Magnification == 1 ? "" : $"at nominal plane (/{Magnification:0.000}): ")
+            + (Banding == IecBanding.FullField ? "" : "IEC on half-fields: ")
+            + $"field {FieldSizeMm:0.0} mm, CAX offset {CaxOffsetMm:+0.00;-0.00} mm; flatness {FlatnessByVariancePercent:0.00}% (variance), "
             + $"{FlatnessByRatioIecPercent:0.00}% (IEC ratio), {FlatnessByCaxVariance:0.0000} (CAX variance), {FlatnessByCaxRatio:0.0000} (CAX ratio); "
             + $"symmetry {SymmetryByCaxPointDifferencePercent:+0.00;-0.00}% (CAX point), {SymmetryByPointRatioIecPercent:0.00}% (IEC ratio), "
             + $"{SymmetryByAreaPercent:+0.00;-0.00}% (area)";
@@ -107,6 +168,16 @@ namespace DSClibrary.Profiles
     /// pair the k-th samples; the area symmetry sums trapezoids between successive samples from the
     /// centre through the region's edge sample and one beyond, exactly as FauxPID's loop does.</item>
     /// </list>
+    /// <para>
+    /// Two things are not FauxPID's. Field sizes are nominal: <see cref="All(Profile, double)"/>
+    /// projects a profile scanned at depth back to the plane field sizes are named in
+    /// (<see cref="ProfileLine.ProjectedToNominal"/>), because a 10 cm field at 10 cm depth is 11 cm
+    /// wide and is still the 10 cm field (Cody, 2026-11-09). And the IEC 60976 region can be banded
+    /// either on that nominal full field size, as the standard and FauxPID's documentation state it,
+    /// or on each half-field as FauxPID's code does it (<see cref="IecBanding"/>, a parameter of the two
+    /// IEC metrics; full-field is the default). The two differ: the half-field rule subtracts twice
+    /// the standard's margin and moves the band changes to 20 and 60 cm fields.
+    /// </para>
     /// <para>
     /// Each metric throws <see cref="InvalidOperationException"/> when the curve cannot support it (no
     /// threshold crossing, the CAX outside the field, a zero divisor), as FauxPID raises ValueError.
@@ -171,12 +242,13 @@ namespace DSClibrary.Profiles
             return 100 * (max - min) / (max + min);
         }
 
-        /// <summary>max / min x 100 over the IEC 60976 region about the CAX: per side, length - 20 mm under 100 mm, 80 % under 300 mm, length - 60 mm beyond.</summary>
-        public static double FlatnessByRatioIec(ProfileLine line, double caxPosition = 0)
+        /// <summary>max / min x 100 over the IEC 60976 region about the CAX (see <see cref="IecRegion"/>).</summary>
+        public static double FlatnessByRatioIec(ProfileLine line, double caxPosition = 0, IecBanding banding = IecBanding.FullField)
         {
             var (l, r) = EdgesWithCaxInside(line, caxPosition);
             double leftLength = caxPosition - line.Positions[l], rightLength = line.Positions[r] - caxPosition;
-            var roi = Within(line, caxPosition - IecRegion(leftLength), caxPosition + IecRegion(rightLength));
+            double field = leftLength + rightLength;
+            var roi = Within(line, caxPosition - IecRegion(field, leftLength, banding), caxPosition + IecRegion(field, rightLength, banding));
             double min = roi.Min();
             if (min == 0) throw new InvalidOperationException("Cannot calculate IEC flatness ratio: the minimum in the region is zero");
             return 100 * roi.Max() / min;
@@ -222,12 +294,13 @@ namespace DSClibrary.Profiles
         /// IEC 60976 point ratio: over mirrored sample pairs about the <b>beam centre</b> within the IEC
         /// region, the pair with the largest difference, reported as higher / lower x 100.
         /// </summary>
-        public static double SymmetryByPointRatioIec(ProfileLine line, double caxPosition = 0)
+        public static double SymmetryByPointRatioIec(ProfileLine line, double caxPosition = 0, IecBanding banding = IecBanding.FullField)
         {
             var (l, r) = FieldEdgeIndices(line, caxPosition);
             double centre = (line.Positions[l] + line.Positions[r]) / 2;
             double leftLength = centre - line.Positions[l], rightLength = line.Positions[r] - centre;
-            double leftRoi = centre - IecRegion(leftLength), rightRoi = centre + IecRegion(rightLength);
+            double field = leftLength + rightLength;
+            double leftRoi = centre - IecRegion(field, leftLength, banding), rightRoi = centre + IecRegion(field, rightLength, banding);
             double maxDifference = 0, maxLeft = 1, maxRight = 1;
             foreach (var (li, ri) in MirroredPairs(line, centre, leftRoi, rightRoi))
             {
@@ -266,20 +339,29 @@ namespace DSClibrary.Profiles
         }
 
         /// <summary>All nine metrics at once.</summary>
-        public static ProfileMetricsReport All(ProfileLine line, double caxPosition = 0) => new(
+        public static ProfileMetricsReport All(ProfileLine line, double caxPosition = 0, IecBanding banding = IecBanding.FullField) => new(
             FieldSize(line, caxPosition),
             CaxOffset(line, caxPosition),
             FlatnessByVariance(line, caxPosition),
-            FlatnessByRatioIec(line, caxPosition),
+            FlatnessByRatioIec(line, caxPosition, banding),
             FlatnessByCaxVariance(line, caxPosition),
             FlatnessByCaxRatio(line, caxPosition),
             SymmetryByCaxPointDifference(line, caxPosition),
-            SymmetryByPointRatioIec(line, caxPosition),
-            SymmetryByArea(line, caxPosition));
+            SymmetryByPointRatioIec(line, caxPosition, banding),
+            SymmetryByArea(line, caxPosition),
+            Banding: banding);
 
-        /// <summary>All nine metrics of a measured or sampled <see cref="Profile"/>, with the axis at position 0.</summary>
-        public static ProfileMetricsReport All(Profile profile, double caxPositionMm = 0) =>
-            All(ProfileLine.From(profile), caxPositionMm);
+        /// <summary>
+        /// All nine metrics of a measured or sampled <see cref="Profile"/>, with the axis at position 0,
+        /// in the nominal plane: a transverse profile scanned at a depth with a known SSD is first
+        /// projected by SSD / (SSD + depth) (<see cref="ProfileLine.MagnificationOf"/>).
+        /// </summary>
+        public static ProfileMetricsReport All(Profile profile, double caxPositionMm = 0, IecBanding banding = IecBanding.FullField) =>
+            All(ProfileLine.From(profile), caxPositionMm, ProfileLine.MagnificationOf(profile), banding);
+
+        /// <summary>All nine metrics of a line with an explicit magnification to divide positions by first.</summary>
+        public static ProfileMetricsReport All(ProfileLine line, double caxPosition, double magnification, IecBanding banding = IecBanding.FullField) =>
+            All(line.ProjectedToNominal(magnification), caxPosition / magnification, banding) with { Magnification = magnification };
 
         // ---- the pieces ----
 
@@ -287,17 +369,34 @@ namespace DSClibrary.Profiles
         public static double CaxValue(ProfileLine line, double caxPosition = 0) => line.ValueAt(caxPosition);
 
         /// <summary>
-        /// The IEC region's half-length for a half-field of the given length, in mm, as FauxPID's code
-        /// bands it: under 100 mm, the half-length less 20 mm; under 300 mm, 80 % of it; beyond, less
-        /// 60 mm. <b>FauxPID's documentation states these bands on the full field size</b> (X - 2 cm up
-        /// to 10 cm, 80 % up to 30 cm, X - 6 cm beyond), which would put the thresholds at 50 and
-        /// 150 mm per side; the code and the docs agree for fields up to 20 cm and differ above. The
-        /// port follows the code; the discrepancy is recorded for Cody (2026-11-09).
+        /// One side's share of the IEC 60976 flattened region, in mm, for a field of nominal size
+        /// <paramref name="fieldSizeMm"/> whose side extends <paramref name="sideLengthMm"/> from the
+        /// centre.
+        /// <para>
+        /// <see cref="IecBanding.FullField"/>: the standard's wording and FauxPID's
+        /// <c>docs/ALGORITHMS.md</c>. A field up to 10 cm is reduced by 2 cm, one up to 30 cm is taken
+        /// at 80 %, a larger one is reduced by 6 cm; each side gives up half the reduction, so an
+        /// asymmetric field keeps its asymmetry.
+        /// </para>
+        /// <para>
+        /// <see cref="IecBanding.HalfField"/>: FauxPID's <c>metrics.py</c>. The side itself is banded:
+        /// under 100 mm less 20 mm, under 300 mm at 80 %, otherwise less 60 mm. Matches FauxPID's
+        /// numbers; takes 2 cm off each side of a 10 cm field.
+        /// </para>
         /// </summary>
-        public static double IecRegion(double halfLengthMm) =>
-            halfLengthMm < 100 ? halfLengthMm - 20
-            : halfLengthMm < 300 ? halfLengthMm * 0.8
-            : halfLengthMm - 60;
+        public static double IecRegion(double fieldSizeMm, double sideLengthMm, IecBanding banding = IecBanding.FullField) =>
+            banding switch
+            {
+                IecBanding.FullField =>
+                    fieldSizeMm <= 100 ? sideLengthMm - 10
+                    : fieldSizeMm <= 300 ? sideLengthMm * 0.8
+                    : sideLengthMm - 30,
+                IecBanding.HalfField =>
+                    sideLengthMm < 100 ? sideLengthMm - 20
+                    : sideLengthMm < 300 ? sideLengthMm * 0.8
+                    : sideLengthMm - 60,
+                _ => throw new ArgumentOutOfRangeException(nameof(banding))
+            };
 
         /// <summary>First and last samples strictly above a threshold (FauxPID's <c>get_transition_indices</c>).</summary>
         private static (int Left, int Right) Transitions(ProfileLine line, double threshold)
