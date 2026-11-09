@@ -45,7 +45,10 @@ public sealed partial class GraphViewModel : ObservableObject
     /// <summary>Rebuilds the filters from a finished run, or empties them for null.</summary>
     public void SetSession(ComparisonSession? session)
     {
-        _all = session is null ? Array.Empty<BeamDescriptor>() : PairCatalog.Describe(session.Match.Pairs);
+        int hiddenElectrons = 0;
+        (_all, hiddenElectrons) = session is null
+            ? (Array.Empty<BeamDescriptor>(), 0)
+            : PairCatalog.ForGraphs(session.Match.Pairs);
         _loaded = null;
         Curve = null;
 
@@ -59,9 +62,10 @@ public sealed partial class GraphViewModel : ObservableObject
         SelectedEnergy = Energies[0];
         SelectedFieldSize = FieldSizes[0];
         HasBeams = _all.Count > 0;
+        string hidden = hiddenElectrons > 0 ? $" {hiddenElectrons} electron beam(s) not shown (photons only for now)." : "";
         Status = _all.Count == 0
-            ? "Run a comparison, then choose a beam."
-            : $"{_all.Count} matched pair(s); {Energies.Count - 1} energies, {FieldSizes.Count - 1} field sizes. Choose a beam.";
+            ? (session is null ? "Run a comparison, then choose a beam." : "No photon beams among the matched pairs." + hidden)
+            : $"{_all.Count} photon pair(s); {Energies.Count - 1} energies, {FieldSizes.Count - 1} field sizes. Choose a beam.{hidden}";
         Refilter();
     }
 

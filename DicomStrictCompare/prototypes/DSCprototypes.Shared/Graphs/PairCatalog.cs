@@ -49,14 +49,48 @@ public static class PairCatalog
         return energy.ToString("0.##", CultureInfo.InvariantCulture) + " " + unit + fff;
     }
 
-    /// <summary>"10 x 10 cm", crossplane by inplane at the isocentre from the jaws; <see cref="Unknown"/> when either jaw pair is absent.</summary>
+    /// <summary>
+    /// The field size a person means. For an electron beam with an applicator that is the
+    /// applicator - "10 x 10 cm (A10)" - because the jaws behind it are opened wider (measured
+    /// 2026-11-09: +-70 mm behind every A10 in resources/, which first labelled those beams
+    /// "14 x 14 cm"; Cody: "some confusion with the field size"). Otherwise it is crossplane by
+    /// inplane at the isocentre from the jaws, "10 x 10 cm". An applicator whose ID does not give
+    /// its size shows the ID beside the jaw opening. <see cref="Unknown"/> when nothing says.
+    /// </summary>
     public static string FieldSizeLabel(RTPlanBeam? beam)
     {
         if (beam is null) return Unknown;
-        var (cross, inplane) = beam.FieldSizeAtIsocentre;
-        if (cross is null || inplane is null) return Unknown;
-        return (cross.Value / 10).ToString("0.#", CultureInfo.InvariantCulture) + " x "
-             + (inplane.Value / 10).ToString("0.#", CultureInfo.InvariantCulture) + " cm";
+        var (cross, inplane) = EffectiveFieldSizeMm(beam);
+        string? applicator = beam.ApplicatorID?.Trim();
+        if (cross is null || inplane is null)
+            return applicator is { Length: > 0 } ? $"applicator {applicator}" : Unknown;
+        string size = (cross.Value / 10).ToString("0.#", CultureInfo.InvariantCulture) + " x "
+                    + (inplane.Value / 10).ToString("0.#", CultureInfo.InvariantCulture) + " cm";
+        return applicator is { Length: > 0 } ? $"{size} ({applicator})" : size;
+    }
+
+    /// <summary>The applicator's size when the beam has one that states it, else the jaw opening.</summary>
+    public static (double? CrossplaneMm, double? InplaneMm) EffectiveFieldSizeMm(RTPlanBeam beam)
+    {
+        var applicator = beam.ApplicatorSizeMm;
+        if (applicator.CrossplaneMm is not null && applicator.InplaneMm is not null) return applicator;
+        return beam.FieldSizeAtIsocentre;
+    }
+
+    /// <summary>
+    /// Photons only, for now. Cody, 2026-11-09, reviewing the first graphs: "I'm having a hard time
+    /// reviewing these graphs and comparing them to what I remember, could we stick to photon
+    /// profiles for now?" The electron beams are still described (so the count can be shown) and
+    /// still compared; they are just not offered in the Graphs tab until he asks for them.
+    /// </summary>
+    public static bool GraphsShowElectrons { get; set; } = false;
+
+    /// <summary>What the Graphs tab offers: the photon beams, and the electrons only when <see cref="GraphsShowElectrons"/>.</summary>
+    public static (IReadOnlyList<BeamDescriptor> Shown, int HiddenElectrons) ForGraphs(IEnumerable<MatchedDosePair> pairs)
+    {
+        var all = Describe(pairs);
+        if (GraphsShowElectrons) return (all, 0);
+        return (all.Where(b => !b.IsElectron).ToArray(), all.Count(b => b.IsElectron));
     }
 
     public static IReadOnlyList<BeamDescriptor> Describe(IEnumerable<MatchedDosePair> pairs)
@@ -65,7 +99,7 @@ public static class PairCatalog
         return pairs.Select(p =>
         {
             var beam = p.Source.Beam;
-            var (cross, inplane) = beam?.FieldSizeAtIsocentre ?? (null, null);
+            var (cross, inplane) = beam is null ? (null, null) : EffectiveFieldSizeMm(beam);
             return new BeamDescriptor(
                 p,
                 EnergyLabel(beam),

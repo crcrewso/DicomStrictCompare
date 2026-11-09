@@ -93,6 +93,13 @@ namespace DSClibrary.Results.DICOM
         public static readonly DicomTag RTBeamLimitingDeviceType = new(0x300A, 0x00B8);
         public static readonly DicomTag NumberOfLeafJawPairs = new(0x300A, 0x00BC);
         public static readonly DicomTag BeamNumber = new(0x300A, 0x00C0);
+
+        // Electron applicator. Measured 2026-11-09: every electron beam in resources/ carries one
+        // (A10, ELECTRON_SQUARE) while its jaws sit at +-70 mm, so for electrons the applicator and
+        // not the jaw opening is the field size a person means.
+        public static readonly DicomTag ApplicatorSequence = new(0x300A, 0x0107);
+        public static readonly DicomTag ApplicatorID = new(0x300A, 0x0108);
+        public static readonly DicomTag ApplicatorType = new(0x300A, 0x0109);
         public static readonly DicomTag BeamName = new(0x300A, 0x00C2);
         public static readonly DicomTag BeamType = new(0x300A, 0x00C4);
         public static readonly DicomTag RadiationType = new(0x300A, 0x00C6);

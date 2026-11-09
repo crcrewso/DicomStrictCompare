@@ -50,6 +50,15 @@ public class BeamLinesTests
         Assert.IsTrue(fields.Contains("10 x 10 cm"), string.Join(", ", fields));
         // Photons sort before electrons, so the first label is an MV one.
         Assert.IsTrue(energies[0].EndsWith("MV"), energies[0]);
+
+        // Electrons: the applicator, not the jaws. Measured 2026-11-09: every electron beam in
+        // resources/ has applicator A10 with the jaws at +-70 mm, and the first version of this
+        // label called them "14 x 14 cm" (Cody: "some confusion with the field size").
+        var electrons = beams.Where(b => b.IsElectron).ToArray();
+        Assert.IsTrue(electrons.Length > 0);
+        Assert.IsTrue(electrons.All(b => b.FieldSize == "10 x 10 cm (A10)"), string.Join(", ", electrons.Select(b => b.FieldSize).Distinct()));
+        Assert.IsTrue(electrons.All(b => b.Pair.Source.Beam!.FieldSizeAtIsocentre.CrossplaneMm == 140), "the jaws really are at 14 cm");
+        Assert.IsFalse(fields.Contains("14 x 14 cm"), string.Join(", ", fields));
     }
 
     [TestMethod]
@@ -98,7 +107,10 @@ public class BeamLinesTests
         vm.SetSession(session);
 
         Assert.IsTrue(vm.HasBeams);
-        Assert.AreEqual(26, vm.Beams.Count, "all energies and field sizes to begin with");
+        // Photons only for now (Cody, 2026-11-09): 26 pairs less the 8 electron beams.
+        Assert.AreEqual(18, vm.Beams.Count, "all photon energies and field sizes to begin with");
+        Assert.IsFalse(vm.Energies.Any(e => e.EndsWith("MeV")), string.Join(", ", vm.Energies));
+        Assert.IsTrue(vm.Status.Contains("8 electron beam(s) not shown"), vm.Status);
         Assert.AreEqual(PairCatalog.AnyEnergy, vm.SelectedEnergy);
 
         vm.SelectedFieldSize = "10 x 10 cm";

@@ -81,7 +81,10 @@ public sealed class GraphPage : Panel
     /// <summary>Rebuilds the filters from a finished run, or empties them for null.</summary>
     public void SetSession(ComparisonSession? session)
     {
-        _all = session is null ? Array.Empty<BeamDescriptor>() : PairCatalog.Describe(session.Match.Pairs);
+        int hiddenElectrons = 0;
+        (_all, hiddenElectrons) = session is null
+            ? (Array.Empty<BeamDescriptor>(), 0)
+            : PairCatalog.ForGraphs(session.Match.Pairs);
         _loaded = null;
         _depths = Array.Empty<double>();
 
@@ -94,9 +97,10 @@ public sealed class GraphPage : Panel
 
         bool any = _all.Count > 0;
         _energy.Enabled = _fieldSize.Enabled = _beam.Enabled = _kind.Enabled = any;
+        string hidden = hiddenElectrons > 0 ? $" {hiddenElectrons} electron beam(s) not shown (photons only for now)." : "";
         _status.Text = any
-            ? $"{_all.Count} matched pair(s); {_energy.DataStore.Count() - 1} energies, {_fieldSize.DataStore.Count() - 1} field sizes. Choose a beam."
-            : "Run a comparison, then choose a beam.";
+            ? $"{_all.Count} photon pair(s); {_energy.DataStore.Count() - 1} energies, {_fieldSize.DataStore.Count() - 1} field sizes. Choose a beam.{hidden}"
+            : (session is null ? "Run a comparison, then choose a beam." : "No photon beams among the matched pairs." + hidden);
         Refilter();
     }
 

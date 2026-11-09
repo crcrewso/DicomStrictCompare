@@ -188,6 +188,38 @@ namespace DSClibrary.Results.DICOM
         /// <summary>True when the beam has more than two control points, so its geometry may vary.</summary>
         public bool MayBeDynamic => (NumberOfControlPoints ?? 0) > 2;
 
+        // ---- electron applicator ----
+
+        /// <summary>ApplicatorID (300A,0108) from the first item of ApplicatorSequence: "A10" in the reference plans. Null when absent.</summary>
+        public string? ApplicatorID => _beam.GetFirstItem(DicomTags.ApplicatorSequence)?.GetString(DicomTags.ApplicatorID);
+
+        /// <summary>ApplicatorType (300A,0109): ELECTRON_SQUARE in the reference plans.</summary>
+        public string? ApplicatorType => _beam.GetFirstItem(DicomTags.ApplicatorSequence)?.GetString(DicomTags.ApplicatorType);
+
+        /// <summary>
+        /// The applicator's nominal opening in millimetres, read from its ID the way Varian names
+        /// them: <c>A10</c> is a 10 x 10 cm square, <c>A6x10</c> would be 6 by 10. Null when there is
+        /// no applicator or the ID is not in that form - <i>a reading of a naming convention, not a
+        /// DICOM attribute</i>; the standard has no applicator size, only the ID and type.
+        /// </summary>
+        public (double? CrossplaneMm, double? InplaneMm) ApplicatorSizeMm
+        {
+            get
+            {
+                string? id = ApplicatorID?.Trim();
+                if (string.IsNullOrEmpty(id)) return (null, null);
+                var square = System.Text.RegularExpressions.Regex.Match(id, @"^[A-Za-z]*0*(\d+(?:\.\d+)?)$");
+                if (square.Success && double.TryParse(square.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double side))
+                    return (side * 10, side * 10);
+                var rect = System.Text.RegularExpressions.Regex.Match(id, @"^[A-Za-z]*0*(\d+(?:\.\d+)?)[xX]0*(\d+(?:\.\d+)?)$");
+                if (rect.Success
+                    && double.TryParse(rect.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double a)
+                    && double.TryParse(rect.Groups[2].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double b))
+                    return (a * 10, b * 10);
+                return (null, null);
+            }
+        }
+
         // ---- from the first control point ----
 
         public double? NominalBeamEnergy => _firstControlPoint?.GetDecimal(DicomTags.NominalBeamEnergy);
