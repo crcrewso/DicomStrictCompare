@@ -23,10 +23,15 @@ namespace DSClibrary.Matching
         Identifier = 1,
 
         /// <summary>
-        /// The referenced plan's SOPInstanceUID with the referenced beam number. Exact and
-        /// unspoofable, but only works when both doses reference <b>the same plan</b> - two algorithms
-        /// or two grid resolutions computed from one plan. Across a re-plan the UIDs differ by
-        /// definition and nothing will match.
+        /// The referenced plan's SOPInstanceUID, less its save time, with the referenced beam number.
+        /// Needs no plan file and no naming, but only works when both doses reference <b>the same
+        /// plan</b> - two algorithms, two grid resolutions, or the same plan recalculated at two
+        /// times. Across a re-plan the UIDs differ by definition and nothing will match.
+        /// <para>
+        /// Eclipse writes the save time as the UID's last component and changes it on every save,
+        /// so an exact UID pairs nothing between a plan's two recalculations; see
+        /// <see cref="PlanUids.WithoutSaveTime"/> for the measurement (2026-11-09).
+        /// </para>
         /// </summary>
         PlanAndBeamUid = 2
     }
@@ -46,6 +51,8 @@ namespace DSClibrary.Matching
         public string? PatientId { get; }
         public string? PlanLabel { get; }
         public string? BeamName { get; }
+
+        /// <summary>The referenced plan's UID as compared: with its save time removed, see <see cref="PlanUids"/>.</summary>
         public string? PlanSopInstanceUid { get; }
         public int? BeamNumber { get; }
 
@@ -92,7 +99,7 @@ namespace DSClibrary.Matching
                 DoseMatchStrategy.PlanAndBeamUid =>
                     dose.Dose.ReferencedRTPlanSOPInstanceUID is { Length: > 0 } uid
                     && dose.Dose.ReferencedBeamNumber is { } number
-                        ? new DoseMatchKey(strategy, planSopInstanceUid: uid, beamNumber: number)
+                        ? new DoseMatchKey(strategy, planSopInstanceUid: PlanUids.WithoutSaveTime(uid), beamNumber: number)
                         : null,
 
                 _ => throw new ArgumentOutOfRangeException(nameof(strategy))
