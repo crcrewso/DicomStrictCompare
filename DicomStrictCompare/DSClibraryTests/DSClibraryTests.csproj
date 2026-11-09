@@ -22,19 +22,9 @@
     <ProjectReference Include="..\DSClibrary\DSClibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
+    <!-- Properties\Resources.cs reads the DICOM test data from resources/ at run time. The resx of
+         ResXFileRef entries it replaces embedded 662 MB into this assembly on Windows and nothing at
+         all on Linux (2026-11-09). -->
     <!-- The PTW scan the profile tests measure against. Linked rather than copied, so the test data
          stays in resources/ as the single copy that 820c145 established. -->
     <Content Include="..\resources\ptw scans\x06 open 30x30 pddcrin tba 180406 16'02'52.mcc" Link="TestData\ptw-scan.mcc">
