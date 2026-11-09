@@ -87,7 +87,7 @@ namespace DSClibrary.Mapping.DICOM
 
             return DoseVolume.FromCentigrayGrid(
                 MapBeamKey(pairing),
-                BuildGrid(dose, values),
+                dose.ToGrid(values),
                 scale,
                 pairing.MonitorUnits,
                 MapConditions(pairing),
@@ -117,42 +117,6 @@ namespace DSClibrary.Mapping.DICOM
                 "" => throw new DicomFormatException("DoseUnits is absent; the voxels cannot be interpreted."),
                 _ => throw new DicomFormatException($"DoseUnits of '{doseUnits}' is not recognised.")
             };
-        }
-
-        /// <summary>
-        /// The grid geometry, in millimetres. <c>PixelSpacing</c> is row spacing then column spacing -
-        /// y then x - and the z spacing comes from <c>GridFrameOffsetVector</c>.
-        /// </summary>
-        private static DoseMatrixOptimal BuildGrid(RTDoseResult dose, double[] centigray)
-        {
-            var origin = dose.ImagePositionPatient;
-            var spacing = dose.PixelSpacing;
-            var offsets = dose.GridFrameOffsetVector;
-
-            if (origin.Count < 3)
-                throw new DicomFormatException("ImagePositionPatient needs three values.");
-            if (spacing.Count < 2)
-                throw new DicomFormatException("PixelSpacing needs two values.");
-            if (!dose.HasUniformFrameSpacing)
-                throw new DicomFormatException(
-                    "GridFrameOffsetVector is not uniformly spaced. decisions/2026-10-02-comparison-rules.md item 3 "
-                    + "allows z spacing to differ from x and y but not to vary along z, and DoseMatrixOptimal holds a "
-                    + "single ZRes. No file in resources/ is like this.");
-
-            int dimX = dose.Columns ?? throw new DicomFormatException("Columns is absent.");
-            int dimY = dose.Rows ?? throw new DicomFormatException("Rows is absent.");
-            int dimZ = dose.NumberOfFrames ?? throw new DicomFormatException("NumberOfFrames is absent.");
-
-            // The first frame offset is normally zero, but the standard does not require it, so it is
-            // added rather than assumed away.
-            double z0 = origin[2] + (offsets.Count > 0 ? offsets[0] : 0.0);
-            double zRes = offsets.Count > 1 ? offsets[1] - offsets[0] : spacing[0];
-
-            return new DoseMatrixOptimal(
-                dimX, dimY, dimZ,
-                origin[0], origin[1], z0,
-                spacing[1], spacing[0], zRes,
-                centigray);
         }
 
         /// <summary>

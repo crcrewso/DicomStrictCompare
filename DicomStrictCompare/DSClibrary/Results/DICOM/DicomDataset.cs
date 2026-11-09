@@ -131,6 +131,33 @@ namespace DSClibrary.Results.DICOM
         /// <summary>The first item of a sequence, or null when the sequence is absent or empty.</summary>
         public DicomDataset? GetFirstItem(DicomTag tag) => GetSequence(tag).FirstOrDefault();
 
+        /// <summary>
+        /// A copy of this dataset with one element replaced or added, holding <paramref name="value"/>
+        /// as its bytes. The dataset itself is not changed: what was read stays as it was read, and a
+        /// derived dataset is a new object - the same rule <see cref="DoseMatrixOptimal"/> follows.
+        /// </summary>
+        public DicomDataset WithElement(DicomTag tag, byte[] value)
+        {
+            if (value is null) throw new ArgumentNullException(nameof(value));
+            var copy = new Dictionary<DicomTag, DicomElement>(_elements)
+            {
+                [tag] = new DicomElement(tag, value)
+            };
+            return new DicomDataset(copy) { _implicitVr = _implicitVr };
+        }
+
+        /// <summary>A copy of this dataset without the given element; the same dataset when it was absent.</summary>
+        public DicomDataset Without(DicomTag tag)
+        {
+            if (!_elements.ContainsKey(tag)) return this;
+            var copy = new Dictionary<DicomTag, DicomElement>(_elements);
+            copy.Remove(tag);
+            return new DicomDataset(copy) { _implicitVr = _implicitVr };
+        }
+
+        /// <summary>Whether the values were parsed under implicit VR, which decides whether they can be written back as such.</summary>
+        public bool IsImplicitVr => _implicitVr;
+
         private bool _implicitVr = true;
 
         internal void SetImplicitVr(bool implicitVr)

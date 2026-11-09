@@ -38,6 +38,12 @@ namespace DSClibrary.Results.DICOM
 
         public static RTDoseResult ReadFile(string path) => new(DicomFileReader.ReadFile(path));
 
+        /// <summary>
+        /// Wraps a file that has already been read, for a caller that needs both the file (its
+        /// transfer syntax, its meta group) and the dose view of it without reading the bytes twice.
+        /// </summary>
+        public static RTDoseResult From(DicomFile file) => new(file ?? throw new ArgumentNullException(nameof(file)));
+
         /// <summary>Every element of the dataset, for anything not promoted to a property here.</summary>
         public DicomDataset Dataset => _dataset;
 
@@ -235,6 +241,45 @@ namespace DSClibrary.Results.DICOM
                     destination[i] = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(i * 2, 2)) * factor;
             else
                 throw new DicomFormatException($"BitsAllocated of {bits} is not supported; expected 16 or 32.");
+        }
+
+        /// <summary>
+        /// The grid geometry, in millimetres, around values the caller has already produced (scaled
+        /// or raw - this method does not care). <c>PixelSpacing</c> is row spacing then column spacing,
+        /// y then x, and the z spacing comes from <c>GridFrameOffsetVector</c>.
+        /// </summary>
+        public DoseMatrixOptimal ToGrid(double[] values)
+        {
+            if (values is null) throw new ArgumentNullException(nameof(values));
+
+            var origin = ImagePositionPatient;
+            var spacing = PixelSpacing;
+            var offsets = GridFrameOffsetVector;
+
+            if (origin.Count < 3)
+                throw new DicomFormatException("ImagePositionPatient needs three values.");
+            if (spacing.Count < 2)
+                throw new DicomFormatException("PixelSpacing needs two values.");
+            if (!HasUniformFrameSpacing)
+                throw new DicomFormatException(
+                    "GridFrameOffsetVector is not uniformly spaced. decisions/2026-10-02-comparison-rules.md item 3 "
+                    + "allows z spacing to differ from x and y but not to vary along z, and DoseMatrixOptimal holds a "
+                    + "single ZRes. No file in resources/ is like this.");
+
+            int dimX = Columns ?? throw new DicomFormatException("Columns is absent.");
+            int dimY = Rows ?? throw new DicomFormatException("Rows is absent.");
+            int dimZ = NumberOfFrames ?? throw new DicomFormatException("NumberOfFrames is absent.");
+
+            // The first frame offset is normally zero, but the standard does not require it, so it is
+            // added rather than assumed away.
+            double z0 = origin[2] + (offsets.Count > 0 ? offsets[0] : 0.0);
+            double zRes = offsets.Count > 1 ? offsets[1] - offsets[0] : spacing[0];
+
+            return new DoseMatrixOptimal(
+                dimX, dimY, dimZ,
+                origin[0], origin[1], z0,
+                spacing[1], spacing[0], zRes,
+                values);
         }
 
         public override string ToString() =>
