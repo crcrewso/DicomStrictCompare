@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DSClibrary.Gamma;
 using DSClibrary.Matching;
 using DSClibrary.Profiles;
 
@@ -32,7 +33,14 @@ namespace DSClibrary.Comparing
         /// <summary>Whether the tolerance was a fraction of the source maximum or of the local dose.</summary>
         public bool Global { get; }
 
+        /// <summary>
+        /// The counts. For a gamma comparison, <c>TotalCompared</c> is the number of reference points
+        /// analysed and <c>TotalFailed</c> those with gamma above 1, so a gamma row reads like a DTA row.
+        /// </summary>
         public SingleComparison? Comparison { get; }
+
+        /// <summary>The full gamma result when the comparison was a gamma one; null for the strict engine.</summary>
+        public GammaResult? Gamma { get; }
 
         /// <summary>Why this pair produced no comparison, when it did not. Null on success.</summary>
         public string? Failure { get; }
@@ -53,7 +61,8 @@ namespace DSClibrary.Comparing
             string? failure,
             TimeSpan elapsed,
             double? sourceMonitorUnits,
-            double? targetMonitorUnits)
+            double? targetMonitorUnits,
+            GammaResult? gamma = null)
         {
             Key = key;
             SourcePath = sourcePath;
@@ -61,11 +70,14 @@ namespace DSClibrary.Comparing
             Dta = dta;
             Global = global;
             Comparison = comparison;
+            Gamma = gamma;
             Failure = failure;
             Elapsed = elapsed;
             SourceMonitorUnits = sourceMonitorUnits;
             TargetMonitorUnits = targetMonitorUnits;
         }
+
+        public bool IsGamma => Gamma is not null || Dta.Algorithm == Dta.CalcAlgorithm.gamma;
 
         public bool Succeeded => Comparison is not null;
 
@@ -173,6 +185,86 @@ namespace DSClibrary.Comparing
                 .ToArray();
 
             return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
+        }
+
+        /// <summary>
+        /// The same batch with the gamma index (<see cref="GammaShell"/>) in place of the strict engine.
+        /// <para>
+        /// Each pair's gamma already runs its reference points in parallel, so the pairs run with the
+        /// given degree and each gamma gets the remaining cores; the default is still memory-led. The
+        /// outcome's counts are reference points analysed and points with gamma above 1, so the row
+        /// reads like a DTA row; the whole <see cref="GammaResult"/> is kept on the outcome.
+        /// </para>
+        /// </summary>
+        public BatchComparisonResult CompareGamma(
+            IEnumerable<MatchedDosePair> pairs,
+            GammaOptions options,
+            int? degreeOfParallelism = null,
+            CancellationToken cancellation = default)
+        {
+            if (pairs is null) throw new ArgumentNullException(nameof(pairs));
+            if (options is null) throw new ArgumentNullException(nameof(options));
+            options.Validate();
+
+            var work = pairs.ToArray();
+            int parallelism = Math.Max(1, degreeOfParallelism ?? DefaultDegreeOfParallelism);
+            int perGamma = options.DegreeOfParallelism ?? Math.Max(1, Environment.ProcessorCount / parallelism);
+            var perPair = options with { DegreeOfParallelism = perGamma };
+            var outcomes = new ConcurrentBag<ComparisonOutcome>();
+            var batch = Stopwatch.StartNew();
+
+            Parallel.ForEach(
+                work,
+                new ParallelOptions { MaxDegreeOfParallelism = parallelism, CancellationToken = cancellation },
+                pair => outcomes.Add(CompareOneGamma(pair, perPair, cancellation)));
+
+            batch.Stop();
+            var ordered = outcomes.OrderBy(o => o.Key.ToString(), StringComparer.Ordinal).ToArray();
+            return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
+        }
+
+        /// <summary>The <see cref="Dta"/> that describes a gamma comparison's parameters in the library's older terms.</summary>
+        public static Dta DtaFor(GammaOptions options) => new(
+            useMM: true,
+            threshhold: options.LowerPercentDoseCutoff / 100.0,
+            tolerance: options.DosePercentThreshold / 100.0,
+            distance: options.DistanceThreshold,
+            relative: !options.LocalGamma,
+            gamma: true);
+
+        private ComparisonOutcome CompareOneGamma(MatchedDosePair pair, GammaOptions options, CancellationToken cancellation)
+        {
+            var timer = Stopwatch.StartNew();
+            Dta dta = DtaFor(options);
+            bool global = !options.LocalGamma;
+            try
+            {
+                cancellation.ThrowIfCancellationRequested();
+                DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
+                cancellation.ThrowIfCancellationRequested();
+                DoseMatrixOptimal target = _load(pair.Target.Dose.SourcePath);
+
+                GammaResult gamma = GammaShell.Compare(source, target, options, cancellation);
+                var comparison = new SingleComparison(dta, source.DoseValues.Length, gamma.Analysed, gamma.Analysed - gamma.Passed);
+
+                timer.Stop();
+                return new ComparisonOutcome(
+                    pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
+                    dta, global, comparison, null, timer.Elapsed,
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gamma);
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                timer.Stop();
+                return new ComparisonOutcome(
+                    pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
+                    dta, global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits);
+            }
         }
 
         private ComparisonOutcome CompareOne(MatchedDosePair pair, Dta dta, bool global, CancellationToken cancellation)

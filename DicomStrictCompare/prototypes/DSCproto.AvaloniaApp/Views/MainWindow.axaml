@@ -50,11 +50,24 @@
             <DataGridTextColumn Header="DTA mm" Binding="{Binding DistanceMm}" Width="*" MinWidth="90"/>
             <DataGridTextColumn Header="Thr %" Binding="{Binding ThresholdPercent}" Width="*" MinWidth="70"/>
             <DataGridCheckBoxColumn Header="Global" Binding="{Binding Global}" Width="Auto"/>
+            <DataGridCheckBoxColumn Header="Gamma" Binding="{Binding Gamma}" Width="Auto"/>
           </DataGrid.Columns>
         </DataGrid>
       </DockPanel>
 
-      <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+      <!-- The splitter between criteria and results. Avalonia's default template is transparent, so
+           the grab area was an invisible 8 px gap (Cody, 2026-11-09: "is there a way to make the part
+           one can grab visible"). A light bar with a grip in the middle, the usual sash look. -->
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="8" Margin="0,4" ToolTip.Tip="Drag to resize the criteria panel">
+        <GridSplitter.Template>
+          <ControlTemplate>
+            <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
+              <Border Width="2" Height="36" CornerRadius="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </Border>
+          </ControlTemplate>
+        </GridSplitter.Template>
+      </GridSplitter>
 
       <TabControl Grid.Column="2" x:Name="Tabs">
         <TabItem Header="Results">
@@ -65,6 +78,7 @@
               <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
               <DataGridTextColumn Header="Failed" Binding="{Binding Failed, StringFormat=N0}" Width="Auto"/>
               <DataGridTextColumn Header="% failed" Binding="{Binding PercentFailed, StringFormat=0.000}" Width="Auto"/>
+              <DataGridTextColumn Header="Max γ" Binding="{Binding MaxGamma, StringFormat=0.00}" Width="Auto"/>
               <DataGridTextColumn Header="Src MU" Binding="{Binding SourceMonitorUnits}" Width="Auto"/>
               <DataGridTextColumn Header="Tgt MU" Binding="{Binding TargetMonitorUnits}" Width="Auto"/>
               <DataGridTextColumn Header="s" Binding="{Binding ElapsedSeconds, StringFormat=0.0}" Width="Auto"/>

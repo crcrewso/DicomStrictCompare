@@ -12,6 +12,7 @@ public sealed partial class CriterionViewModel : ObservableObject
     [ObservableProperty] private double _distanceMm = 2.0;
     [ObservableProperty] private double _thresholdPercent = 10.0;
     [ObservableProperty] private bool _global = true;
+    [ObservableProperty] private bool _gamma;
 
     public CriterionViewModel() { }
 
@@ -21,9 +22,10 @@ public sealed partial class CriterionViewModel : ObservableObject
         _distanceMm = spec.DistanceMm;
         _thresholdPercent = spec.ThresholdPercent;
         _global = spec.Global;
+        _gamma = spec.Gamma;
     }
 
-    public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global);
+    public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma);
 }
 
 /// <summary>
@@ -106,6 +108,7 @@ public sealed partial class MainViewModel : ObservableObject
         if (options.TargetFolder is not null) TargetFolder = options.TargetFolder;
         if (options.SourceAlias is not null) SourceAlias = options.SourceAlias;
         if (options.TargetAlias is not null) TargetAlias = options.TargetAlias;
+        if (options.AddGamma) Criteria.Add(new CriterionViewModel(DtaSpec.DefaultGamma));
     }
 
     /// <summary>

@@ -21,11 +21,12 @@ public sealed class MainForm : Form
         public double DistanceMm { get; set; } = 2.0;
         public double ThresholdPercent { get; set; } = 10.0;
         public bool Global { get; set; } = true;
-        public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global);
+        public bool Gamma { get; set; }
+        public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma);
         public static CriterionRow From(DtaSpec s) => new()
         {
             TolerancePercent = s.TolerancePercent, DistanceMm = s.DistanceMm,
-            ThresholdPercent = s.ThresholdPercent, Global = s.Global,
+            ThresholdPercent = s.ThresholdPercent, Global = s.Global, Gamma = s.Gamma,
         };
     }
 
@@ -151,6 +152,7 @@ public sealed class MainForm : Form
         if (options.TargetFolder is not null) _targetFolder.Text = options.TargetFolder;
         if (options.SourceAlias is not null) _sourceAlias.Text = options.SourceAlias;
         if (options.TargetAlias is not null) _targetAlias.Text = options.TargetAlias;
+        if (options.AddGamma) _criteria.Add(CriterionRow.From(DtaSpec.DefaultGamma));
         if (options.CanAutoRun)
         {
             Shown += async (_, _) =>
@@ -234,6 +236,11 @@ public sealed class MainForm : Form
             HeaderText = "Global", Editable = true, Width = 60,
             DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Global) },
         });
+        _criteriaGrid.Columns.Add(new GridColumn
+        {
+            HeaderText = "Gamma", Editable = true, Width = 60,
+            DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Gamma) },
+        });
     }
 
     private void BuildResultsGrid()
@@ -249,6 +256,7 @@ public sealed class MainForm : Form
         _resultsGrid.Columns.Add(Col("Compared", r => r.Compared.ToString("N0")));
         _resultsGrid.Columns.Add(Col("Failed", r => r.Failed.ToString("N0")));
         _resultsGrid.Columns.Add(Col("% failed", r => r.PercentFailed is { } p ? p.ToString("0.000") : ""));
+        _resultsGrid.Columns.Add(Col("Max γ", r => r.MaxGamma is { } g ? g.ToString("0.00") : "", 60));
         _resultsGrid.Columns.Add(Col("Src MU", r => r.SourceMonitorUnits?.ToString("0.#") ?? "", 70));
         _resultsGrid.Columns.Add(Col("Tgt MU", r => r.TargetMonitorUnits?.ToString("0.#") ?? "", 70));
         _resultsGrid.Columns.Add(Col("s", r => r.ElapsedSeconds.ToString("0.0"), 50));

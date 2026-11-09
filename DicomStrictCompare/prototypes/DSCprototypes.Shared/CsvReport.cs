@@ -13,8 +13,8 @@ public static class CsvReport
     public static readonly string[] ResultColumns =
     {
         "SourceAlias", "TargetAlias", "Key", "SourceFile", "TargetFile",
-        "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope",
-        "TotalVoxels", "Compared", "Failed", "PercentFailed",
+        "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm",
+        "TotalVoxels", "Compared", "Failed", "PercentFailed", "MaxGamma",
         "SourceMU", "TargetMU", "ElapsedSeconds", "Failure",
     };
 
@@ -30,10 +30,12 @@ public static class CsvReport
                 session.Request.SourceAlias, session.Request.TargetAlias, r.Key, r.SourceFile, r.TargetFile,
                 F(r.Criterion.TolerancePercent), F(r.Criterion.DistanceMm), F(r.Criterion.ThresholdPercent),
                 r.Criterion.Global ? "global" : "local",
+                r.Criterion.Algorithm,
                 r.TotalVoxels.ToString(CultureInfo.InvariantCulture),
                 r.Compared.ToString(CultureInfo.InvariantCulture),
                 r.Failed.ToString(CultureInfo.InvariantCulture),
                 r.PercentFailed is { } p ? p.ToString("0.0000", CultureInfo.InvariantCulture) : "",
+                r.MaxGamma is { } g ? g.ToString("0.000", CultureInfo.InvariantCulture) : "",
                 r.SourceMonitorUnits is { } s ? F(s) : "",
                 r.TargetMonitorUnits is { } t ? F(t) : "",
                 r.ElapsedSeconds.ToString("0.000", CultureInfo.InvariantCulture),

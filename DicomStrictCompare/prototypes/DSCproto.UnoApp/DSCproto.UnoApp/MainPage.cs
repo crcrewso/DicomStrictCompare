@@ -95,23 +95,25 @@ public sealed partial class MainPage : Page
         .RowDefinitions("Auto,Auto,*,Auto")
         .Children(
             new TextBlock().Text("Criteria").FontWeight(FontWeights.SemiBold).Grid(row: 0),
-            new Grid().ColumnDefinitions("*,*,*,Auto").ColumnSpacing(6).Grid(row: 1).Children(
+            new Grid().ColumnDefinitions("*,*,*,Auto,Auto").ColumnSpacing(6).Grid(row: 1).Children(
                 new TextBlock().Text("Tol %").Grid(column: 0),
                 new TextBlock().Text("DTA mm").Grid(column: 1),
                 new TextBlock().Text("Thr %").Grid(column: 2),
-                new TextBlock().Text("Global").Grid(column: 3)),
+                new TextBlock().Text("Global").Grid(column: 3),
+                new TextBlock().Text("Gamma").Grid(column: 4)),
             new ListView()
                 .Grid(row: 2)
                 .SelectionMode(ListViewSelectionMode.Single)
                 .ItemsSource(() => vm.Criteria)
                 .SelectedItem(x => x.Binding(() => vm.SelectedCriterion).TwoWay())
                 .ItemTemplate<CriterionViewModel>(c => new Grid()
-                    .ColumnDefinitions("*,*,*,Auto").ColumnSpacing(6)
+                    .ColumnDefinitions("*,*,*,Auto,Auto").ColumnSpacing(6)
                     .Children(
                         new NumberBox().SmallChange(0.5).Value(x => x.Binding(() => c.TolerancePercent).TwoWay()).Grid(column: 0),
                         new NumberBox().SmallChange(0.5).Value(x => x.Binding(() => c.DistanceMm).TwoWay()).Grid(column: 1),
                         new NumberBox().SmallChange(1).Value(x => x.Binding(() => c.ThresholdPercent).TwoWay()).Grid(column: 2),
-                        new CheckBox().MinWidth(0).IsChecked(x => x.Binding(() => c.Global).TwoWay()).Grid(column: 3))),
+                        new CheckBox().MinWidth(0).IsChecked(x => x.Binding(() => c.Global).TwoWay()).Grid(column: 3),
+                        new CheckBox().MinWidth(0).IsChecked(x => x.Binding(() => c.Gamma).TwoWay()).Grid(column: 4))),
             new StackPanel().Orientation(Orientation.Horizontal).Spacing(8).Grid(row: 3).Children(
                 new Button().Content("Add").Command(() => vm.AddCriterionCommand),
                 new Button().Content("Remove").Command(() => vm.RemoveCriterionCommand)));
@@ -123,32 +125,34 @@ public sealed partial class MainPage : Page
     private static Grid Results(MainViewModel vm) => new Grid()
         .RowDefinitions("Auto,*")
         .Children(
-            new Grid().ColumnDefinitions("2*,*,90,90,80,70,70,50,*").ColumnSpacing(6).Padding(12, 4, 12, 4).Grid(row: 0).Children(
+            new Grid().ColumnDefinitions("2*,*,90,90,80,60,70,70,50,*").ColumnSpacing(6).Padding(12, 4, 12, 4).Grid(row: 0).Children(
                 new TextBlock().Text("Key").FontWeight(FontWeights.SemiBold).Grid(column: 0),
                 new TextBlock().Text("Criterion").FontWeight(FontWeights.SemiBold).Grid(column: 1),
                 new TextBlock().Text("Compared").FontWeight(FontWeights.SemiBold).Grid(column: 2),
                 new TextBlock().Text("Failed").FontWeight(FontWeights.SemiBold).Grid(column: 3),
                 new TextBlock().Text("% failed").FontWeight(FontWeights.SemiBold).Grid(column: 4),
-                new TextBlock().Text("Src MU").FontWeight(FontWeights.SemiBold).Grid(column: 5),
-                new TextBlock().Text("Tgt MU").FontWeight(FontWeights.SemiBold).Grid(column: 6),
-                new TextBlock().Text("s").FontWeight(FontWeights.SemiBold).Grid(column: 7),
-                new TextBlock().Text("Failure").FontWeight(FontWeights.SemiBold).Grid(column: 8)),
+                new TextBlock().Text("Max γ").FontWeight(FontWeights.SemiBold).Grid(column: 5),
+                new TextBlock().Text("Src MU").FontWeight(FontWeights.SemiBold).Grid(column: 6),
+                new TextBlock().Text("Tgt MU").FontWeight(FontWeights.SemiBold).Grid(column: 7),
+                new TextBlock().Text("s").FontWeight(FontWeights.SemiBold).Grid(column: 8),
+                new TextBlock().Text("Failure").FontWeight(FontWeights.SemiBold).Grid(column: 9)),
             new ListView()
                 .Grid(row: 1)
                 .SelectionMode(ListViewSelectionMode.None)
                 .ItemsSource(() => vm.Rows)
                 .ItemTemplate<ResultRow>(r => new Grid()
-                    .ColumnDefinitions("2*,*,90,90,80,70,70,50,*").ColumnSpacing(6)
+                    .ColumnDefinitions("2*,*,90,90,80,60,70,70,50,*").ColumnSpacing(6)
                     .Children(
                         new TextBlock().Text(() => r.Key).TextTrimming(TextTrimming.CharacterEllipsis).Grid(column: 0),
                         new TextBlock().Text(() => r.Criterion.Label).Grid(column: 1),
                         new TextBlock().Text(x => x.Binding(() => r.Compared).Convert(v => v.ToString("N0"))).Grid(column: 2),
                         new TextBlock().Text(x => x.Binding(() => r.Failed).Convert(v => v.ToString("N0"))).Grid(column: 3),
                         new TextBlock().Text(x => x.Binding(() => r.PercentFailed).Convert(v => v is { } p ? p.ToString("0.000") : "")).Grid(column: 4),
-                        new TextBlock().Text(x => x.Binding(() => r.SourceMonitorUnits).Convert(v => v?.ToString("0.#") ?? "")).Grid(column: 5),
-                        new TextBlock().Text(x => x.Binding(() => r.TargetMonitorUnits).Convert(v => v?.ToString("0.#") ?? "")).Grid(column: 6),
-                        new TextBlock().Text(x => x.Binding(() => r.ElapsedSeconds).Convert(v => v.ToString("0.0"))).Grid(column: 7),
-                        new TextBlock().Text(() => r.Failure).TextTrimming(TextTrimming.CharacterEllipsis).Grid(column: 8))));
+                        new TextBlock().Text(x => x.Binding(() => r.MaxGamma).Convert(v => v is { } g ? g.ToString("0.00") : "")).Grid(column: 5),
+                        new TextBlock().Text(x => x.Binding(() => r.SourceMonitorUnits).Convert(v => v?.ToString("0.#") ?? "")).Grid(column: 6),
+                        new TextBlock().Text(x => x.Binding(() => r.TargetMonitorUnits).Convert(v => v?.ToString("0.#") ?? "")).Grid(column: 7),
+                        new TextBlock().Text(x => x.Binding(() => r.ElapsedSeconds).Convert(v => v.ToString("0.0"))).Grid(column: 8),
+                        new TextBlock().Text(() => r.Failure).TextTrimming(TextTrimming.CharacterEllipsis).Grid(column: 9))));
 
     /// <summary>Status on the left, progress and the three actions on the right.</summary>
     private static Grid ActionBar(MainViewModel vm) => new Grid()
