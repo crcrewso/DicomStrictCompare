@@ -45,45 +45,61 @@ public partial class MainWindow : Window
         if (_graph is not null) _graph.PropertyChanged -= OnGraphChanged;
         _graph = (DataContext as MainViewModel)?.Graph;
         if (_graph is not null) _graph.PropertyChanged += OnGraphChanged;
-        Draw(_graph?.Curve);
+        Draw(_graph?.Curves);
     }
 
     private void OnGraphChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(GraphViewModel.Curve)) Draw(_graph?.Curve);
+        // A mode change with nothing to draw raises no Curves change, so redraw on it as well for the empty-plot title.
+        if (e.PropertyName is nameof(GraphViewModel.Curves) or nameof(GraphViewModel.IsScanMode)) Draw(_graph?.Curves);
     }
 
-    private void Draw(ProfileCurve? curve)
+    /// <summary>
+    /// One curve, or one per depth: each drawn as source solid and target dashed in the same colour,
+    /// so "All depths" reads as four pairs rather than eight lines. In scan mode the source is the
+    /// calculated dose and the target the measurement.
+    /// </summary>
+    private void Draw(IReadOnlyList<ProfileCurve>? curves)
     {
         var main = DataContext as MainViewModel;
+        bool scans = _graph?.IsScanMode == true;
         var plot = GraphPlot.Plot;
         plot.Clear();
-        if (curve is null)
+        if (curves is null || curves.Count == 0)
         {
-            plot.Title("No curve: run a comparison and choose a beam");
+            plot.Title(scans ? "No curve: load scans and choose one with a matched dose" : "No curve: run a comparison and choose a beam");
             plot.XLabel("");
             plot.YLabel("");
             plot.Legend.IsVisible = false;
         }
         else
         {
-            var (xs, source, target) = curve.Overlap();
-            if (xs.Length > 0)
+            var palette = new ScottPlot.Palettes.Category10();
+            for (int i = 0; i < curves.Count; i++)
             {
+                var curve = curves[i];
+                var (xs, source, target) = curve.Overlap();
+                if (xs.Length == 0) continue;
+                string tag = curve.Tag.Length > 0 ? curve.Tag + ": " : "";
+                var colour = palette.GetColor(i);
+
                 var s = plot.Add.Scatter(xs, source);
-                s.LegendText = $"{main?.SourceAlias ?? "Source"}: {curve.SourceName}";
+                s.LegendText = scans ? $"{tag}dose {curve.SourceName}" : $"{tag}{main?.SourceAlias ?? "Source"} {curve.SourceName}";
                 s.LineWidth = 2;
                 s.MarkerSize = 0;
+                s.Color = colour;
 
                 var t = plot.Add.Scatter(xs, target);
-                t.LegendText = $"{main?.TargetAlias ?? "Target"}: {curve.TargetName}";
+                t.LegendText = scans ? $"{tag}scan {curve.TargetName}" : $"{tag}{main?.TargetAlias ?? "Target"} {curve.TargetName}";
                 t.LineWidth = 2;
                 t.MarkerSize = 0;
                 t.LinePattern = LinePattern.Dashed;
+                t.Color = colour;
             }
-            plot.Title(curve.Title);
-            plot.XLabel(curve.AxisLabel);
-            plot.YLabel(curve.ValueLabel);
+            var first = curves[0];
+            plot.Title(curves.Count > 1 ? first.Title.Split(" at ")[0] + " at every depth" : first.Title);
+            plot.XLabel(first.AxisLabel);
+            plot.YLabel(first.ValueLabel);
             plot.Legend.IsVisible = true;
             plot.Legend.Alignment = Alignment.UpperRight;
             plot.Axes.AutoScale();

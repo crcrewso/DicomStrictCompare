@@ -124,17 +124,17 @@ public class BeamLinesTests
         for (int i = 0; i < 200 && vm.Curve is null; i++) await Task.Delay(50);
         Assert.IsNotNull(vm.Curve, vm.Status);
         Assert.AreEqual(CurveKind.DepthDose, vm.Kind);
-        Assert.IsFalse(vm.DepthEnabled, "the depth slider means nothing for a depth dose");
+        Assert.IsFalse(vm.DepthEnabled, "the depth choice means nothing for a depth dose");
 
         vm.Kind = CurveKind.Crossplane;
         Assert.IsTrue(vm.DepthEnabled);
         Assert.IsTrue(vm.Curve!.Title.Contains("crossplane"), vm.Curve.Title);
-        Assert.IsTrue(vm.DepthText.EndsWith("mm"), vm.DepthText);
+        Assert.IsTrue(vm.DepthText.StartsWith("dmax = ") && vm.DepthText.EndsWith(" mm"), vm.DepthText);
 
-        int before = vm.DepthIndex;
-        vm.DepthIndex = Math.Min(before + 5, vm.Depths.Length - 1);
-        Assert.AreNotEqual(before, vm.DepthIndex);
-        Assert.IsTrue(vm.Curve.Title.Contains($"{vm.Depths[vm.DepthIndex]:0.#} mm"), vm.Curve.Title);
+        // The fixed depths Cody asked for: dmax, 5, 10 and 20 cm.
+        vm.Depth = vm.DepthChoices.First(d => d.Label == "10 cm");
+        Assert.IsTrue(vm.Curve.Title.Contains("at 100 mm depth"), vm.Curve.Title);
+        Assert.AreEqual("100 mm", vm.DepthText);
 
         vm.SetSession(null);
         Assert.IsFalse(vm.HasBeams);

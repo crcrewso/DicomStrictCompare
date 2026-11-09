@@ -26,6 +26,7 @@ public partial class App : Application
             {
                 await viewModel.AutoRunIfRequestedAsync(options);
                 if (options.ShowGraphs) window.ShowGraphs();
+                await viewModel.Graph.ApplyAsync(options);
             };
             desktop.MainWindow = window;
         }

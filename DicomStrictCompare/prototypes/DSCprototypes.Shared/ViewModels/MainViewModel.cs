@@ -43,8 +43,10 @@ public sealed partial class MainViewModel : ObservableObject
     {
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
-        Graph = new GraphViewModel(ComparisonRunner.LoadWithEvilDicom);
+        Graph = new GraphViewModel(ComparisonRunner.LoadWithEvilDicom, pickFolder);
     }
+
+    partial void OnSourceFolderChanged(string value) => Graph.SetSourceFolder(value);
 
     /// <summary>The Graphs tab: curves out of the matched pairs of the last run (Cody, 2026-11-09: "implement the graph feature").</summary>
     public GraphViewModel Graph { get; }

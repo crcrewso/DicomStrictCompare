@@ -82,34 +82,78 @@
              and field size, a depth dose or a profile at a depth chosen with the slider. The view model
              owns the choice and the curve; this view only hands the curve to ScottPlot (code-behind). -->
         <TabItem Header="Graphs">
-          <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0"
+          <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0"
                 DataContext="{Binding Graph}" x:DataType="vm:GraphViewModel">
+
+            <!-- Mode: dose versus dose (the run's matched pairs) or dose versus water-tank scans -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="Energy" VerticalAlignment="Center"/>
-              <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
-              <TextBlock Text="Field size" VerticalAlignment="Center"/>
-              <ComboBox ItemsSource="{Binding FieldSizes}" SelectedItem="{Binding SelectedFieldSize}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
-              <TextBlock Text="Beam" VerticalAlignment="Center"/>
-              <ComboBox ItemsSource="{Binding Beams}" SelectedItem="{Binding SelectedBeam}" MinWidth="360" IsEnabled="{Binding HasBeams}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate x:DataType="graphs:BeamDescriptor">
-                    <TextBlock Text="{Binding Label}"/>
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-            </StackPanel>
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="Curve" VerticalAlignment="Center"/>
-              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
-              <TextBlock Text="Depth" VerticalAlignment="Center" Margin="12,0,0,0"/>
-              <Slider Minimum="0" Maximum="{Binding DepthMaxIndex}" Value="{Binding DepthSlider}" IsEnabled="{Binding DepthEnabled}"
-                      Width="380" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
-              <TextBlock Text="{Binding DepthText}" VerticalAlignment="Center" MinWidth="70"/>
+              <TextBlock Text="Compare" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" MinWidth="170"/>
               <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Width="120" VerticalAlignment="Center"/>
             </StackPanel>
-            <sp:AvaPlot Grid.Row="2" x:Name="GraphPlot"/>
-            <TextBlock Grid.Row="3" Text="{Binding Status}" TextWrapping="Wrap"/>
-            <TextBlock Grid.Row="4" Text="{Binding ConventionNote}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
+
+            <!-- Dose versus dose: energy, field size, beam; curve kind and a fixed depth (or all of them) -->
+            <StackPanel Grid.Row="1" Spacing="6" IsVisible="{Binding IsDoseMode}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Energy" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+                <TextBlock Text="Field size" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding FieldSizes}" SelectedItem="{Binding SelectedFieldSize}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+                <TextBlock Text="Beam" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Beams}" SelectedItem="{Binding SelectedBeam}" MinWidth="360" IsEnabled="{Binding HasBeams}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="graphs:BeamDescriptor">
+                      <TextBlock Text="{Binding Label}"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Curve" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+                <TextBlock Text="Depth" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <ComboBox ItemsSource="{Binding DepthChoices}" SelectedItem="{Binding Depth}" MinWidth="130" IsEnabled="{Binding DepthEnabled}"/>
+                <TextBlock Text="{Binding DepthText}" VerticalAlignment="Center" MinWidth="70"/>
+              </StackPanel>
+            </StackPanel>
+
+            <!-- Dose versus scans: a folder of PTW mcc files, filters, the scan, and the dose it matched -->
+            <StackPanel Grid.Row="2" Spacing="6" IsVisible="{Binding IsScanMode}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Scans" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding ScanFolder}" Width="520" PlaceholderText="Folder of PTW mcc files (searched with its subfolders)"/>
+                <Button Content="Browse" Command="{Binding BrowseScansCommand}"/>
+                <Button Content="Load scans" Command="{Binding LoadScansCommand}"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Energy" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding ScanEnergies}" SelectedItem="{Binding SelectedScanEnergy}" MinWidth="150" IsEnabled="{Binding HasScans}"/>
+                <TextBlock Text="Field size" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding ScanFieldSizes}" SelectedItem="{Binding SelectedScanFieldSize}" MinWidth="150" IsEnabled="{Binding HasScans}"/>
+                <TextBlock Text="Scan" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Scans}" SelectedItem="{Binding SelectedScan}" MinWidth="420" IsEnabled="{Binding HasScans}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="graphs:ScanDescriptor">
+                      <TextBlock Text="{Binding Label}"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Matched dose" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding DoseCandidates}" SelectedItem="{Binding SelectedDose}" MinWidth="560" IsEnabled="{Binding HasScans}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="graphs:DoseCandidate">
+                      <TextBlock Text="{Binding Label}"/>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+            </StackPanel>
+
+            <sp:AvaPlot Grid.Row="3" x:Name="GraphPlot"/>
+            <TextBlock Grid.Row="4" Text="{Binding Status}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="5" Text="{Binding ConventionNote}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
           </Grid>
         </TabItem>
         <TabItem Header="Detector geometry">

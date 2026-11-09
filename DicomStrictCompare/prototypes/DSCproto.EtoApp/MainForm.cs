@@ -60,7 +60,7 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        _graphs = new GraphPage(ComparisonRunner.LoadWithEvilDicom, () => (_sourceAlias.Text, _targetAlias.Text));
+        _graphs = new GraphPage(ComparisonRunner.LoadWithEvilDicom, () => (_sourceAlias.Text, _targetAlias.Text), PickFolder, () => _sourceFolder.Text);
         Title = "DicomStrictCompare - Eto.Forms prototype";
         ClientSize = new Size(1280, 820);
         MinimumSize = new Size(900, 600);
@@ -162,6 +162,15 @@ public sealed class MainForm : Form
                     _status.Text = _session.Summary + " - wrote " + string.Join(" and ", written.Select(Path.GetFileName));
                 }
                 if (options.ShowGraphs) _tabs.SelectedIndex = 3;
+                await _graphs.ApplyAsync(options);
+            };
+        }
+        else if (options.ShowGraphs || options.ScanFolder is not null)
+        {
+            Shown += async (_, _) =>
+            {
+                if (options.ShowGraphs) _tabs.SelectedIndex = 3;
+                await _graphs.ApplyAsync(options);
             };
         }
     }
