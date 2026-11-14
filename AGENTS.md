@@ -43,7 +43,7 @@ either.
 |---|---|
 | **Language** | C#, with nullable reference types and implicit usings enabled |
 | **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`) |
-| **DICOM** | [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5, plus EvilDICOM.CV in the GUI |
+| **DICOM** | An in-house reader and writer (`DSClibrary/Results/DICOM/`) for plans and dose headers, verified in the tests against [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5. EvilDICOM loads dose grids (`DoseMatrixOptimal`); EvilDICOM.CV is used in the GUI |
 | **Maths** | MathNet.Numerics |
 | **GUI** | `DSCcore`, Windows Forms, `net8.0-windows`, Windows only. It is being replaced by a cross-platform front end; candidates are in `prototypes/` (Avalonia, Eto, Uno) |
 | **Plots** | ScottPlot 4 (GUI) |
@@ -138,11 +138,18 @@ Python idioms don't carry over automatically. Watch for:
 
 ---
 
-## Working with EvilDICOM
+## Working with DICOM and EvilDICOM
 
-- **Read and write DICOM through EvilDICOM.** Never hand-parse bytes. Keep the EvilDICOM-facing code in one
-  place: today that is `Results/DICOM/`, `DoseMatrixOptimal.cs`, `Units/Dose.cs` and `Profiles/DoseVolume.cs`.
-  New code should go through those, not add more places.
+- **Two readers, each with its own job.**
+  - Plans and dose headers go through the project's own reader, `Results/DICOM/DicomFileReader`, and its
+    typed wrappers `RTPlanResult` and `RTDoseResult`. It stops on what it doesn't handle rather than guessing.
+    Its tests check it against EvilDICOM.
+  - Dose grids for comparison load through EvilDICOM into `DoseMatrixOptimal`.
+  - New code should use these, not parse bytes itself, and not add a third way in.
+  - EvilDICOM is used today in `Results/DICOM/`, `DoseMatrixOptimal.cs`, `Units/Dose.cs`,
+    `Profiles/DoseVolume.cs` and `Comparing/BatchComparer.cs`.
+- **A tag the reader doesn't know yet** goes into `Results/DICOM/DicomTag.cs`, with its group and element, then
+  a typed property on the wrapper.
 - **Dose scaling, units and geometry are where bugs hide.** Watch:
   - `DoseGridScaling`;
   - Gy against cGy;
