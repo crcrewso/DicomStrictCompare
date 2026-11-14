@@ -220,6 +220,27 @@ namespace DSClibrary.Results.DICOM
             }
         }
 
+        // ---- wedges and blocks ----
+
+        /// <summary>WedgeID (300A,00D4) of each WedgeSequence item: "EDW30OUT" for an Eclipse EDW. Empty when there are none.</summary>
+        public IReadOnlyList<string> WedgeIDs =>
+            _beam.GetSequence(DicomTags.WedgeSequence)
+                .Select(w => w.GetString(DicomTags.WedgeID))
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Select(id => id!)
+                .ToArray();
+
+        /// <summary>NumberOfBlocks (300A,00F0): an electron cutout is a block. Null when absent.</summary>
+        public int? NumberOfBlocks => _beam.GetInteger(DicomTags.NumberOfBlocks);
+
+        /// <summary>
+        /// Each block's outline, BlockData (300A,0106), as x, y pairs in millimetres at the isocentre
+        /// plane. Compared point for point by the plan check: two cutouts are the same only if their
+        /// outlines are.
+        /// </summary>
+        public IReadOnlyList<IReadOnlyList<double>> BlockOutlines =>
+            _beam.GetSequence(DicomTags.BlockSequence).Select(b => b.GetDecimals(DicomTags.BlockData)).ToArray();
+
         // ---- from the first control point ----
 
         public double? NominalBeamEnergy => _firstControlPoint?.GetDecimal(DicomTags.NominalBeamEnergy);

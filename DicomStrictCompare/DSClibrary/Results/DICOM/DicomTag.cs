@@ -133,6 +133,14 @@ namespace DSClibrary.Results.DICOM
         public static readonly DicomTag BeamDose = new(0x300A, 0x0084);
         public static readonly DicomTag BeamDoseSpecificationPoint = new(0x300A, 0x0082);
 
+        // Wedges and blocks (electron cutouts), for the plan check (design/comparison-studies.md, F3)
+        public static readonly DicomTag NumberOfWedges = new(0x300A, 0x00D0);
+        public static readonly DicomTag WedgeSequence = new(0x300A, 0x00D1);
+        public static readonly DicomTag WedgeID = new(0x300A, 0x00D4);
+        public static readonly DicomTag NumberOfBlocks = new(0x300A, 0x00F0);
+        public static readonly DicomTag BlockSequence = new(0x300A, 0x00F4);
+        public static readonly DicomTag BlockData = new(0x300A, 0x0106);
+
         // Fluence / FFF detection
         public static readonly DicomTag PrimaryFluenceModeSequence = new(0x3002, 0x0050);
         public static readonly DicomTag FluenceMode = new(0x3002, 0x0051);

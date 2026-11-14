@@ -110,7 +110,11 @@ namespace DSClibrary.Results.DICOM
         /// <see cref="RTFolderContents.Unreadable"/> rather than throwing, so one bad file in a folder
         /// of twenty-six does not lose the other twenty-five.
         /// </summary>
-        public static RTFolderContents Read(string directory, string searchPattern = "*.dcm", bool recursive = false)
+        /// <param name="headersOnly">
+        /// Read each dose's header and not its voxels, for pairing large folders; the doses' voxels
+        /// are then loaded separately, pair by pair. Plans are always read whole.
+        /// </param>
+        public static RTFolderContents Read(string directory, string searchPattern = "*.dcm", bool recursive = false, bool headersOnly = false)
         {
             if (string.IsNullOrWhiteSpace(directory))
                 throw new ArgumentException("A directory is required.", nameof(directory));
@@ -134,7 +138,7 @@ namespace DSClibrary.Results.DICOM
                 DicomFile file;
                 try
                 {
-                    file = DicomFileReader.ReadFile(path);
+                    file = headersOnly ? DicomFileReader.ReadHeaderFile(path) : DicomFileReader.ReadFile(path);
                 }
                 catch (Exception ex)
                 {

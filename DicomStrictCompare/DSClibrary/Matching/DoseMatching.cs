@@ -83,7 +83,14 @@ namespace DSClibrary.Matching
         /// yesterday's.
         /// </para>
         /// </summary>
-        public static DoseMatchKey? For(RTDoseWithPlan dose, DoseMatchStrategy strategy)
+        public static DoseMatchKey? For(RTDoseWithPlan dose, DoseMatchStrategy strategy) => For(dose, strategy, null, null);
+
+        /// <summary>
+        /// The same, with the plan label and beam name passed through the given rewrites first (F2).
+        /// The rewrites apply to Identifier keys only.
+        /// </summary>
+        public static DoseMatchKey? For(RTDoseWithPlan dose, DoseMatchStrategy strategy,
+            Func<string, string>? rewriteLabel, Func<string, string>? rewriteField = null)
         {
             if (dose is null) throw new ArgumentNullException(nameof(dose));
 
@@ -93,7 +100,9 @@ namespace DSClibrary.Matching
                     dose.Dose.PatientID is { Length: > 0 } patient
                     && dose.Plan?.RTPlanLabel is { Length: > 0 } label
                     && dose.Beam?.BeamName is { Length: > 0 } field
-                        ? new DoseMatchKey(strategy, patientId: patient, planLabel: label, beamName: field)
+                        ? new DoseMatchKey(strategy, patientId: patient,
+                            planLabel: rewriteLabel is null ? label : rewriteLabel(label),
+                            beamName: rewriteField is null ? field : rewriteField(field))
                         : null,
 
                 DoseMatchStrategy.PlanAndBeamUid =>
@@ -195,17 +204,32 @@ namespace DSClibrary.Matching
         public static DoseMatchResult Match(
             IEnumerable<RTDoseWithPlan> source,
             IEnumerable<RTDoseWithPlan> target,
-            DoseMatchStrategy strategy)
+            DoseMatchStrategy strategy) =>
+            Match(source, target, PairingRules.Exact(strategy));
+
+        /// <summary>
+        /// Matches with label rules and overrides applied before keying (F2). With no rules this is
+        /// exactly the strategy's own match.
+        /// </summary>
+        public static DoseMatchResult Match(
+            IEnumerable<RTDoseWithPlan> source,
+            IEnumerable<RTDoseWithPlan> target,
+            PairingRules rules)
         {
             if (source is null) throw new ArgumentNullException(nameof(source));
             if (target is null) throw new ArgumentNullException(nameof(target));
+            if (rules is null) throw new ArgumentNullException(nameof(rules));
 
+            var strategy = rules.Strategy;
             var unmatchedSource = new List<UnmatchedDose>();
             var unmatchedTarget = new List<UnmatchedDose>();
             var ambiguous = new List<string>();
 
-            var sourceByKey = Index(source, strategy, unmatchedSource, ambiguous, "source");
-            var targetByKey = Index(target, strategy, unmatchedTarget, ambiguous, "target");
+            Func<string, string>? sourceLabel = rules.RewritesLabels ? rules.SourceKeyLabel : null;
+            Func<string, string>? targetLabel = rules.RewritesLabels ? rules.TargetKeyLabel : null;
+            Func<string, string>? field = rules.FieldRules.Count > 0 ? rules.KeyFieldName : null;
+            var sourceByKey = Index(source, strategy, sourceLabel, field, unmatchedSource, ambiguous, "source");
+            var targetByKey = Index(target, strategy, targetLabel, field, unmatchedTarget, ambiguous, "target");
 
             var pairs = new List<MatchedDosePair>();
             foreach (var (key, dose) in sourceByKey)
@@ -226,6 +250,8 @@ namespace DSClibrary.Matching
         private static Dictionary<DoseMatchKey, RTDoseWithPlan> Index(
             IEnumerable<RTDoseWithPlan> doses,
             DoseMatchStrategy strategy,
+            Func<string, string>? rewriteLabel,
+            Func<string, string>? rewriteField,
             List<UnmatchedDose> unmatchable,
             List<string> ambiguous,
             string side)
@@ -235,7 +261,7 @@ namespace DSClibrary.Matching
 
             foreach (var dose in doses)
             {
-                DoseMatchKey? key = DoseMatchKey.For(dose, strategy);
+                DoseMatchKey? key = DoseMatchKey.For(dose, strategy, rewriteLabel, rewriteField);
                 if (key is null)
                 {
                     unmatchable.Add(new UnmatchedDose(dose,

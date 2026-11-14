@@ -34,9 +34,16 @@ namespace DSClibrary.Results.DICOM
                     $"Not an RT Dose: SOPClassUID is {file.SOPClassUID ?? "absent"}, expected {DicomTags.RTDoseStorage}.");
             _dataset = file.Dataset;
             SourcePath = file.SourcePath;
+            HeaderOnly = file.HeaderOnly;
         }
 
         public static RTDoseResult ReadFile(string path) => new(DicomFileReader.ReadFile(path));
+
+        /// <summary>
+        /// True when the dose was read without its voxels (<see cref="DicomFileReader.ReadHeaderFile"/>).
+        /// Anything that needs the voxels then throws rather than seeing an empty grid.
+        /// </summary>
+        public bool HeaderOnly { get; }
 
         /// <summary>
         /// Wraps a file that has already been read, for a caller that needs both the file (its
@@ -157,7 +164,10 @@ namespace DSClibrary.Results.DICOM
         /// 32 bits - and copying that per file is worth avoiding when a caller may only want the
         /// maximum.
         /// </summary>
-        public ReadOnlyMemory<byte> PixelData => _dataset.Element(DicomTags.PixelData)?.Value ?? default;
+        public ReadOnlyMemory<byte> PixelData => HeaderOnly
+            ? throw new InvalidOperationException(
+                $"{Path.GetFileName(SourcePath)} was read headers only, so its voxels are not in memory. Read it with RTDoseResult.ReadFile for them.")
+            : _dataset.Element(DicomTags.PixelData)?.Value ?? default;
 
         public int VoxelCount =>
             BitsAllocated is { } bits and > 0 ? PixelData.Length / (bits / 8) : 0;

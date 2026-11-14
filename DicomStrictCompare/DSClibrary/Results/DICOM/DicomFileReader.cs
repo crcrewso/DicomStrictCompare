@@ -20,13 +20,17 @@ namespace DSClibrary.Results.DICOM
         public DicomDataset FileMeta { get; }
         public DicomDataset Dataset { get; }
 
-        internal DicomFile(string sourcePath, string transferSyntaxUid, DicomDataset fileMeta, DicomDataset dataset)
+        internal DicomFile(string sourcePath, string transferSyntaxUid, DicomDataset fileMeta, DicomDataset dataset, bool headerOnly = false)
         {
             SourcePath = sourcePath;
             TransferSyntaxUID = transferSyntaxUid;
             FileMeta = fileMeta;
             Dataset = dataset;
+            HeaderOnly = headerOnly;
         }
+
+        /// <summary>True when the file was read up to its pixel data and no further (<see cref="DicomFileReader.ReadHeaderFile"/>).</summary>
+        public bool HeaderOnly { get; }
 
         public string? SOPClassUID => Dataset.GetString(DicomTags.SOPClassUID)
                                       ?? FileMeta.GetString(DicomTags.MediaStorageSOPClassUID);
@@ -73,8 +77,44 @@ namespace DSClibrary.Results.DICOM
             return Read(File.ReadAllBytes(path), path);
         }
 
-        public static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath = "")
+        /// <summary>
+        /// Reads everything before the top-level PixelData (7FE0,0010) and keeps none of the voxels.
+        /// <para>
+        /// For pairing thousands of doses (design/comparison-studies.md, F12): matching needs only the
+        /// headers, and a full read keeps every dose's voxels alive - measured 2026-11-14, three
+        /// 23 GB QAtpsPTW folders were killed by the kernel at 24 GB resident. The header is copied out
+        /// of the file's buffer, because the parsed elements are slices of it and would otherwise keep
+        /// all of it in memory.
+        /// </para>
+        /// </summary>
+        public static DicomFile ReadHeaderFile(string path)
         {
+            if (string.IsNullOrWhiteSpace(path))
+                throw new ArgumentException("A path is required.", nameof(path));
+            if (!File.Exists(path))
+                throw new FileNotFoundException("DICOM file not found.", path);
+            byte[] bytes = File.ReadAllBytes(path);
+            int stop = PixelDataOffset(bytes);
+            if (stop < 0) return Read(bytes, path);   // no pixel data: the whole file is header
+            return Read(bytes.AsSpan(0, stop).ToArray(), path, headerOnly: true);
+        }
+
+        /// <summary>Where the top-level PixelData element starts, or -1 when there is none.</summary>
+        private static int PixelDataOffset(ReadOnlyMemory<byte> bytes)
+        {
+            var file = Read(bytes, "", headerOnly: false, stopAtPixelData: true, out int stoppedAt);
+            return stoppedAt;
+        }
+
+        public static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath = "") =>
+            Read(bytes, sourcePath, headerOnly: false, stopAtPixelData: false, out _);
+
+        private static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath, bool headerOnly) =>
+            Read(bytes, sourcePath, headerOnly, stopAtPixelData: false, out _);
+
+        private static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath, bool headerOnly, bool stopAtPixelData, out int pixelDataAt)
+        {
+            pixelDataAt = -1;
             int pos = 0;
             bool hasPreamble = bytes.Length >= 132
                                && Encoding.ASCII.GetString(bytes.Slice(128, 4).Span) == "DICM";
@@ -102,9 +142,10 @@ namespace DSClibrary.Results.DICOM
                     $"Transfer syntax {transferSyntax} is not supported. Only implicit and explicit VR little endian are.")
             };
 
-            var dataset = ParseElements(bytes, ref pos, bytes.Length, implicitVr);
+            var dataset = ParseElements(bytes, ref pos, bytes.Length, implicitVr, stopAtPixelData: stopAtPixelData);
+            if (stopAtPixelData && pos < bytes.Length) pixelDataAt = pos;
             dataset.SetImplicitVr(implicitVr);
-            return new DicomFile(sourcePath, transferSyntax, fileMeta, dataset);
+            return new DicomFile(sourcePath, transferSyntax, fileMeta, dataset, headerOnly);
         }
 
         /// <summary>Parses the items of a sequence held as raw bytes.</summary>
@@ -145,7 +186,8 @@ namespace DSClibrary.Results.DICOM
             int end,
             bool implicitVr,
             ushort? stopAfterGroup = null,
-            bool stopAtItemDelimiter = false)
+            bool stopAtItemDelimiter = false,
+            bool stopAtPixelData = false)
         {
             var elements = new Dictionary<DicomTag, DicomElement>();
 
@@ -153,6 +195,12 @@ namespace DSClibrary.Results.DICOM
             {
                 int elementStart = pos;
                 DicomTag tag = ReadTag(bytes, ref pos);
+
+                if (stopAtPixelData && tag == DicomTags.PixelData)
+                {
+                    pos = elementStart;   // the caller keeps everything before this element
+                    break;
+                }
 
                 if (stopAfterGroup.HasValue && tag.Group != stopAfterGroup.Value)
                 {
