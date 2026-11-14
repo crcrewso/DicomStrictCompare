@@ -46,6 +46,112 @@ public partial class MainWindow : Window
         _graph = (DataContext as MainViewModel)?.Graph;
         if (_graph is not null) _graph.PropertyChanged += OnGraphChanged;
         Draw(_graph?.Curves);
+
+        if (_study is not null) _study.PropertyChanged -= OnStudyChanged;
+        _study = (DataContext as MainViewModel)?.Study;
+        if (_study is not null) _study.PropertyChanged += OnStudyChanged;
+        DrawStudy(_study?.Curves);
+        BuildIndexColumns(_study?.Index);
+    }
+
+    private StudyViewModel? _study;
+
+    private void OnStudyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(StudyViewModel.Curves)) DrawStudy(_study?.Curves);
+        if (e.PropertyName == nameof(StudyViewModel.Index)) BuildIndexColumns(_study?.Index);
+    }
+
+    /// <summary>
+    /// An index table's columns depend on the data (one per energy, say), so they are built here when
+    /// the table changes. Each cell binds to its position in <see cref="IndexRowView.Cells"/>.
+    /// </summary>
+    private void BuildIndexColumns(DSCprototypes.Shared.Studies.IndexTable? table)
+    {
+        IndexGrid.Columns.Clear();
+        if (table is null) return;
+        IndexGrid.Columns.Add(new DataGridTextColumn
+        {
+            Header = DSCprototypes.Shared.Studies.IndexTable.Say(table.RowAxis) + " \\ " + DSCprototypes.Shared.Studies.IndexTable.Say(table.ColumnAxis),
+            Binding = new Avalonia.Data.Binding(nameof(IndexRowView.Label)),
+        });
+        for (int i = 0; i < table.ColumnLabels.Count; i++)
+            IndexGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = table.ColumnLabels[i],
+                Binding = new Avalonia.Data.Binding($"{nameof(IndexRowView.Cells)}[{i}]"),
+            });
+    }
+
+    /// <summary>
+    /// Every set's curve for one field: one colour per set; with several depths, one line style per
+    /// depth. The lower plot is each set minus the reference, in percent of the reference maximum.
+    /// </summary>
+    private void DrawStudy(MultiCurveSet? set)
+    {
+        var plot = StudyCurvePlot.Plot;
+        var diff = StudyDifferencePlot.Plot;
+        plot.Clear();
+        diff.Clear();
+        if (set is null || set.Curves.Count == 0)
+        {
+            plot.Title("No curve: run the study and choose a field");
+            plot.Legend.IsVisible = false;
+            diff.Legend.IsVisible = false;
+        }
+        else
+        {
+            var palette = new ScottPlot.Palettes.Category10();
+            var patterns = new[] { LinePattern.Solid, LinePattern.Dashed, LinePattern.Dotted, LinePattern.DenselyDashed };
+            for (int c = 0; c < set.Curves.Count; c++)
+            {
+                var curve = set.Curves[c];
+                string tag = set.Curves.Count > 1 ? curve.Tag + ": " : "";
+                for (int s = 0; s < curve.Series.Count; s++)
+                {
+                    var (xs, ys) = Defined(curve.Positions, curve.Series[s].Values);
+                    if (xs.Length == 0) continue;
+                    var line = plot.Add.Scatter(xs, ys);
+                    line.LegendText = tag + curve.Series[s].Name;
+                    line.LineWidth = 2;
+                    line.MarkerSize = 0;
+                    line.Color = palette.GetColor(s);
+                    line.LinePattern = patterns[c % patterns.Length];
+                }
+                for (int d = 0; d < curve.Differences.Count; d++)
+                {
+                    var (xs, ys) = Defined(curve.Positions, curve.Differences[d].Values);
+                    if (xs.Length == 0) continue;
+                    var line = diff.Add.Scatter(xs, ys);
+                    line.LegendText = tag + curve.Differences[d].Name;
+                    line.LineWidth = 1.5f;
+                    line.MarkerSize = 0;
+                    line.Color = palette.GetColor(d + 1);
+                    line.LinePattern = patterns[c % patterns.Length];
+                }
+            }
+            var first = set.Curves[0];
+            plot.Title(set.Curves.Count > 1 ? first.Title.Split(" at ")[0] + " at each depth" : first.Title);
+            plot.XLabel(first.AxisLabel);
+            plot.YLabel(first.ValueLabel);
+            plot.Legend.IsVisible = true;
+            plot.Legend.Alignment = Alignment.UpperRight;
+            plot.Axes.AutoScale();
+            diff.Title("Difference from the reference (% of the reference maximum)");
+            diff.XLabel(first.AxisLabel);
+            diff.YLabel("%");
+            diff.Legend.IsVisible = first.Differences.Count > 0;
+            diff.Legend.Alignment = Alignment.UpperRight;
+            diff.Axes.AutoScale();
+        }
+        StudyCurvePlot.Refresh();
+        StudyDifferencePlot.Refresh();
+
+        static (double[] Xs, double[] Ys) Defined(double[] xs, double[] ys)
+        {
+            var keep = Enumerable.Range(0, xs.Length).Where(i => !double.IsNaN(ys[i])).ToArray();
+            return (keep.Select(i => xs[i]).ToArray(), keep.Select(i => ys[i]).ToArray());
+        }
     }
 
     private void OnGraphChanged(object? sender, PropertyChangedEventArgs e)

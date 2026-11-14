@@ -3,6 +3,7 @@
         xmlns:vm="using:DSCprototypes.Shared.ViewModels"
         xmlns:shared="using:DSCprototypes.Shared"
         xmlns:graphs="using:DSCprototypes.Shared.Graphs"
+        xmlns:studies="using:DSCprototypes.Shared.Studies"
         xmlns:sp="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
         x:Class="DSCproto.AvaloniaApp.Views.MainWindow"
         x:DataType="vm:MainViewModel"
@@ -128,6 +129,8 @@
                 <TextBlock Text="Depth" VerticalAlignment="Center" Margin="12,0,0,0"/>
                 <ComboBox ItemsSource="{Binding DepthChoices}" SelectedItem="{Binding Depth}" MinWidth="130" IsEnabled="{Binding DepthEnabled}"/>
                 <TextBlock Text="{Binding DepthText}" VerticalAlignment="Center" MinWidth="70"/>
+                <TextBlock Text="Depths offered" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <TextBox Text="{Binding DepthsText}" Width="220" ToolTip.Tip="For example: dmax, 15, 50, 100, 200, 300 mm (cm also accepted)"/>
               </StackPanel>
             </StackPanel>
 
@@ -177,6 +180,155 @@
         <TabItem Header="Archive">
           <TextBlock Margin="12" TextWrapping="Wrap"
                      Text="Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - Cody, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."/>
+        </TabItem>
+
+        <!-- Study (design/comparison-studies.md, 2026-11-14): several dose sets and the comparisons
+             between them. F1 sets, F2 pairing rules and preview, F3/F4 checks on every row, F5 results
+             and index tables, F7 every set's curves at the study's depths. Uses the Criteria list. -->
+        <TabItem Header="Study">
+          <Grid DataContext="{Binding Study}" x:DataType="vm:StudyViewModel" RowDefinitions="*,Auto" Margin="0,6,0,0">
+            <TabControl Grid.Row="0">
+
+              <TabItem Header="Setup">
+                <Grid RowDefinitions="Auto,2*,Auto,Auto,*,Auto,Auto,Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="Dose sets: a folder of RT Dose and RT Plan files each, under a name you choose" FontWeight="SemiBold"/>
+                  <DataGrid Grid.Row="1" ItemsSource="{Binding Sets}" SelectedItem="{Binding SelectedSet}"
+                            AutoGenerateColumns="False" CanUserReorderColumns="False" GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="140"/>
+                      <DataGridTextColumn Header="Folder" Binding="{Binding Folder}" Width="3*"/>
+                      <DataGridTextColumn Header="Algorithm" Binding="{Binding Algorithm}" Width="*"/>
+                      <DataGridTextColumn Header="TPS" Binding="{Binding TpsVersion}" Width="*"/>
+                      <DataGridTemplateColumn Header="Dose reported as" Width="170">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="vm:DoseSetViewModel">
+                            <ComboBox ItemsSource="{x:Static vm:DoseSetViewModel.ReportingChoices}" SelectedItem="{Binding Reporting}" HorizontalAlignment="Stretch"/>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTextColumn Header="Plan filter (regex)" Binding="{Binding PlanFilter}" Width="*"/>
+                      <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                  <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Add set" Command="{Binding AddSetCommand}"/>
+                    <Button Content="Remove set" Command="{Binding RemoveSetCommand}"/>
+                    <Button Content="Browse folder for the selected set" Command="{Binding BrowseSetFolderCommand}"/>
+                  </StackPanel>
+
+                  <TextBlock Grid.Row="3" Margin="0,8,0,0" FontWeight="SemiBold"
+                             Text="Comparisons. Rules: 'pattern -> replacement; ...' (regular expressions). Overrides: 'source label = target label; ...'"/>
+                  <DataGrid Grid.Row="4" ItemsSource="{Binding Comparisons}" SelectedItem="{Binding SelectedComparison}"
+                            AutoGenerateColumns="False" CanUserReorderColumns="False" GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Source set" Binding="{Binding SourceSet}" Width="140"/>
+                      <DataGridTextColumn Header="Target set" Binding="{Binding TargetSet}" Width="140"/>
+                      <DataGridCheckBoxColumn Header="By UID" Binding="{Binding MatchByUid}" Width="Auto"/>
+                      <DataGridTextColumn Header="Plan label rules" Binding="{Binding LabelRules}" Width="2*"/>
+                      <DataGridTextColumn Header="Field name rules" Binding="{Binding FieldRules}" Width="2*"/>
+                      <DataGridTextColumn Header="Label overrides" Binding="{Binding Overrides}" Width="2*"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                  <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Add comparison" Command="{Binding AddComparisonCommand}"/>
+                    <Button Content="Remove comparison" Command="{Binding RemoveComparisonCommand}"/>
+                    <Button Content="Use the AAA / AXB label rule" Command="{Binding SelectedComparison.UseAcrossAlgorithmsCommand}"
+                            ToolTip.Tip="Sets the selected comparison's plan label rule to (AAA|AXB) -> {algorithm}"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                    <TextBlock Text="Profile depths" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding DepthsText}" Width="260" ToolTip.Tip="For example: dmax, 15, 50, 100, 200, 300 mm (cm also accepted)"/>
+                    <TextBlock Text="Study file" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                    <TextBox Text="{Binding StudyFile}" Width="360" PlaceholderText="Path to a .json study file"/>
+                    <Button Content="Open" Command="{Binding OpenStudyCommand}"/>
+                    <Button Content="Save" Command="{Binding SaveStudyCommand}"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Row="7" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Preview pairing" Command="{Binding PreviewCommand}"/>
+                    <Button Content="Run study" Command="{Binding RunCommand}" Classes="accent"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+                    <Button Content="Export study spreadsheets (CSV)" Command="{Binding ExportCommand}"/>
+                    <ProgressBar IsIndeterminate="{Binding IsRunning}" IsVisible="{Binding IsRunning}" Width="140" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Grid>
+              </TabItem>
+
+              <TabItem Header="Pairing">
+                <ListBox ItemsSource="{Binding PairingLines}" FontFamily="Cascadia Mono,Consolas,monospace"/>
+              </TabItem>
+
+              <TabItem Header="Results">
+                <DataGrid ItemsSource="{Binding Rows}" IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Comparison" Binding="{Binding Comparison}" Width="*"/>
+                    <DataGridTextColumn Header="Patient" Binding="{Binding Facts.Patient}" Width="Auto"/>
+                    <DataGridTextColumn Header="Source plan" Binding="{Binding Facts.SourcePlan}" Width="Auto"/>
+                    <DataGridTextColumn Header="Target plan" Binding="{Binding Facts.TargetPlan}" Width="Auto"/>
+                    <DataGridTextColumn Header="Field" Binding="{Binding Facts.Field}" Width="Auto"/>
+                    <DataGridTextColumn Header="Machine" Binding="{Binding Facts.Machine}" Width="Auto"/>
+                    <DataGridTextColumn Header="Energy" Binding="{Binding Facts.Energy}" Width="Auto"/>
+                    <DataGridTextColumn Header="Field size" Binding="{Binding Facts.FieldSize}" Width="Auto"/>
+                    <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="Auto"/>
+                    <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate, StringFormat=0.000}" Width="Auto"/>
+                    <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
+                    <DataGridTextColumn Header="Plan check" Binding="{Binding PlanCheck}" Width="*"/>
+                    <DataGridTextColumn Header="Warnings" Binding="{Binding Warnings}" Width="*"/>
+                    <DataGridTextColumn Header="Failure" Binding="{Binding Failure}" Width="*"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </TabItem>
+
+              <TabItem Header="Index tables">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="6">
+                  <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Comparison" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding IndexComparisons}" SelectedItem="{Binding SelectedIndexComparison}" MinWidth="220"/>
+                    <TextBlock Text="Criterion" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding IndexCriteria}" SelectedItem="{Binding SelectedIndexCriterion}" MinWidth="220"/>
+                    <TextBlock Text="Rows" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding Axes}" SelectedItem="{Binding RowAxis}" MinWidth="120"/>
+                    <TextBlock Text="Columns" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding Axes}" SelectedItem="{Binding ColumnAxis}" MinWidth="120"/>
+                  </StackPanel>
+                  <TextBlock Grid.Row="1" Text="{Binding Index.Title, FallbackValue='Run the study to see index tables.'}" TextWrapping="Wrap"/>
+                  <DataGrid Grid.Row="2" x:Name="IndexGrid" ItemsSource="{Binding IndexRows}" IsReadOnly="True"
+                            AutoGenerateColumns="False" GridLinesVisibility="All"/>
+                </Grid>
+              </TabItem>
+
+              <TabItem Header="Curves">
+                <Grid RowDefinitions="Auto,2*,*,Auto" RowSpacing="6">
+                  <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Field" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}" MinWidth="420">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="studies:StudyField">
+                          <TextBlock Text="{Binding Label}"/>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="Curve" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="130"/>
+                    <TextBlock Text="Reference" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding ReferenceSets}" SelectedItem="{Binding ReferenceSet}" MinWidth="140"/>
+                    <TextBlock Text="Depths" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding DepthsText}" Width="200"/>
+                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoadingCurves}" Width="100" VerticalAlignment="Center"/>
+                  </StackPanel>
+                  <sp:AvaPlot Grid.Row="1" x:Name="StudyCurvePlot"/>
+                  <sp:AvaPlot Grid.Row="2" x:Name="StudyDifferencePlot"/>
+                  <TextBlock Grid.Row="3" Text="{Binding CurveStatus}" TextWrapping="Wrap"/>
+                </Grid>
+              </TabItem>
+
+              <TabItem Header="Log">
+                <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Cascadia Mono,Consolas,monospace"/>
+              </TabItem>
+            </TabControl>
+            <TextBlock Grid.Row="1" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+          </Grid>
         </TabItem>
       </TabControl>
     </Grid>
