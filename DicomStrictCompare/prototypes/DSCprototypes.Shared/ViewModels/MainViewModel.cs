@@ -46,7 +46,11 @@ public sealed partial class MainViewModel : ObservableObject
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
         Graph = new GraphViewModel(ComparisonRunner.LoadWithEvilDicom, pickFolder);
+        Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList());
     }
+
+    /// <summary>The Study tab: several dose sets and the comparisons between them (design/comparison-studies.md).</summary>
+    public StudyViewModel Study { get; }
 
     partial void OnSourceFolderChanged(string value) => Graph.SetSourceFolder(value);
 

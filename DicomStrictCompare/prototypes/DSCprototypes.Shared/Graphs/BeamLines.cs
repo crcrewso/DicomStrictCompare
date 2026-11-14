@@ -130,11 +130,15 @@ public static class BeamLines
     /// single plot should also be an option"): one curve per depth, tagged with its label, sharing
     /// the axis and value labels of the first.
     /// </summary>
-    public static IReadOnlyList<ProfileCurve> ProfilesAtAllDepths(LoadedPair lp, CurveKind kind)
+    public static IReadOnlyList<ProfileCurve> ProfilesAtAllDepths(LoadedPair lp, CurveKind kind) =>
+        ProfilesAtAllDepths(lp, kind, FixedDepths);
+
+    /// <summary>The same at a chosen list of depths (F7: depths are a setting); a null depth is dmax.</summary>
+    public static IReadOnlyList<ProfileCurve> ProfilesAtAllDepths(LoadedPair lp, CurveKind kind, IReadOnlyList<(string Label, double? Mm)> depths)
     {
         if (kind == CurveKind.DepthDose) return new[] { DepthDose(lp) };
         double dmax = DepthOfMaximum(lp);
-        return FixedDepths.Select(d =>
+        return depths.Select(d =>
         {
             double depth = d.Mm ?? dmax;
             string tag = d.Mm is null ? $"dmax {dmax.ToString("0.#", CultureInfo.InvariantCulture)} mm" : d.Label;

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DSClibrary;
 using DSClibrary.Results.DICOM;
+using DSClibrary.Studies;
 using DSCprototypes.Shared.Graphs;
 
 namespace DSCprototypes.Shared.ViewModels;
@@ -46,16 +47,45 @@ public sealed partial class GraphViewModel : ObservableObject
     {
         _loader = loader;
         _pickFolder = pickFolder ?? ((_, _) => Task.FromResult<string?>(null));
-        Depth = DepthChoices[0];
+        RebuildDepthChoices();
     }
 
     public string ConventionNote => BeamLines.ConventionNote;
 
     public IReadOnlyList<GraphMode> Modes { get; } = new[] { GraphMode.DoseVersusDose, GraphMode.DoseVersusScans };
     public IReadOnlyList<CurveKind> Kinds { get; } = new[] { CurveKind.DepthDose, CurveKind.Crossplane, CurveKind.Inplane };
-    /// <summary>Dmax first, so it is the default (Cody, 2026-11-09), then 5, 10, 20 cm, then all four on one plot.</summary>
-    public IReadOnlyList<DepthChoice> DepthChoices { get; } = BeamLines.FixedDepths.Select(d => new DepthChoice(d.Label, d.Mm))
-        .Append(new DepthChoice("All depths", null, All: true)).ToArray();
+    /// <summary>
+    /// Dmax first when it is on, so it is the default (Cody, 2026-11-09), then each depth, then all of
+    /// them on one plot. Built from <see cref="DepthsText"/>, because depths are a setting (F7, 2026-11-14).
+    /// </summary>
+    public ObservableCollection<DepthChoice> DepthChoices { get; } = new();
+
+    /// <summary>The depths offered, as typed: "dmax, 50, 100, 200 mm" by default.</summary>
+    [ObservableProperty] private string _depthsText = DepthSettings.Default.ToString();
+
+    private IReadOnlyList<(string Label, double? Mm)> _depthList = BeamLines.FixedDepths;
+
+    partial void OnDepthsTextChanged(string value) => RebuildDepthChoices();
+
+    private void RebuildDepthChoices()
+    {
+        DepthSettings settings;
+        try { settings = DepthSettings.Parse(DepthsText); }
+        catch (FormatException ex) { Status = ex.Message; return; }
+
+        var list = new List<(string Label, double? Mm)>();
+        if (settings.IncludeDmax) list.Add(("Dmax", null));
+        // Whole centimetres keep the labels the tab has always shown ("10 cm"); anything else is in mm.
+        list.AddRange(settings.DepthsMm.Select(d => (d % 10 == 0 ? $"{d / 10:0} cm" : $"{d:0.#} mm", (double?)d)));
+        _depthList = list;
+
+        string? previous = Depth?.Label;
+        DepthChoices.Clear();
+        foreach (var d in list) DepthChoices.Add(new DepthChoice(d.Label, d.Mm));
+        DepthChoices.Add(new DepthChoice("All depths", null, All: true));
+        Depth = DepthChoices.FirstOrDefault(c => c.Label == previous) ?? DepthChoices[0];
+        Redraw();
+    }
 
     // ---- shared ----
     [ObservableProperty] private GraphMode _mode = GraphMode.DoseVersusDose;
@@ -241,8 +271,8 @@ public sealed partial class GraphViewModel : ObservableObject
         if (!IsDoseMode) return;
         if (_loaded is null) { Curves = null; return; }
         double depth = Depth?.Mm ?? BeamLines.DepthOfMaximum(_loaded);
-        DepthText = Kind == CurveKind.DepthDose ? "" : Depth is { All: true } ? $"dmax {depth:0.#}, 50, 100, 200 mm" : (Depth?.Mm is null ? $"dmax = {depth:0.#} mm" : $"{depth:0.#} mm");
-        Curves = Depth is { All: true } && Kind != CurveKind.DepthDose ? BeamLines.ProfilesAtAllDepths(_loaded, Kind) : new[] { BeamLines.ProfileAt(_loaded, Kind, depth) };
+        DepthText = Kind == CurveKind.DepthDose ? "" : Depth is { All: true } ? DepthsText : (Depth?.Mm is null ? $"dmax = {depth:0.#} mm" : $"{depth:0.#} mm");
+        Curves = Depth is { All: true } && Kind != CurveKind.DepthDose ? BeamLines.ProfilesAtAllDepths(_loaded, Kind, _depthList) : new[] { BeamLines.ProfileAt(_loaded, Kind, depth) };
     }
 
     // ---- dose versus scans ----
