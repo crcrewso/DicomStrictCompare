@@ -42,6 +42,18 @@
         <TextBlock DockPanel.Dock="Top" Text="Criteria" FontWeight="SemiBold" Margin="0,0,0,6"/>
         <!-- "Max": what the threshold and global tolerance are fractions of. CAX falls back to Global Max unless
              the source plan's jaws are on axis; each result row says which was used. -->
+        <!-- Engine and pairs at once: saved with a study. Float is GPU-only and opt-in. -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+          <TextBlock Text="Pairs at once" VerticalAlignment="Center"/>
+          <TextBox Text="{Binding PairsAtOnce}" Width="50" ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the core count (2 for the multi-thread and GPU engines)."/>
+          <CheckBox Content="GPU float" IsChecked="{Binding GpuFloat}"
+                    ToolTip.Tip="GPU engines only. Many GPUs run double far slower than float, for example NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions; double matches it exactly."/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+          <TextBlock Text="Engine" VerticalAlignment="Center"/>
+          <ComboBox ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding Engine}" MinWidth="130"
+                    ToolTip.Tip="HandWritten is the original and the reference. The others apply the same rules faster and are tested to give the same counts."/>
+        </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
           <TextBlock Text="Max" VerticalAlignment="Center"/>
           <ComboBox ItemsSource="{Binding MaximumChoices}" SelectedItem="{Binding Maximum}" MinWidth="130"
@@ -84,6 +96,7 @@
               <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="2*"/>
               <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="*"/>
               <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
+              <DataGridTextColumn Header="Edge check" Binding="{Binding EdgeCheck}" Width="Auto"/>
               <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
               <DataGridTextColumn Header="Failed" Binding="{Binding Failed, StringFormat=N0}" Width="Auto"/>
               <DataGridTextColumn Header="% failed" Binding="{Binding PercentFailed, StringFormat=0.000}" Width="Auto"/>
@@ -280,6 +293,7 @@
                     <DataGridTextColumn Header="Field size" Binding="{Binding Facts.FieldSize}" Width="Auto"/>
                     <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="Auto"/>
                     <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
+                    <DataGridTextColumn Header="Edge check" Binding="{Binding EdgeCheck}" Width="Auto"/>
                     <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate, StringFormat=0.000}" Width="Auto"/>
                     <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
                     <DataGridTextColumn Header="Plan check" Binding="{Binding PlanCheck}" Width="*"/>

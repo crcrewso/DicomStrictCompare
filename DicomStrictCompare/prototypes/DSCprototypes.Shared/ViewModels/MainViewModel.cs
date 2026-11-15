@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DSClibrary.Matching;
 using DSClibrary.Comparing;
+using DSClibrary.Studies;
 
 namespace DSCprototypes.Shared.ViewModels;
 
@@ -47,7 +48,8 @@ public sealed partial class MainViewModel : ObservableObject
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
         Graph = new GraphViewModel(ComparisonRunner.LoadGrid, pickFolder);
-        Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList(), maximum: () => Maximum);
+        Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList(),
+            runSettings: () => RunSettings, applyRunSettings: Apply);
     }
 
     /// <summary>The Study tab: several dose sets and the comparisons between them (design/comparison-studies.md).</summary>
@@ -99,6 +101,31 @@ public sealed partial class MainViewModel : ObservableObject
     /// </summary>
     [ObservableProperty] private MaximumKind _maximum = MaximumKind.GlobalMax;
     public IReadOnlyList<MaximumKind> MaximumChoices { get; } = Enum.GetValues<MaximumKind>();
+
+    /// <summary>The comparison engine; HandWritten, the reference, unless chosen. Used by both tabs.</summary>
+    [ObservableProperty] private ComparerKind _engine = ComparerKind.HandWritten;
+    public IReadOnlyList<ComparerKind> EngineChoices { get; } = Enum.GetValues<ComparerKind>();
+
+    /// <summary>
+    /// Float on the GPU engines, a user's choice (Cody, 2026-11-15): some GPUs run double far slower, for example
+    /// NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions.
+    /// </summary>
+    [ObservableProperty] private bool _gpuFloat;
+
+    /// <summary>Pairs compared at once; 0 chooses from free memory (BatchComparer.PairsAtOnce).</summary>
+    [ObservableProperty] private int _pairsAtOnce;
+
+    public ComparerSettings ComparerSettings => new(Engine, Precision: GpuFloat ? GpuPrecision.Float : GpuPrecision.Double);
+    public StudyRunSettings RunSettings => new(Maximum, ComparerSettings, PairsAtOnce > 0 ? PairsAtOnce : null);
+
+    /// <summary>Takes a study file's run settings, so opening a study restores the engine it was run with.</summary>
+    public void Apply(StudyRunSettings run)
+    {
+        Maximum = run.Maximum;
+        Engine = run.ComparerOrDefault.Kind;
+        GpuFloat = run.ComparerOrDefault.Precision == GpuPrecision.Float;
+        PairsAtOnce = run.PairsAtOnce ?? 0;
+    }
     [ObservableProperty] private string _status = "Choose two folders of RT Dose and RT Plan files.";
     [ObservableProperty] private string _log = "";
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(RunCommand), nameof(CancelCommand), nameof(ExportCommand))]
@@ -188,7 +215,8 @@ public sealed partial class MainViewModel : ObservableObject
 
         var request = new ComparisonRequest(
             SourceFolder, TargetFolder, SourceAlias, TargetAlias,
-            Criteria.Select(c => c.ToSpec()).ToList(), Strategy, Maximum: Maximum);
+            Criteria.Select(c => c.ToSpec()).ToList(), Strategy,
+            DegreeOfParallelism: PairsAtOnce > 0 ? PairsAtOnce : null, Maximum: Maximum, Comparer: ComparerSettings);
 
         // IProgress<T> marshals back to the thread that created it, so the runner can report from its worker.
         var progress = new Progress<string>(line => { Log += line + Environment.NewLine; Status = line; });

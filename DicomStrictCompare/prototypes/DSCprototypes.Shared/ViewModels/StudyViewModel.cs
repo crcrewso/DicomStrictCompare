@@ -119,17 +119,20 @@ public sealed partial class StudyViewModel : ObservableObject
     private readonly Func<string, string?, Task<string?>> _pickFolder;
     private readonly Func<IReadOnlyList<DtaSpec>> _criteria;
     private readonly Func<string, DoseMatrixOptimal> _loader;
-    private readonly Func<MaximumKind> _maximum;
+    private readonly Func<StudyRunSettings> _runSettings;
+    private readonly Action<StudyRunSettings> _applyRunSettings;
     private CancellationTokenSource? _cancel;
     private IReadOnlyList<LoadedDose>? _loaded;
     private int _loadSequence;
 
     public StudyViewModel(Func<string, string?, Task<string?>> pickFolder, Func<IReadOnlyList<DtaSpec>> criteria,
-        Func<string, DoseMatrixOptimal>? loader = null, Func<MaximumKind>? maximum = null)
+        Func<string, DoseMatrixOptimal>? loader = null, Func<StudyRunSettings>? runSettings = null,
+        Action<StudyRunSettings>? applyRunSettings = null)
     {
         _pickFolder = pickFolder;
         _criteria = criteria;
-        _maximum = maximum ?? (() => MaximumKind.GlobalMax);
+        _runSettings = runSettings ?? (() => StudyRunSettings.Default);
+        _applyRunSettings = applyRunSettings ?? (_ => { });
         _loader = loader ?? ComparisonRunner.LoadGrid;
     }
 
@@ -232,7 +235,7 @@ public sealed partial class StudyViewModel : ObservableObject
     {
         try
         {
-            var study = new Study(Sets.Select(s => s.ToSet()), Comparisons.Select(c => c.ToComparison()), DepthSettings.Parse(DepthsText));
+            var study = new Study(Sets.Select(s => s.ToSet()), Comparisons.Select(c => c.ToComparison()), DepthSettings.Parse(DepthsText), _runSettings());
             if (string.IsNullOrWhiteSpace(StudyFile)) { Status = "Give a file name for the study (for example D:\\studies\\aaa-vs-axb.json)."; return; }
             study.Save(StudyFile);
             Status = $"Saved the study to {StudyFile}.";
@@ -254,6 +257,7 @@ public sealed partial class StudyViewModel : ObservableObject
             Comparisons.Clear();
             foreach (var c in study.Comparisons) Comparisons.Add(SetComparisonViewModel.From(c));
             DepthsText = study.Depths.ToString();
+            _applyRunSettings(study.Run);
             Status = $"Opened {StudyFile}: {study.Sets.Count} set(s), {study.Comparisons.Count} comparison(s).";
         }
         catch (Exception ex)
@@ -285,7 +289,7 @@ public sealed partial class StudyViewModel : ObservableObject
         try
         {
             var session = compare
-                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _maximum())
+                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _runSettings())
                 : await StudyRunner.PreviewAsync(study, progress, _cancel.Token);
             Show(session);
             Status = session.Summary;
