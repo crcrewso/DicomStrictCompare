@@ -266,7 +266,7 @@ namespace DSClibrary.Comparing
         {
             if (pairs.Count == 0) return null;
             long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
-            long budget = (availableBytes ?? GC.GetGCMemoryInfo().TotalAvailableMemoryBytes) / 2;
+            long budget = (availableBytes ?? FreeMemory.Bytes()) / 2;
             return largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : null;
         }
 

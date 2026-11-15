@@ -56,6 +56,18 @@ namespace DSClibraryTests
             Assert.AreEqual(grid.MaxPointDose.Dose, global.Gamma!.GlobalNormalisation, 1e-12);
         }
 
+        /// <summary>Free memory, not the machine's total, sizes pairs at once and readers (crane, 2026-11-15).</summary>
+        [TestMethod]
+        public void FreeMemoryIsWhatIsAvailableNotTheTotal()
+        {
+            long free = FreeMemory.Bytes(), total = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+            Assert.IsTrue(free > 0 && free <= total, $"free {free / 1e9:0.0} GB, total {total / 1e9:0.0} GB");
+            if (!OperatingSystem.IsLinux()) return;
+            long kernel = long.Parse(File.ReadLines("/proc/meminfo").First(l => l.StartsWith("MemAvailable:"))
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]) * 1024;
+            Assert.AreEqual(Math.Min(kernel, total), free, 0.05 * total, "within 5 % of the kernel's MemAvailable, read a moment apart");
+        }
+
         [TestMethod]
         public void PairsAtOnceFollowsMemoryAndTheEngine()
         {
