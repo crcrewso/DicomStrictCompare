@@ -3,7 +3,7 @@ namespace DSClibrary.Comparing
     /// <summary>
     /// <see cref="HandWrittenComparer"/>'s rules for one sample point, reading cells and weights from a
     /// <see cref="ComparisonSetup"/> rather than computing them per point. Same operations in the same order, in
-    /// double, so the outcome is the hand-written one exactly.
+    /// double, so the outcome is the hand-written one exactly. Diagram: design/data-flow.md, section 3.
     /// </summary>
     internal static class PointRules
     {

@@ -56,6 +56,9 @@ to voxels, the dose difference alone decides pass or fail and the DTA distance i
 The result for each pair is the percentage of evaluated points that failed: 0 % means the distributions
 agree everywhere under your criteria, 100 % means no point agreed.
 
+**Diagrams** of the whole flow, from folders to CSV rows and point by point:
+[design/data-flow.md](design/data-flow.md).
+
 **The same rules, several engines.** The comparison can run on different engines, chosen as a setting:
 - **`HandWrittenComparer`:** the original, one thread, every point. This is the default and the reference.
 - **`SingleThreadComparer` and `MultiThreadComparer`:** the same rules, skipping points that cannot reach the
@@ -196,6 +199,7 @@ DicomStrictCompare/
   DSClibrary/       Comparison maths: dose matrix, DTA criteria, comparison results, profile tools
   DSCcoreTest/      MSTest tests for the old app (with test DICOM data), no longer built
   DSClibraryTests/  MSTest tests for the library (with test DICOM data and a PTW water tank scan)
+design/             Design notes, and the data-flow diagrams (data-flow.md)
 docs/               Generated DocFX API documentation (HTML)
 ```
 

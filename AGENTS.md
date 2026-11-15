@@ -200,6 +200,8 @@ Python idioms don't carry over automatically. Watch for:
     says (Linux); Windows schedules its own threads.
   - **Batches go through `BatchComparer.CompareMany`,** which loads each pair once for every criterion. A comparer
     that can share work across criteria (the GPU ones: one upload per pair) overrides `DoseComparer.CompareAll`.
+  - **Diagrams:** `design/data-flow.md` draws the data flow in Mermaid (crcrewso, 2026-11-15). A change to a step
+    it shows updates that diagram in the same commit, and a new flow worth explaining gets one.
 - **Commit messages:** start with the area, then an imperative summary (`Gamma: refuse unevenly spaced grids`).
   Put the reasoning in the body, not in code comments.
 - **Comments:** short; a line or two, plus a pointer to the paper or source file.

@@ -170,6 +170,7 @@ namespace DSClibrary.Comparing
     /// parallelism is therefore conservative and the grids are loaded inside the task and released
     /// when it ends, rather than all being read up front.
     /// </para>
+    /// <para>Diagram: design/data-flow.md, section 2.</para>
     /// </summary>
     public sealed class BatchComparer
     {
