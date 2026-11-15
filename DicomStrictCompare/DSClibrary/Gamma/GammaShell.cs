@@ -143,7 +143,7 @@ namespace DSClibrary.Gamma
 
             // Bound every analysed point outside the grid by the grid's nearest point, so a grid
             // narrower than a step, a plane, or a far-off grid still gives each point a value.
-            Parallel.ForEach(analysed, new ParallelOptions { MaxDegreeOfParallelism = options.DegreeOfParallelism ?? Environment.ProcessorCount, CancellationToken = cancellationToken }, i =>
+            Parallel.ForEach(analysed, new ParallelOptions { MaxDegreeOfParallelism = options.DegreeOfParallelism ?? Comparing.CpuTopology.PhysicalCores, CancellationToken = cancellationToken }, i =>
             {
                 double distance = DistanceOutsideGrid(i);
                 if (distance <= 0 && freeAxes.Length > 0) return;
@@ -175,7 +175,7 @@ namespace DSClibrary.Gamma
                 double[][] ShellAt(int k) => shells.GetOrAdd(k,
                     index => ShellCoordinates.Calculate(schedule[index].Distance, freeAxes.Length, schedule[index].Step));
 
-                Parallel.ForEach(analysed, new ParallelOptions { MaxDegreeOfParallelism = options.DegreeOfParallelism ?? Environment.ProcessorCount, CancellationToken = cancellationToken }, i =>
+                Parallel.ForEach(analysed, new ParallelOptions { MaxDegreeOfParallelism = options.DegreeOfParallelism ?? Comparing.CpuTopology.PhysicalCores, CancellationToken = cancellationToken }, i =>
                 {
                     double reference_i = refDose[i];
                     double norm = options.LocalGamma ? reference_i : normalisation;

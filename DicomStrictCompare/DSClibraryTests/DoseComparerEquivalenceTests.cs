@@ -26,6 +26,8 @@ namespace DSClibraryTests
             yield return new SingleThreadComparer { UseThresholdBox = false };
             yield return new MultiThreadComparer { Threads = 4 };
             yield return new MultiThreadComparer { Threads = 1, UseThresholdBox = false };
+            yield return new MultiThreadComparer();                                   // one per usable core, pinned
+            yield return new MultiThreadComparer { Threads = 3, PinThreads = false };
             foreach (var g in GpuDoubles()) yield return g;
         }
 

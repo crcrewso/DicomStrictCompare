@@ -10,6 +10,7 @@
 //   --pairlist file   pairs from a tab-separated file (name, source path, target path) instead of QAtpsPTW;
 //                     resolution 0 keeps each grid's own spacing, anything else resamples both sides to it
 //   --set name        a label for the pair set, written to the CSV
+// Core types (P, E, LP-E, mixes) on one pair: dotnet run -c Release -- cores <source.dcm> <target.dcm>; see CoreTypes.cs.
 // Pairs are QAtpsPTW SquareFieldsS (AAA, 1 mm) against SquFldsSAXB (AXB, 2 mm), resampled so both sides share
 // the resolution. Loading and resampling are not timed; every timing is comparison work only.
 using System.Diagnostics;
@@ -19,6 +20,7 @@ using DSClibrary.Resampling;
 using DSClibrary.Results.DICOM;
 using DSCgpu;
 
+if (args.Length > 0 && args[0] == "cores") { CoreTypes.Run(args[1..]); return; }
 double res = double.Parse(args[0]);
 int pairCount = int.Parse(args[1]);
 string folder = args.Length > 2 && args[2] != "-" ? args[2] : "/home/crcrewso/Source/~Resources/PRD 15.6 Previous Commissioning Pts/QAtpsPTW";

@@ -55,7 +55,7 @@ namespace DSClibrary.Comparing
                 ComparerKind.SingleThread => new SingleThreadComparer { UseThresholdBox = settings.UseThresholdBox },
                 ComparerKind.MultiThread => new MultiThreadComparer
                 {
-                    Threads = settings.Threads ?? Environment.ProcessorCount,
+                    Threads = settings.Threads ?? CpuTopology.PhysicalCores,
                     UseThresholdBox = settings.UseThresholdBox,
                 },
                 ComparerKind.Ilgpu => Gpu.IlgpuComparer.Create(settings),
@@ -71,7 +71,7 @@ namespace DSClibrary.Comparing
             {
                 new(ComparerKind.HandWritten, true, "one thread, every point"),
                 new(ComparerKind.SingleThread, true, "one thread, threshold box"),
-                new(ComparerKind.MultiThread, true, $"{Environment.ProcessorCount} threads, threshold box"),
+                new(ComparerKind.MultiThread, true, $"{CpuTopology.PhysicalCores} threads, one per physical core, threshold box"),
             };
             foreach (var kind in new[] { ComparerKind.Ilgpu, ComparerKind.OpenCl })
             {

@@ -185,15 +185,15 @@ namespace DSClibrary.Comparing
         }
 
         /// <summary>
-        /// Four is the default rather than <see cref="Environment.ProcessorCount"/>, because the
+        /// Four is the default rather than the core count, because the
         /// constraint here is memory and not cores: at 61 MB per grid and two grids per comparison,
         /// a sixteen-core machine would try to hold about two gigabytes of dose.
         /// </summary>
-        public static int DefaultDegreeOfParallelism => Math.Min(4, Environment.ProcessorCount);
+        public static int DefaultDegreeOfParallelism => Math.Min(4, CpuTopology.PhysicalCores);
 
         /// <summary>
         /// How many pairs to run at once when none is set: as many as half the free memory holds, the largest pair's
-        /// two grids at 8 bytes a voxel (from the headers), up to the core count. Comparers that already use the cores
+        /// two grids at 8 bytes a voxel (from the headers), up to the physical core count (SMT siblings are ignored). Comparers that already use the cores
         /// within a pair (multi-thread, GPU) get at most 2, so one pair loads while another compares.
         /// <para>
         /// Measured 2026-11-14 to 15: a fixed 4 ran a 31 GB machine out of memory on 1 mm grids, and with the box a
@@ -205,8 +205,8 @@ namespace DSClibrary.Comparing
             if (pairs.Count == 0) return 1;
             long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
             long budget = (availableBytes ?? GC.GetGCMemoryInfo().TotalAvailableMemoryBytes) / 2;
-            int byMemory = largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : Environment.ProcessorCount;
-            int cap = comparer is HandWrittenComparer or SingleThreadComparer ? Environment.ProcessorCount : 2;
+            int byMemory = largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : CpuTopology.PhysicalCores;
+            int cap = comparer is HandWrittenComparer or SingleThreadComparer ? CpuTopology.PhysicalCores : 2;
             return Math.Max(1, Math.Min(Math.Min(byMemory, cap), pairs.Count));
         }
 
@@ -264,7 +264,7 @@ namespace DSClibrary.Comparing
             var work = pairs.ToArray();
             bool anyDta = criteria.Any(c => c.Gamma is null);
             int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, anyDta ? _mathematics : new HandWrittenComparer()));
-            int perGamma = Math.Max(1, Environment.ProcessorCount / parallelism);
+            int perGamma = Math.Max(1, CpuTopology.PhysicalCores / parallelism);
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
 

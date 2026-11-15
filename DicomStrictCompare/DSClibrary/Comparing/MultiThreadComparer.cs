@@ -1,4 +1,4 @@
-namespace DSClibrary.Comparing
+﻿namespace DSClibrary.Comparing
 {
     /// <summary>
     /// <see cref="HandWrittenComparer"/>'s rules with one comparison split across threads: the (i, j) lines inside
@@ -7,13 +7,24 @@ namespace DSClibrary.Comparing
     /// </summary>
     public sealed class MultiThreadComparer : DoseComparer
     {
-        /// <summary>Threads within one comparison; defaults to every core.</summary>
-        public int Threads { get; init; } = Environment.ProcessorCount;
+        /// <summary>Threads within one comparison; defaults to one per physical core (<see cref="CpuTopology"/>).</summary>
+        public int Threads { get; init; } = CpuTopology.PhysicalCores;
+
+        /// <summary>
+        /// Pins each thread to its own physical core, so two never share an SMT pair. Only when there are no more
+        /// threads than cores; otherwise the threads run unpinned.
+        /// </summary>
+        public bool PinThreads { get; init; } = true;
+
+        /// <summary>The cores to pin to, for measuring one core type against another; <see cref="CpuTopology.Cores"/> when null.</summary>
+        public IReadOnlyList<CpuTopology.Core>? CoreSet { get; init; }
 
         /// <summary>Off evaluates every sample point, for checking the box on your own data.</summary>
         public bool UseThresholdBox { get; init; } = true;
 
-        public override string Description => $"MultiThread, {Threads} threads{(UseThresholdBox ? ", threshold box" : "")}";
+        public override string Description => $"MultiThread, {Threads} threads{(Pinned ? ", one per core" : "")}{(UseThresholdBox ? ", threshold box" : "")}";
+
+        private bool Pinned => PinThreads && Threads > 1 && Threads <= (CoreSet ?? CpuTopology.Cores).Count;
 
         public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta) =>
             Compare(source, target, dta, false, source.MaxPointDose.Dose, CancellationToken.None);
@@ -34,23 +45,51 @@ namespace DSClibrary.Comparing
             cancellation.ThrowIfCancellationRequested();
             var s = ComparisonSetup.For(source, target, dta, global, UseThresholdBox, referenceMaximum);
             double[] sv = source.DoseValues, tv = target.DoseValues;
-            int wy = s.WindowLinesY;
+            int wy = s.WindowLinesY, lines = s.WindowLines, threads = Math.Max(1, Math.Min(Threads, Math.Max(1, lines)));
             long compared = 0, failed = 0;
-            Parallel.For(0, s.WindowLines,
-                new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Threads), CancellationToken = cancellation },
-                () => (0L, 0L),
-                (line, _, acc) =>
+            // Dedicated threads, so pinning never touches the shared thread pool. Lines are handed out in small chunks.
+            int next = 0;
+            const int Chunk = 16;
+            Exception? error = null;
+            var cores = CoreSet ?? CpuTopology.Cores;
+            bool pin = Pinned && threads <= cores.Count;
+            void Work(int worker)
+            {
+                try
                 {
-                    int i = s.Lo.X + line / wy, j = s.Lo.Y + line % wy;
-                    long c = acc.Item1, f = acc.Item2;
-                    for (int k = s.Lo.Z; k <= s.Hi.Z; k++)
+                    if (pin) CpuTopology.PinCurrentThread(cores[worker]);
+                    long c = 0, f = 0;
+                    for (int start; (start = Interlocked.Add(ref next, Chunk) - Chunk) < lines;)
                     {
-                        int r = PointRules.Evaluate(s, sv, tv, new Index3(i, j, k));
-                        if (r > 0) { c++; if (r == 2) f++; }
+                        if (cancellation.IsCancellationRequested || Volatile.Read(ref error) is not null) break;
+                        for (int line = start; line < Math.Min(start + Chunk, lines); line++)
+                        {
+                            int i = s.Lo.X + line / wy, j = s.Lo.Y + line % wy;
+                            for (int k = s.Lo.Z; k <= s.Hi.Z; k++)
+                            {
+                                int r = PointRules.Evaluate(s, sv, tv, new Index3(i, j, k));
+                                if (r > 0) { c++; if (r == 2) f++; }
+                            }
+                        }
                     }
-                    return (c, f);
-                },
-                acc => { Interlocked.Add(ref compared, acc.Item1); Interlocked.Add(ref failed, acc.Item2); });
+                    Interlocked.Add(ref compared, c);
+                    Interlocked.Add(ref failed, f);
+                }
+                catch (Exception ex) { Interlocked.CompareExchange(ref error, ex, null); }
+            }
+            var workers = Enumerable.Range(1, threads - 1).Select(w => new Thread(() => Work(w)) { IsBackground = true, Name = $"DSC compare {w}" }).ToArray();
+            foreach (var t in workers) t.Start();
+            if (pin)
+            {
+                // The calling thread is not pinned (it may belong to the pool), so worker 0 gets its own thread too.
+                var first = new Thread(() => Work(0)) { IsBackground = true, Name = "DSC compare 0" };
+                first.Start();
+                first.Join();
+            }
+            else Work(0);
+            foreach (var t in workers) t.Join();
+            if (error is not null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error).Throw();
+            cancellation.ThrowIfCancellationRequested();
             return new SingleComparison(dta, s.TotalCount, (int)compared, (int)failed);
         }
     }

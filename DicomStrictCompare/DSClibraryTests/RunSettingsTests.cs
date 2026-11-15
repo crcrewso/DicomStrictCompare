@@ -63,10 +63,10 @@ namespace DSClibraryTests
             var pairs = DoseMatcher.Match(folder.Doses, folder.Doses, DoseMatchStrategy.Identifier).Pairs.ToArray();
             long pairBytes = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * 8;
             // Half the budget per pair: exactly 3 pairs fit in 6 pairs' worth.
-            Assert.AreEqual(Math.Min(3, Environment.ProcessorCount), BatchComparer.PairsAtOnce(pairs, new HandWrittenComparer(), 6 * pairBytes));
+            Assert.AreEqual(Math.Min(3, CpuTopology.PhysicalCores), BatchComparer.PairsAtOnce(pairs, new HandWrittenComparer(), 6 * pairBytes));
             Assert.AreEqual(1, BatchComparer.PairsAtOnce(pairs, new HandWrittenComparer(), pairBytes));      // never fewer than 1
             Assert.AreEqual(Math.Min(2, pairs.Length), BatchComparer.PairsAtOnce(pairs, new MultiThreadComparer(), 1000 * pairBytes));
-            Assert.AreEqual(Math.Min(Environment.ProcessorCount, pairs.Length), BatchComparer.PairsAtOnce(pairs, new SingleThreadComparer(), 1000 * pairBytes));
+            Assert.AreEqual(Math.Min(CpuTopology.PhysicalCores, pairs.Length), BatchComparer.PairsAtOnce(pairs, new SingleThreadComparer(), 1000 * pairBytes));
         }
 
         [TestMethod]
