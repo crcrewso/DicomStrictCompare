@@ -86,6 +86,10 @@ namespace DSClibrary.Results.DICOM
         /// of the file's buffer, because the parsed elements are slices of it and would otherwise keep
         /// all of it in memory.
         /// </para>
+        /// <para>
+        /// Only a growing prefix of the file is read (<see cref="ReadHeader"/>), not the whole file: a 1 mm dose is about
+        /// 500 MB and its header a few kB. Found by crane, 2026-11-15: pairing three E##V## sets read 31 GB.
+        /// </para>
         /// </summary>
         public static DicomFile ReadHeaderFile(string path)
         {
@@ -93,10 +97,8 @@ namespace DSClibrary.Results.DICOM
                 throw new ArgumentException("A path is required.", nameof(path));
             if (!File.Exists(path))
                 throw new FileNotFoundException("DICOM file not found.", path);
-            byte[] bytes = File.ReadAllBytes(path);
-            int stop = PixelDataOffset(bytes);
-            if (stop < 0) return Read(bytes, path);   // no pixel data: the whole file is header
-            return Read(bytes.AsSpan(0, stop).ToArray(), path, headerOnly: true);
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.SequentialScan);
+            return ReadHeader(stream, path, out _);   // no pixel data: the whole file is read, as it is all header
         }
 
         /// <summary>
@@ -122,18 +124,8 @@ namespace DSClibrary.Results.DICOM
             }
         }
 
-        /// <summary>Where the top-level PixelData element starts, or -1 when there is none.</summary>
-        private static int PixelDataOffset(ReadOnlyMemory<byte> bytes)
-        {
-            var file = Read(bytes, "", headerOnly: false, stopAtPixelData: true, out int stoppedAt);
-            return stoppedAt;
-        }
-
         public static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath = "") =>
             Read(bytes, sourcePath, headerOnly: false, stopAtPixelData: false, out _);
-
-        private static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath, bool headerOnly) =>
-            Read(bytes, sourcePath, headerOnly, stopAtPixelData: false, out _);
 
         private static DicomFile Read(ReadOnlyMemory<byte> bytes, string sourcePath, bool headerOnly, bool stopAtPixelData, out int pixelDataAt)
         {
