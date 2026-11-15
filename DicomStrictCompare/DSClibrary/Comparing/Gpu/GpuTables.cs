@@ -26,54 +26,15 @@ namespace DSClibrary.Comparing.Gpu
         public int Lines { get; }
         public int LinesY { get; }
 
-        /// <summary>The source and target voxels the window needs, copied out of the full grids.</summary>
-        public double[] Source { get; } = Array.Empty<double>();
-        public double[] Target { get; } = Array.Empty<double>();
-
-        /// <summary>Voxels uploaded, as a fraction of the two full grids: what the box saves on the bus.</summary>
-        public double UploadedFraction { get; }
-
-        public GpuTables(ComparisonSetup s, DoseMatrixOptimal source, DoseMatrixOptimal target)
+        public GpuTables(ComparisonSetup s, GpuUpload? upload)
         {
             // A window can be empty along z alone (the box between sample planes): then nothing is evaluated.
             Lines = s.WindowPoints > 0 ? s.WindowLines : 0;
             LinesY = s.WindowLinesY;
+            if (Lines > 0 && upload is null) throw new ArgumentNullException(nameof(upload), "A window with lines needs its upload.");
             bool[][] has = { s.Has.XMinus, s.Has.XPlus, s.Has.YMinus, s.Has.YPlus, s.Has.ZMinus, s.Has.ZPlus };
-
-            // The voxel ranges each grid's window reads, per axis.
-            Index3 sLo = default, sHi = default, tLo = default, tHi = default;
-            if (Lines > 0)
-            {
-                (int, int) Range(int from, int to, AxisTable centre, AxisTable? minus, AxisTable? plus, bool[]? hasMinus, bool[]? hasPlus)
-                {
-                    int lo = int.MaxValue, hi = int.MinValue;
-                    void Take(AxisTable t, int i) { lo = Math.Min(lo, t.Cell[i]); hi = Math.Max(hi, t.Cell[i] + (t.Interp[i] ? 1 : 0)); }
-                    for (int i = from; i <= to; i++)
-                    {
-                        Take(centre, i);
-                        if (minus is not null && hasMinus![i]) Take(minus, i);
-                        if (plus is not null && hasPlus![i]) Take(plus, i);
-                    }
-                    return (lo, hi);
-                }
-                bool dta = s.UseDta;
-                var (sx0, sx1) = Range(s.Lo.X, s.Hi.X, s.Source.X, dta ? s.SourceMinus.X : null, dta ? s.SourcePlus.X : null, s.Has.XMinus, s.Has.XPlus);
-                var (sy0, sy1) = Range(s.Lo.Y, s.Hi.Y, s.Source.Y, dta ? s.SourceMinus.Y : null, dta ? s.SourcePlus.Y : null, s.Has.YMinus, s.Has.YPlus);
-                var (sz0, sz1) = Range(s.Lo.Z, s.Hi.Z, s.Source.Z, dta ? s.SourceMinus.Z : null, dta ? s.SourcePlus.Z : null, s.Has.ZMinus, s.Has.ZPlus);
-                var (tx0, tx1) = Range(s.Lo.X, s.Hi.X, s.Target.X, null, null, null, null);
-                var (ty0, ty1) = Range(s.Lo.Y, s.Hi.Y, s.Target.Y, null, null, null, null);
-                var (tz0, tz1) = Range(s.Lo.Z, s.Hi.Z, s.Target.Z, null, null, null, null);
-                sLo = new Index3(sx0, sy0, sz0); sHi = new Index3(sx1, sy1, sz1);
-                tLo = new Index3(tx0, ty0, tz0); tHi = new Index3(tx1, ty1, tz1);
-                // A sample a rounding error past a grid's last node is "interpolated" and reads the voxel after the
-                // last column or row: in the flat array, the next row's first voxel, weighted about 1e-15. The
-                // hand-written engine does this, so to match it exactly such a grid is uploaded whole.
-                (sLo, sHi) = WholeIfPastEdge(source, sLo, sHi);
-                (tLo, tHi) = WholeIfPastEdge(target, tLo, tHi);
-                Source = Crop(source, sLo, sHi);
-                Target = Crop(target, tLo, tHi);
-                UploadedFraction = (double)(Source.LongLength + Target.LongLength) / (source.DoseValues.LongLength + target.DoseValues.LongLength);
-            }
+            Index3 sLo = upload?.SourceLo ?? default, sHi = upload?.SourceHi ?? default;
+            Index3 tLo = upload?.TargetLo ?? default, tHi = upload?.TargetHi ?? default;
 
             // Tables, with cells shifted to the copied blocks. Source tables shift by sLo, target tables by tLo.
             (AxisTable Table, int Shift)[] tables =
@@ -103,6 +64,77 @@ namespace DSClibrary.Comparing.Gpu
             Header[HHi] = s.Hi.X; Header[HHi + 1] = s.Hi.Y; Header[HHi + 2] = s.Hi.Z;
             Ints = ints.ToArray();
             Reals = reals.ToArray();
+        }
+
+        /// <summary>The voxel ranges one criterion's window reads in each grid, with its DTA neighbours; null when it reads none.</summary>
+        public static (Index3 SLo, Index3 SHi, Index3 TLo, Index3 THi)? Reads(ComparisonSetup s)
+        {
+            if (s.WindowPoints <= 0) return null;
+            (int, int) Range(int from, int to, AxisTable centre, AxisTable? minus, AxisTable? plus, bool[]? hasMinus, bool[]? hasPlus)
+            {
+                int lo = int.MaxValue, hi = int.MinValue;
+                void Take(AxisTable t, int i) { lo = Math.Min(lo, t.Cell[i]); hi = Math.Max(hi, t.Cell[i] + (t.Interp[i] ? 1 : 0)); }
+                for (int i = from; i <= to; i++)
+                {
+                    Take(centre, i);
+                    if (minus is not null && hasMinus![i]) Take(minus, i);
+                    if (plus is not null && hasPlus![i]) Take(plus, i);
+                }
+                return (lo, hi);
+            }
+            bool dta = s.UseDta;
+            var (sx0, sx1) = Range(s.Lo.X, s.Hi.X, s.Source.X, dta ? s.SourceMinus.X : null, dta ? s.SourcePlus.X : null, s.Has.XMinus, s.Has.XPlus);
+            var (sy0, sy1) = Range(s.Lo.Y, s.Hi.Y, s.Source.Y, dta ? s.SourceMinus.Y : null, dta ? s.SourcePlus.Y : null, s.Has.YMinus, s.Has.YPlus);
+            var (sz0, sz1) = Range(s.Lo.Z, s.Hi.Z, s.Source.Z, dta ? s.SourceMinus.Z : null, dta ? s.SourcePlus.Z : null, s.Has.ZMinus, s.Has.ZPlus);
+            var (tx0, tx1) = Range(s.Lo.X, s.Hi.X, s.Target.X, null, null, null, null);
+            var (ty0, ty1) = Range(s.Lo.Y, s.Hi.Y, s.Target.Y, null, null, null, null);
+            var (tz0, tz1) = Range(s.Lo.Z, s.Hi.Z, s.Target.Z, null, null, null, null);
+            return (new Index3(sx0, sy0, sz0), new Index3(sx1, sy1, sz1), new Index3(tx0, ty0, tz0), new Index3(tx1, ty1, tz1));
+        }
+    }
+
+    /// <summary>
+    /// The source and target blocks one pair uploads, once for all its criteria: the union of the voxels every
+    /// criterion's window and DTA neighbours read. Each criterion's <see cref="GpuTables"/> shifts its cells to it.
+    /// </summary>
+    internal sealed class GpuUpload
+    {
+        public Index3 SourceLo { get; }
+        public Index3 SourceHi { get; }
+        public Index3 TargetLo { get; }
+        public Index3 TargetHi { get; }
+        public double[] Source { get; }
+        public double[] Target { get; }
+
+        /// <summary>Voxels uploaded, as a fraction of the two full grids: what the box saves on the bus.</summary>
+        public double UploadedFraction { get; }
+
+        public long Bytes(int realSize) => (Source.LongLength + Target.LongLength) * realSize;
+
+        private GpuUpload(DoseMatrixOptimal source, DoseMatrixOptimal target, Index3 sLo, Index3 sHi, Index3 tLo, Index3 tHi)
+        {
+            // A sample a rounding error past a grid's last node is "interpolated" and reads the voxel after the
+            // last column or row: in the flat array, the next row's first voxel, weighted about 1e-15. The
+            // hand-written engine does this, so to match it exactly such a grid is uploaded whole.
+            (SourceLo, SourceHi) = WholeIfPastEdge(source, sLo, sHi);
+            (TargetLo, TargetHi) = WholeIfPastEdge(target, tLo, tHi);
+            Source = Crop(source, SourceLo, SourceHi);
+            Target = Crop(target, TargetLo, TargetHi);
+            UploadedFraction = (double)(Source.LongLength + Target.LongLength) / (source.DoseValues.LongLength + target.DoseValues.LongLength);
+        }
+
+        /// <summary>The union of the criteria's reads, or null when none of them evaluates a point.</summary>
+        public static GpuUpload? For(IEnumerable<ComparisonSetup> setups, DoseMatrixOptimal source, DoseMatrixOptimal target)
+        {
+            static Index3 Min(Index3 a, Index3 b) => new(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Min(a.Z, b.Z));
+            static Index3 Max(Index3 a, Index3 b) => new(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y), Math.Max(a.Z, b.Z));
+            (Index3 SLo, Index3 SHi, Index3 TLo, Index3 THi)? union = null;
+            foreach (var s in setups)
+            {
+                if (GpuTables.Reads(s) is not { } r) continue;
+                union = union is { } u ? (Min(u.SLo, r.SLo), Max(u.SHi, r.SHi), Min(u.TLo, r.TLo), Max(u.THi, r.THi)) : r;
+            }
+            return union is { } w ? new GpuUpload(source, target, w.SLo, w.SHi, w.TLo, w.THi) : null;
         }
 
         private static (Index3, Index3) WholeIfPastEdge(DoseMatrixOptimal g, Index3 lo, Index3 hi) =>

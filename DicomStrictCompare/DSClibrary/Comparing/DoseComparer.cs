@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace DSClibrary.Comparing
 {
@@ -58,10 +59,20 @@ namespace DSClibrary.Comparing
             return CompareRelative(source, target, dta);
         }
 
+        /// <summary>
+        /// Every criterion on one loaded pair, in order. The default runs them one at a time; the GPU comparers
+        /// override it to upload the pair once for all of them (the union of what each criterion reads).
+        /// </summary>
+        public virtual IReadOnlyList<SingleComparison> CompareAll(DoseMatrixOptimal source, DoseMatrixOptimal target,
+            IReadOnlyList<ComparisonRun> runs, System.Threading.CancellationToken cancellation = default) =>
+            runs.Select(r => r.Global
+                ? CompareRelative(source, target, r.Dta, r.ReferenceMaximum, cancellation)
+                : CompareAbsolute(source, target, r.Dta, r.ReferenceMaximum, cancellation)).ToArray();
+
         // Batches of pairs (BatchComparer) and threads within one pair (MultiThreadComparer) both exist; the
         // 2026-11-15 measurements are in ~Resources/DSC-notes/2026-11-14-gpu-crossing-point.md on jackdaw.
     }
 
-
-
+    /// <summary>One criterion for <see cref="DoseComparer.CompareAll"/>: its rules, global or local, and the maximum its fractions are of.</summary>
+    public readonly record struct ComparisonRun(Dta Dta, bool Global, double ReferenceMaximum);
 }

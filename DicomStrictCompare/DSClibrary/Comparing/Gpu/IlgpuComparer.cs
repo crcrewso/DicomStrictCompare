@@ -9,8 +9,8 @@ namespace DSClibrary.Comparing.Gpu
     /// The comparison as an ILGPU kernel written in C#, run through ILGPU's OpenCL backend. One work item per (i, j)
     /// line in the threshold box, reading the same packed tables as <see cref="OpenClComparer"/>. Measured
     /// 2026-11-14 to 15 on Intel's Arc B390: in double it reproduced the engine's counts in every run, but unlike
-    /// <see cref="OpenClComparer"/> its floating-point contraction is not set by this code. One comparison at a
-    /// time per instance.
+    /// <see cref="OpenClComparer"/> its floating-point contraction is not set by this code. One pair at a time per
+    /// instance, uploaded once for all its criteria (<see cref="CompareAll"/>).
     /// </summary>
     public sealed class IlgpuComparer : DoseComparer, IDisposable
     {
@@ -74,41 +74,54 @@ namespace DSClibrary.Comparing.Gpu
         public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, CancellationToken cancellation) =>
             Compare(source, target, dta, true, referenceMaximum, cancellation);
 
-        private SingleComparison Compare(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global, double referenceMaximum, CancellationToken cancellation)
+        private SingleComparison Compare(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global, double referenceMaximum, CancellationToken cancellation) =>
+            CompareAll(source, target, new[] { new ComparisonRun(dta, global, referenceMaximum) }, cancellation)[0];
+
+        /// <summary>Uploads the pair once (the union of every criterion's reads), then runs one kernel per criterion.</summary>
+        public override IReadOnlyList<SingleComparison> CompareAll(DoseMatrixOptimal source, DoseMatrixOptimal target,
+            IReadOnlyList<ComparisonRun> runs, CancellationToken cancellation = default)
         {
             cancellation.ThrowIfCancellationRequested();
-            var setup = ComparisonSetup.For(source, target, dta, global, UseThresholdBox, referenceMaximum);
-            var t = new GpuTables(setup, source, target);
-            int compared = 0, failed = 0;
-            if (t.Lines > 0)
+            var setups = runs.Select(r => ComparisonSetup.For(source, target, r.Dta, r.Global, UseThresholdBox, r.ReferenceMaximum)).ToArray();
+            var upload = GpuUpload.For(setups, source, target);
+            var counts = new (int Compared, int Failed)[setups.Length];
+            if (upload is not null)
             {
                 lock (_gate)
                 {
-                    var size = new Index2D(t.Lines / t.LinesY, t.LinesY);
-                    using var hb = _accelerator.Allocate1D(t.Header);
-                    using var ib = _accelerator.Allocate1D(t.Ints);
-                    using var cb = _accelerator.Allocate1D<int>(t.Lines);
-                    using var fb = _accelerator.Allocate1D<int>(t.Lines);
-                    if (_double is not null)
-                    {
-                        using var sb = _accelerator.Allocate1D(t.Source);
-                        using var tb = _accelerator.Allocate1D(t.Target);
-                        using var rb = _accelerator.Allocate1D(t.Reals);
-                        _double(size, sb.View, tb.View, hb.View, ib.View, rb.View, cb.View, fb.View);
-                    }
-                    else
-                    {
-                        using var sb = _accelerator.Allocate1D(Array.ConvertAll(t.Source, v => (float)v));
-                        using var tb = _accelerator.Allocate1D(Array.ConvertAll(t.Target, v => (float)v));
-                        using var rb = _accelerator.Allocate1D(Array.ConvertAll(t.Reals, v => (float)v));
-                        _float!(size, sb.View, tb.View, hb.View, ib.View, rb.View, cb.View, fb.View);
-                    }
-                    _accelerator.Synchronize();
-                    compared = cb.GetAsArray1D().Sum();
-                    failed = fb.GetAsArray1D().Sum();
+                    counts = _double is not null
+                        ? RunAll(upload.Source, upload.Target, setups, upload, v => v, _double, cancellation)
+                        : RunAll(Array.ConvertAll(upload.Source, v => (float)v), Array.ConvertAll(upload.Target, v => (float)v), setups, upload, v => (float)v, _float!, cancellation);
                 }
             }
-            return new SingleComparison(dta, setup.TotalCount, compared, failed);
+            return setups.Select((s, n) => new SingleComparison(runs[n].Dta, s.TotalCount, counts[n].Compared, counts[n].Failed)).ToArray();
+        }
+
+        private (int, int)[] RunAll<T>(T[] s, T[] tv, ComparisonSetup[] setups, GpuUpload upload, Func<double, T> real,
+            Action<Index2D, ArrayView<T>, ArrayView<T>, ArrayView<int>, ArrayView<int>, ArrayView<T>, ArrayView<int>, ArrayView<int>> kernel,
+            CancellationToken cancellation) where T : unmanaged
+        {
+            long bytes = (s.LongLength + tv.LongLength) * Interop.SizeOf<T>();
+            if (bytes > _accelerator.MemorySize)
+                throw new InvalidOperationException($"This pair needs {bytes / 1048576.0:0} MB on {DeviceName}, which has {_accelerator.MemorySize / 1048576.0:0} MB.");
+            using var sb = _accelerator.Allocate1D(s);
+            using var tb = _accelerator.Allocate1D(tv);
+            var results = new (int, int)[setups.Length];
+            for (int n = 0; n < setups.Length; n++)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                var t = new GpuTables(setups[n], upload);
+                if (t.Lines == 0) continue;
+                using var hb = _accelerator.Allocate1D(t.Header);
+                using var ib = _accelerator.Allocate1D(t.Ints);
+                using var rb = _accelerator.Allocate1D(Array.ConvertAll(t.Reals, v => real(v)));
+                using var cb = _accelerator.Allocate1D<int>(t.Lines);
+                using var fb = _accelerator.Allocate1D<int>(t.Lines);
+                kernel(new Index2D(t.Lines / t.LinesY, t.LinesY), sb.View, tb.View, hb.View, ib.View, rb.View, cb.View, fb.View);
+                _accelerator.Synchronize();
+                results[n] = (cb.GetAsArray1D().Sum(), fb.GetAsArray1D().Sum());
+            }
+            return results;
         }
 
         // ---- kernels: the header layout is GpuTables'. Double first, then the same in float. ----

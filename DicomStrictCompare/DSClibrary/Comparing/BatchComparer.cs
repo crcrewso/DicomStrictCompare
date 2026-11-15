@@ -60,6 +60,9 @@ namespace DSClibrary.Comparing
         /// <summary>The two edge checks as one line: "agree", the disagreements, or why not checked.</summary>
         public string EdgeCheck => Succeeded ? Studies.JawEdgeCheck.Describe(SourceEdges, TargetEdges) : "";
 
+        /// <summary>Which of <see cref="BatchComparer.CompareMany"/>'s criteria this row answers; 0 for a single-criterion batch.</summary>
+        public int CriterionIndex { get; init; }
+
         /// <summary>Monitor units of each side where the plans supplied them. Recorded, never applied.</summary>
         public double? SourceMonitorUnits { get; }
         public double? TargetMonitorUnits { get; }
@@ -105,6 +108,23 @@ namespace DSClibrary.Comparing
         public override string ToString() => Succeeded
             ? $"{Key}: {PercentFailed:0.00}% failed of {Comparison!.TotalCompared:N0} ({Elapsed.TotalSeconds:0.0}s)"
             : $"{Key}: {Failure}";
+    }
+
+    /// <summary>Which beams a criterion compares, by the source plan's RadiationType (Cody, 2026-11-15).</summary>
+    public enum BeamsCompared { Both, Photon, Electron }
+
+    /// <summary>
+    /// One criterion for <see cref="BatchComparer.CompareMany"/>: the strict DTA rules, or gamma when
+    /// <see cref="Gamma"/> is set. A pair whose source has no plan, so no known RadiationType, is compared only by
+    /// <see cref="BeamsCompared.Both"/> criteria.
+    /// </summary>
+    public sealed record Criterion(Dta Dta, bool Global, GammaOptions? Gamma = null, BeamsCompared AppliesTo = BeamsCompared.Both)
+    {
+        public static Criterion ForGamma(GammaOptions options, BeamsCompared appliesTo = BeamsCompared.Both) =>
+            new(BatchComparer.DtaFor(options), !options.LocalGamma, options, appliesTo);
+
+        public bool AppliesToBeam(Results.DICOM.RTPlanBeam? beam) => AppliesTo == BeamsCompared.Both
+            || string.Equals(beam?.RadiationType, AppliesTo.ToString(), StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>The outcome of a whole batch.</summary>
@@ -190,6 +210,7 @@ namespace DSClibrary.Comparing
             return Math.Max(1, Math.Min(Math.Min(byMemory, cap), pairs.Count));
         }
 
+        /// <summary>One criterion over the batch; see <see cref="CompareMany"/>.</summary>
         public BatchComparisonResult Compare(
             IEnumerable<MatchedDosePair> pairs,
             Dta dta,
@@ -198,31 +219,8 @@ namespace DSClibrary.Comparing
             CancellationToken cancellation = default,
             MaximumKind maximum = MaximumKind.GlobalMax)
         {
-            if (pairs is null) throw new ArgumentNullException(nameof(pairs));
             if (dta is null) throw new ArgumentNullException(nameof(dta));
-
-            var work = pairs.ToArray();
-            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, _mathematics));
-            var outcomes = new ConcurrentBag<ComparisonOutcome>();
-            var batch = Stopwatch.StartNew();
-
-            Parallel.ForEach(
-                work,
-                new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = parallelism,
-                    CancellationToken = cancellation
-                },
-                pair => outcomes.Add(CompareOne(pair, dta, global, maximum, cancellation)));
-
-            batch.Stop();
-
-            // A stable order, so two runs of the same batch produce the same report.
-            var ordered = outcomes
-                .OrderBy(o => o.Key.ToString(), StringComparer.Ordinal)
-                .ToArray();
-
-            return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
+            return CompareMany(pairs, new[] { new Criterion(dta, global) }, degreeOfParallelism, cancellation, maximum);
         }
 
         /// <summary>
@@ -241,24 +239,46 @@ namespace DSClibrary.Comparing
             CancellationToken cancellation = default,
             MaximumKind maximum = MaximumKind.GlobalMax)
         {
-            if (pairs is null) throw new ArgumentNullException(nameof(pairs));
             if (options is null) throw new ArgumentNullException(nameof(options));
-            options.Validate();
+            return CompareMany(pairs, new[] { Criterion.ForGamma(options) }, degreeOfParallelism, cancellation, maximum);
+        }
+
+        /// <summary>
+        /// Every criterion over the batch, <b>loading each pair once</b>: its grids, Max and edge checks serve all
+        /// the criteria, the DTA ones go to the comparer together (<see cref="DoseComparer.CompareAll"/>, one GPU
+        /// upload per pair), and the gamma ones run on the same grids. A criterion that does not apply to a pair's
+        /// beam (<see cref="Criterion.AppliesTo"/>) produces no row for it. Outcomes are ordered by key, then
+        /// criterion. <see cref="ComparisonOutcome.Elapsed"/> is the pair's whole time, shared by its rows.
+        /// </summary>
+        public BatchComparisonResult CompareMany(
+            IEnumerable<MatchedDosePair> pairs,
+            IReadOnlyList<Criterion> criteria,
+            int? degreeOfParallelism = null,
+            CancellationToken cancellation = default,
+            MaximumKind maximum = MaximumKind.GlobalMax)
+        {
+            if (pairs is null) throw new ArgumentNullException(nameof(pairs));
+            if (criteria is null) throw new ArgumentNullException(nameof(criteria));
+            foreach (var c in criteria) c.Gamma?.Validate();
 
             var work = pairs.ToArray();
-            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, new HandWrittenComparer()));
-            int perGamma = options.DegreeOfParallelism ?? Math.Max(1, Environment.ProcessorCount / parallelism);
-            var perPair = options with { DegreeOfParallelism = perGamma };
+            bool anyDta = criteria.Any(c => c.Gamma is null);
+            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, anyDta ? _mathematics : new HandWrittenComparer()));
+            int perGamma = Math.Max(1, Environment.ProcessorCount / parallelism);
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
 
             Parallel.ForEach(
                 work,
                 new ParallelOptions { MaxDegreeOfParallelism = parallelism, CancellationToken = cancellation },
-                pair => outcomes.Add(CompareOneGamma(pair, perPair, maximum, cancellation)));
+                pair => { foreach (var o in CompareOne(pair, criteria, perGamma, maximum, cancellation)) outcomes.Add(o); });
 
             batch.Stop();
-            var ordered = outcomes.OrderBy(o => o.Key.ToString(), StringComparer.Ordinal).ToArray();
+            // A stable order, so two runs of the same batch produce the same report.
+            var ordered = outcomes
+                .OrderBy(o => o.Key.ToString(), StringComparer.Ordinal)
+                .ThenBy(o => o.CriterionIndex)
+                .ToArray();
             return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
         }
 
@@ -271,78 +291,61 @@ namespace DSClibrary.Comparing
             relative: !options.LocalGamma,
             gamma: true);
 
-        private ComparisonOutcome CompareOneGamma(MatchedDosePair pair, GammaOptions options, MaximumKind maximum, CancellationToken cancellation)
+        private IEnumerable<ComparisonOutcome> CompareOne(MatchedDosePair pair, IReadOnlyList<Criterion> criteria, int perGamma,
+            MaximumKind maximum, CancellationToken cancellation)
         {
+            int[] applicable = Enumerable.Range(0, criteria.Count).Where(n => criteria[n].AppliesToBeam(pair.Source.Beam)).ToArray();
+            if (applicable.Length == 0) return Array.Empty<ComparisonOutcome>();
+            string EngineOf(Criterion c) => c.Gamma is null ? _mathematics.Description : "GammaShell";
+
             var timer = Stopwatch.StartNew();
-            Dta dta = DtaFor(options);
-            bool global = !options.LocalGamma;
             try
             {
                 cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
                 cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal target = _load(pair.Target.Dose.SourcePath);
+
+                var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
+                var sourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam);
+                var targetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam);
+
+                // The DTA criteria together, so a GPU comparer uploads the pair once. The token goes into the engine,
+                // which checks it as it runs, so a cancel stops a comparison under way.
+                int[] dta = applicable.Where(n => criteria[n].Gamma is null).ToArray();
+                var counts = new Dictionary<int, SingleComparison>();
+                var gammas = new Dictionary<int, GammaResult>();
+                if (dta.Length > 0)
+                {
+                    var runs = dta.Select(n => new ComparisonRun(criteria[n].Dta, criteria[n].Global, reference.Dose)).ToArray();
+                    var results = _mathematics.CompareAll(source, target, runs, cancellation);
+                    for (int r = 0; r < dta.Length; r++) counts[dta[r]] = results[r];
+                }
 
                 // Global gamma divides by the global normalisation and local by each reference voxel; the lower dose
                 // cutoff is a percentage of the normalisation in both. The Max setting supplies it, as it does the
                 // DTA threshold, unless a caller set one. Global Max leaves pymedphys' default, the reference maximum.
-                var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
-                var run = reference.Used == MaximumKind.CaxMax && options.GlobalNormalisation is null
-                    ? options with { GlobalNormalisation = reference.Dose }
-                    : options;
-                GammaResult gamma = GammaShell.Compare(source, target, run, cancellation);
-                var comparison = new SingleComparison(dta, source.DoseValues.Length, gamma.Analysed, gamma.Analysed - gamma.Passed);
-
-                timer.Stop();
-                return new ComparisonOutcome(
-                    pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
-                    dta, global, comparison, null, timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gamma, "GammaShell", reference)
+                foreach (int n in applicable.Where(n => criteria[n].Gamma is not null))
                 {
-                    SourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam),
-                    TargetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam),
-                };
-            }
-            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                timer.Stop();
-                return new ComparisonOutcome(
-                    pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
-                    dta, global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: "GammaShell");
-            }
-        }
-
-        private ComparisonOutcome CompareOne(MatchedDosePair pair, Dta dta, bool global, MaximumKind maximum, CancellationToken cancellation)
-        {
-            var timer = Stopwatch.StartNew();
-            try
-            {
-                cancellation.ThrowIfCancellationRequested();
-                DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
-                cancellation.ThrowIfCancellationRequested();
-                DoseMatrixOptimal target = _load(pair.Target.Dose.SourcePath);
-
-                // The token goes into the engine, which checks it once per plane, so a cancel stops a
-                // comparison that is under way rather than waiting for it to finish.
-                var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
-                SingleComparison comparison = global
-                    ? _mathematics.CompareRelative(source, target, dta, reference.Dose, cancellation)
-                    : _mathematics.CompareAbsolute(source, target, dta, reference.Dose, cancellation);
+                    var options = criteria[n].Gamma!;
+                    var run = options with { DegreeOfParallelism = options.DegreeOfParallelism ?? perGamma };
+                    if (reference.Used == MaximumKind.CaxMax && options.GlobalNormalisation is null)
+                        run = run with { GlobalNormalisation = reference.Dose };
+                    var gamma = GammaShell.Compare(source, target, run, cancellation);
+                    gammas[n] = gamma;
+                    counts[n] = new SingleComparison(criteria[n].Dta, source.DoseValues.Length, gamma.Analysed, gamma.Analysed - gamma.Passed);
+                }
 
                 timer.Stop();
-                return new ComparisonOutcome(
+                return applicable.Select(n => new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
-                    dta, global, comparison, null, timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: _mathematics.Description, maximum: reference)
+                    criteria[n].Dta, criteria[n].Global, counts[n], null, timer.Elapsed,
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gammas.GetValueOrDefault(n), EngineOf(criteria[n]), reference)
                 {
-                    SourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam),
-                    TargetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam),
-                };
+                    CriterionIndex = n,
+                    SourceEdges = sourceEdges,
+                    TargetEdges = targetEdges,
+                }).ToArray();
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
@@ -352,13 +355,14 @@ namespace DSClibrary.Comparing
             }
             catch (Exception ex)
             {
-                // One bad pair must not lose the rest of the batch; the failure is carried in the
-                // outcome so it appears in the report rather than vanishing.
+                // One bad pair must not lose the rest of the batch; the failure is carried in each of its
+                // rows so it appears in the report rather than vanishing.
                 timer.Stop();
-                return new ComparisonOutcome(
+                return applicable.Select(n => new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
-                    dta, global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: _mathematics.Description);
+                    criteria[n].Dta, criteria[n].Global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: EngineOf(criteria[n]))
+                { CriterionIndex = n }).ToArray();
             }
         }
     }

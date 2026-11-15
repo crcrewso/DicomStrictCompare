@@ -7,7 +7,8 @@ namespace DSClibrary.Comparing.Gpu
     /// <summary>
     /// The comparison as a hand-written OpenCL C kernel, through Silk.NET's bindings. One work item per (i, j) line
     /// in the threshold box. FP_CONTRACT is off so a*b+c is never fused, which the engine never does: in double this
-    /// reproduces <see cref="HandWrittenComparer"/> exactly. One comparison at a time per instance.
+    /// reproduces <see cref="HandWrittenComparer"/> exactly. One pair at a time per instance, uploaded once for all its
+    /// criteria (<see cref="CompareAll"/>).
     /// </summary>
     public sealed unsafe class OpenClComparer : DoseComparer, IDisposable
     {
@@ -78,6 +79,7 @@ namespace DSClibrary.Comparing.Gpu
         private readonly CL _cl = CL.GetApi();
         private readonly nint _device, _context, _queue, _program, _kernel;
         private readonly object _gate = new();
+        private readonly long _maxAllocation;
 
         public GpuPrecision Precision { get; }
         public string DeviceName { get; }
@@ -120,6 +122,9 @@ namespace DSClibrary.Comparing.Gpu
                 throw new ComparerUnavailableException((device is null ? "No OpenCL GPU" : $"No OpenCL GPU named like '{device}'")
                     + (precision == GpuPrecision.Double ? " with double precision (cl_khr_fp64)." : "."));
             DeviceName = Info(_device);
+            ulong maxAlloc;
+            Check(_cl.GetDeviceInfo(_device, DeviceInfo.MaxMemAllocSize, (nuint)sizeof(ulong), &maxAlloc, null), "GetDeviceInfo");
+            _maxAllocation = (long)Math.Min(maxAlloc, long.MaxValue / 4);
 
             int err;
             nint dev = _device;
@@ -152,59 +157,85 @@ namespace DSClibrary.Comparing.Gpu
         public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, CancellationToken cancellation) =>
             Compare(source, target, dta, true, referenceMaximum, cancellation);
 
-        private SingleComparison Compare(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global, double referenceMaximum, CancellationToken cancellation)
+        private SingleComparison Compare(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global, double referenceMaximum, CancellationToken cancellation) =>
+            CompareAll(source, target, new[] { new ComparisonRun(dta, global, referenceMaximum) }, cancellation)[0];
+
+        /// <summary>Uploads the pair once (the union of every criterion's reads), then runs one kernel per criterion.</summary>
+        public override IReadOnlyList<SingleComparison> CompareAll(DoseMatrixOptimal source, DoseMatrixOptimal target,
+            IReadOnlyList<ComparisonRun> runs, CancellationToken cancellation = default)
         {
             cancellation.ThrowIfCancellationRequested();
-            var setup = ComparisonSetup.For(source, target, dta, global, UseThresholdBox, referenceMaximum);
-            var t = new GpuTables(setup, source, target);
-            int compared = 0, failed = 0;
-            if (t.Lines > 0)
+            var setups = runs.Select(r => ComparisonSetup.For(source, target, r.Dta, r.Global, UseThresholdBox, r.ReferenceMaximum)).ToArray();
+            var upload = GpuUpload.For(setups, source, target);
+            var counts = new (int Compared, int Failed)[setups.Length];
+            if (upload is not null)
             {
                 lock (_gate)
                 {
-                    (compared, failed) = Precision == GpuPrecision.Double
-                        ? Run(t.Source, t.Target, t.Reals, t)
-                        : Run(Array.ConvertAll(t.Source, v => (float)v), Array.ConvertAll(t.Target, v => (float)v), Array.ConvertAll(t.Reals, v => (float)v), t);
+                    counts = Precision == GpuPrecision.Double
+                        ? RunAll(upload.Source, upload.Target, setups, upload, v => v, cancellation)
+                        : RunAll(Array.ConvertAll(upload.Source, v => (float)v), Array.ConvertAll(upload.Target, v => (float)v), setups, upload, v => (float)v, cancellation);
                 }
             }
-            return new SingleComparison(dta, setup.TotalCount, compared, failed);
+            return setups.Select((s, n) => new SingleComparison(runs[n].Dta, s.TotalCount, counts[n].Compared, counts[n].Failed)).ToArray();
         }
 
-        private (int, int) Run<T>(T[] s, T[] tv, T[] reals, GpuTables t) where T : unmanaged
+        private (int, int)[] RunAll<T>(T[] s, T[] tv, ComparisonSetup[] setups, GpuUpload upload, Func<double, T> real, CancellationToken cancellation) where T : unmanaged
         {
-            var buffers = new List<nint>();
-            nint Buffer<TB>(TB[] data) where TB : unmanaged
+            var pair = new List<nint>();
+            nint Buffer<TB>(List<nint> owner, TB[] data) where TB : unmanaged
             {
                 int err;
                 nint b;
                 fixed (TB* d = data) b = _cl.CreateBuffer(_context, MemFlags.ReadOnly | MemFlags.CopyHostPtr, (nuint)(data.LongLength * sizeof(TB)), d, &err);
                 Check(err, "CreateBuffer");
-                buffers.Add(b);
+                owner.Add(b);
                 return b;
             }
             try
             {
-                nint sb = Buffer(s), tb = Buffer(tv), hb = Buffer(t.Header), ib = Buffer(t.Ints), rb = Buffer(reals);
-                int err;
-                nint cb = _cl.CreateBuffer(_context, MemFlags.WriteOnly, (nuint)(t.Lines * 4), null, &err); Check(err, "CreateBuffer"); buffers.Add(cb);
-                nint fb = _cl.CreateBuffer(_context, MemFlags.WriteOnly, (nuint)(t.Lines * 4), null, &err); Check(err, "CreateBuffer"); buffers.Add(fb);
-                nint[] args = { sb, tb, hb, ib, rb, cb, fb };
-                for (uint a = 0; a < args.Length; a++)
+                // A clear failure on the pair's row, rather than OpenCL's -61, when one grid's block exceeds what the device allows.
+                long largest = Math.Max(s.LongLength, tv.LongLength) * sizeof(T);
+                if (largest > _maxAllocation)
+                    throw new InvalidOperationException($"A grid block of {largest / 1048576.0:0} MB exceeds {DeviceName}'s {_maxAllocation / 1048576.0:0} MB per buffer.");
+                nint sb = Buffer(pair, s), tb = Buffer(pair, tv);
+                var results = new (int, int)[setups.Length];
+                for (int n = 0; n < setups.Length; n++)
                 {
-                    nint arg = args[a];
-                    Check(_cl.SetKernelArg(_kernel, a, (nuint)sizeof(nint), &arg), "SetKernelArg");
+                    cancellation.ThrowIfCancellationRequested();
+                    var t = new GpuTables(setups[n], upload);
+                    if (t.Lines == 0) continue;
+                    var run = new List<nint>();
+                    try
+                    {
+                        nint hb = Buffer(run, t.Header), ib = Buffer(run, t.Ints), rb = Buffer(run, Array.ConvertAll(t.Reals, v => real(v)));
+                        int err;
+                        nint cb = _cl.CreateBuffer(_context, MemFlags.WriteOnly, (nuint)(t.Lines * 4), null, &err); Check(err, "CreateBuffer"); run.Add(cb);
+                        nint fb = _cl.CreateBuffer(_context, MemFlags.WriteOnly, (nuint)(t.Lines * 4), null, &err); Check(err, "CreateBuffer"); run.Add(fb);
+                        nint[] args = { sb, tb, hb, ib, rb, cb, fb };
+                        for (uint a = 0; a < args.Length; a++)
+                        {
+                            nint arg = args[a];
+                            Check(_cl.SetKernelArg(_kernel, a, (nuint)sizeof(nint), &arg), "SetKernelArg");
+                        }
+                        nuint* global = stackalloc nuint[2] { (nuint)(t.Lines / t.LinesY), (nuint)t.LinesY };
+                        Check(_cl.EnqueueNdrangeKernel(_queue, _kernel, 2, null, global, null, 0, null, null), "EnqueueNdrangeKernel");
+                        var c = new int[t.Lines];
+                        var f = new int[t.Lines];
+                        fixed (int* cp = c) Check(_cl.EnqueueReadBuffer(_queue, cb, true, 0, (nuint)(t.Lines * 4), cp, 0, null, null), "EnqueueReadBuffer");
+                        fixed (int* fp = f) Check(_cl.EnqueueReadBuffer(_queue, fb, true, 0, (nuint)(t.Lines * 4), fp, 0, null, null), "EnqueueReadBuffer");
+                        results[n] = (c.Sum(), f.Sum());
+                    }
+                    finally
+                    {
+                        foreach (var b in run) _cl.ReleaseMemObject(b);
+                    }
                 }
-                nuint* global = stackalloc nuint[2] { (nuint)(t.Lines / t.LinesY), (nuint)t.LinesY };
-                Check(_cl.EnqueueNdrangeKernel(_queue, _kernel, 2, null, global, null, 0, null, null), "EnqueueNdrangeKernel");
-                var c = new int[t.Lines];
-                var f = new int[t.Lines];
-                fixed (int* cp = c) Check(_cl.EnqueueReadBuffer(_queue, cb, true, 0, (nuint)(t.Lines * 4), cp, 0, null, null), "EnqueueReadBuffer");
-                fixed (int* fp = f) Check(_cl.EnqueueReadBuffer(_queue, fb, true, 0, (nuint)(t.Lines * 4), fp, 0, null, null), "EnqueueReadBuffer");
-                return (c.Sum(), f.Sum());
+                return results;
             }
             finally
             {
-                foreach (var b in buffers) _cl.ReleaseMemObject(b);
+                foreach (var b in pair) _cl.ReleaseMemObject(b);
             }
         }
 
