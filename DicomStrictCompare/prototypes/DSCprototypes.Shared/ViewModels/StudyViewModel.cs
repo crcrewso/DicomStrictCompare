@@ -127,7 +127,7 @@ public sealed partial class StudyViewModel : ObservableObject
     {
         _pickFolder = pickFolder;
         _criteria = criteria;
-        _loader = loader ?? ComparisonRunner.LoadWithEvilDicom;
+        _loader = loader ?? ComparisonRunner.LoadGrid;
     }
 
     // ---- setup (F1, F2, F7 depths) ----

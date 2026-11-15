@@ -61,7 +61,7 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        _graphs = new GraphPage(ComparisonRunner.LoadWithEvilDicom, () => (_sourceAlias.Text, _targetAlias.Text), PickFolder, () => _sourceFolder.Text);
+        _graphs = new GraphPage(ComparisonRunner.LoadGrid, () => (_sourceAlias.Text, _targetAlias.Text), PickFolder, () => _sourceFolder.Text);
         Title = "DicomStrictCompare - Eto.Forms prototype";
         ClientSize = new Size(1280, 820);
         MinimumSize = new Size(900, 600);

@@ -131,9 +131,12 @@ public sealed class ComparisonSession
 public static class ComparisonRunner
 {
     /// <summary>
-    /// Grid loader for <see cref="BatchComparer"/>. EvilDICOM is what the library's own tests use; the
-    /// in-house reader (<c>RTDoseResult</c>) does not yet produce a <see cref="DoseMatrixOptimal"/>.
+    /// The grid loader every window uses: <see cref="DoseGridReader"/>, which streams the voxels and is
+    /// checked against EvilDICOM voxel for voxel (memory measured in ~Resources/DSC-notes/2026-11-14-memory-findings.md).
     /// </summary>
+    public static DoseMatrixOptimal LoadGrid(string path) => DoseGridReader.Read(path);
+
+    /// <summary>EvilDICOM's loader, kept for the tests and for anyone who wants to compare the two.</summary>
     public static DoseMatrixOptimal LoadWithEvilDicom(string path) =>
         new(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(path)));
 
@@ -164,7 +167,7 @@ public static class ComparisonRunner
         var match = DoseMatcher.Match(source.Doses, target.Doses, request.Strategy);
         progress?.Report(match.ToString());
 
-        var comparer = new BatchComparer(LoadWithEvilDicom);
+        var comparer = new BatchComparer(LoadGrid);
         var outcomes = new List<ComparisonOutcome>();
         var rows = new List<ResultRow>();
 

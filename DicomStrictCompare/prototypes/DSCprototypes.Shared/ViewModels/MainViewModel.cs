@@ -45,7 +45,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
-        Graph = new GraphViewModel(ComparisonRunner.LoadWithEvilDicom, pickFolder);
+        Graph = new GraphViewModel(ComparisonRunner.LoadGrid, pickFolder);
         Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList());
     }
 

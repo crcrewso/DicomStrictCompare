@@ -207,7 +207,7 @@ public static class StudyRunner
         var rows = new List<StudyRow>();
         if (compare)
         {
-            var comparer = new BatchComparer(ComparisonRunner.LoadWithEvilDicom);
+            var comparer = new BatchComparer(ComparisonRunner.LoadGrid);
             foreach (var preview in previews)
             {
                 var byFiles = preview.Pairs.ToDictionary(p => (p.Pair.Source.Dose.SourcePath, p.Pair.Target.Dose.SourcePath));
