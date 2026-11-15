@@ -92,7 +92,7 @@ namespace DSClibrary.Comparing.Gpu
             catch (Exception ex) { throw new ComparerUnavailableException($"OpenCL (Silk.NET) is unavailable: {ex.Message}", ex); }
         }
 
-        public OpenClComparer(GpuPrecision precision = GpuPrecision.Float, string? device = null)
+        public OpenClComparer(GpuPrecision precision = GpuPrecision.Double, string? device = null)
         {
             Precision = precision;
             uint count;
@@ -156,15 +156,15 @@ namespace DSClibrary.Comparing.Gpu
         {
             cancellation.ThrowIfCancellationRequested();
             var setup = ComparisonSetup.For(source, target, dta, global, UseThresholdBox, referenceMaximum);
-            var t = new GpuTables(setup);
+            var t = new GpuTables(setup, source, target);
             int compared = 0, failed = 0;
             if (t.Lines > 0)
             {
                 lock (_gate)
                 {
                     (compared, failed) = Precision == GpuPrecision.Double
-                        ? Run(source.DoseValues, target.DoseValues, t.Reals, t)
-                        : Run(FloatGrids.Of(source), FloatGrids.Of(target), Array.ConvertAll(t.Reals, v => (float)v), t);
+                        ? Run(t.Source, t.Target, t.Reals, t)
+                        : Run(Array.ConvertAll(t.Source, v => (float)v), Array.ConvertAll(t.Target, v => (float)v), Array.ConvertAll(t.Reals, v => (float)v), t);
                 }
             }
             return new SingleComparison(dta, setup.TotalCount, compared, failed);

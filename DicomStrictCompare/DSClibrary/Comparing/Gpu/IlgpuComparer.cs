@@ -42,7 +42,7 @@ namespace DSClibrary.Comparing.Gpu
             catch (Exception ex) { throw new ComparerUnavailableException($"ILGPU is unavailable: {ex.Message}", ex); }
         }
 
-        public IlgpuComparer(GpuPrecision precision = GpuPrecision.Float, string? device = null)
+        public IlgpuComparer(GpuPrecision precision = GpuPrecision.Double, string? device = null)
         {
             Precision = precision;
             _context = Context.Create(b => b.OpenCL());
@@ -78,7 +78,7 @@ namespace DSClibrary.Comparing.Gpu
         {
             cancellation.ThrowIfCancellationRequested();
             var setup = ComparisonSetup.For(source, target, dta, global, UseThresholdBox, referenceMaximum);
-            var t = new GpuTables(setup);
+            var t = new GpuTables(setup, source, target);
             int compared = 0, failed = 0;
             if (t.Lines > 0)
             {
@@ -91,15 +91,15 @@ namespace DSClibrary.Comparing.Gpu
                     using var fb = _accelerator.Allocate1D<int>(t.Lines);
                     if (_double is not null)
                     {
-                        using var sb = _accelerator.Allocate1D(source.DoseValues);
-                        using var tb = _accelerator.Allocate1D(target.DoseValues);
+                        using var sb = _accelerator.Allocate1D(t.Source);
+                        using var tb = _accelerator.Allocate1D(t.Target);
                         using var rb = _accelerator.Allocate1D(t.Reals);
                         _double(size, sb.View, tb.View, hb.View, ib.View, rb.View, cb.View, fb.View);
                     }
                     else
                     {
-                        using var sb = _accelerator.Allocate1D(FloatGrids.Of(source));
-                        using var tb = _accelerator.Allocate1D(FloatGrids.Of(target));
+                        using var sb = _accelerator.Allocate1D(Array.ConvertAll(t.Source, v => (float)v));
+                        using var tb = _accelerator.Allocate1D(Array.ConvertAll(t.Target, v => (float)v));
                         using var rb = _accelerator.Allocate1D(Array.ConvertAll(t.Reals, v => (float)v));
                         _float!(size, sb.View, tb.View, hb.View, ib.View, rb.View, cb.View, fb.View);
                     }

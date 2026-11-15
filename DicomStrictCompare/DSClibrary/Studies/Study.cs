@@ -165,17 +165,32 @@ namespace DSClibrary.Studies
     /// Dose sets and the comparisons between them (F1). One run reads each set once, however many
     /// comparisons use it.
     /// </summary>
+    /// <summary>
+    /// How a study runs, saved with it so a rerun uses the same engine: the Max setting, the comparer, and how many
+    /// pairs run at once (null: chosen from memory, see <see cref="Comparing.BatchComparer.PairsAtOnce"/>).
+    /// </summary>
+    public sealed record StudyRunSettings(
+        Comparing.MaximumKind Maximum = Comparing.MaximumKind.GlobalMax,
+        Comparing.ComparerSettings? Comparer = null,
+        int? PairsAtOnce = null)
+    {
+        public static readonly StudyRunSettings Default = new();
+        public Comparing.ComparerSettings ComparerOrDefault => Comparer ?? new Comparing.ComparerSettings();
+    }
+
     public sealed class Study
     {
         public IReadOnlyList<DoseSet> Sets { get; }
         public IReadOnlyList<SetComparison> Comparisons { get; }
         public DepthSettings Depths { get; }
+        public StudyRunSettings Run { get; }
 
-        public Study(IEnumerable<DoseSet> sets, IEnumerable<SetComparison> comparisons, DepthSettings? depths = null)
+        public Study(IEnumerable<DoseSet> sets, IEnumerable<SetComparison> comparisons, DepthSettings? depths = null, StudyRunSettings? run = null)
         {
             Sets = sets?.ToArray() ?? throw new ArgumentNullException(nameof(sets));
             Comparisons = comparisons?.ToArray() ?? throw new ArgumentNullException(nameof(comparisons));
             Depths = depths ?? DepthSettings.Default;
+            Run = run ?? StudyRunSettings.Default;
         }
 
         public DoseSet Set(string name) =>
@@ -214,7 +229,10 @@ namespace DSClibrary.Studies
         internal sealed record ComparisonFile(string SourceSet, string TargetSet, DoseMatchStrategy Strategy,
             RuleFile[]? LabelRules, Dictionary<string, string>? LabelOverrides, RuleFile[]? FieldRules = null);
         internal sealed record DepthFile(bool IncludeDmax, double[] DepthsMm);
-        internal sealed record StudyFile(int Version, DoseSet[] Sets, ComparisonFile[] Comparisons, DepthFile Depths);
+        // Optional, so files saved before 2026-11-15 still open, with the defaults.
+        internal sealed record RunFile(Comparing.MaximumKind Maximum, Comparing.ComparerKind Comparer, int? Threads,
+            Comparing.GpuPrecision Precision, bool UseThresholdBox, string? Device, int? PairsAtOnce);
+        internal sealed record StudyFile(int Version, DoseSet[] Sets, ComparisonFile[] Comparisons, DepthFile Depths, RunFile? Run = null);
 
         // Source-generated, not reflection: a trimmed, AOT or file-based (`dotnet run x.cs`) program has
         // reflection-based JSON switched off, and Load failed there (measured 2026-11-14).
@@ -229,7 +247,9 @@ namespace DSClibrary.Studies
                 c.Rules.LabelRules.Select(r => new RuleFile(r.Pattern, r.Replacement)).ToArray(),
                 new Dictionary<string, string>(c.Rules.LabelOverrides),
                 c.Rules.FieldRules.Select(r => new RuleFile(r.Pattern, r.Replacement)).ToArray())).ToArray(),
-            new DepthFile(Depths.IncludeDmax, Depths.DepthsMm.ToArray())), JsonInfo);
+            new DepthFile(Depths.IncludeDmax, Depths.DepthsMm.ToArray()),
+            new RunFile(Run.Maximum, Run.ComparerOrDefault.Kind, Run.ComparerOrDefault.Threads, Run.ComparerOrDefault.Precision,
+                Run.ComparerOrDefault.UseThresholdBox, Run.ComparerOrDefault.Device, Run.PairsAtOnce)), JsonInfo);
 
         public static Study FromJson(string json)
         {
@@ -244,7 +264,9 @@ namespace DSClibrary.Studies
                         (c.LabelRules ?? Array.Empty<RuleFile>()).Select(r => new LabelRule(r.Pattern, r.Replacement)),
                         c.LabelOverrides,
                         (c.FieldRules ?? Array.Empty<RuleFile>()).Select(r => new LabelRule(r.Pattern, r.Replacement))))),
-                file.Depths is null ? null : new DepthSettings(file.Depths.DepthsMm, file.Depths.IncludeDmax));
+                file.Depths is null ? null : new DepthSettings(file.Depths.DepthsMm, file.Depths.IncludeDmax),
+                file.Run is not { } r ? null : new StudyRunSettings(r.Maximum,
+                    new Comparing.ComparerSettings(r.Comparer, r.Threads, r.Precision, r.UseThresholdBox, r.Device), r.PairsAtOnce));
         }
 
         public void Save(string path) => File.WriteAllText(path, ToJson());

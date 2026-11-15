@@ -3,12 +3,24 @@ namespace DSClibrary.Comparing
     public enum ComparerKind { HandWritten, SingleThread, MultiThread, Ilgpu, OpenCl }
 
     /// <summary>
-    /// GPU arithmetic. Float is the default (Cody, 2026-11-15) so GPUs with weak double rates are not crushed: the
-    /// stored data is coarser than float's rounding, and cells and weights are chosen in double on the host either
-    /// way. Double reproduces <see cref="HandWrittenComparer"/> exactly; float may differ on points within rounding
-    /// of a tolerance.
+    /// GPU arithmetic. <b>Double is the default</b> and reproduces <see cref="HandWrittenComparer"/> exactly. Float is
+    /// for the GPU comparers only and only as a user's choice (Cody, 2026-11-15). It may differ from the reference
+    /// on points within rounding of a tolerance or the threshold, a few in millions in the tests.
+    /// <para>
+    /// <b>Why offer float at all:</b> many consumer GPUs run double far slower than float. Roughly, from vendor
+    /// specifications, so check your own card's:
+    /// - NVIDIA GeForce RTX 20 series (Turing) at 1/32 of the float rate;
+    /// - RTX 30 and 40 series (Ampere, Ada) at 1/64;
+    /// - AMD Radeon RDNA cards at about 1/16 to 1/32;
+    /// - Intel Arc A-series has no double-precision hardware at all.
+    /// Data-centre cards (for example NVIDIA A100, H100) run double at half the float rate.
+    /// </para>
+    /// <para>
+    /// <b>Measured here, 2026-11-14 to 15:</b> the kernel alone ran about 5-10x slower in double on an Intel Arc B390
+    /// and 6-9x on an AMD RX 9070 XT. End to end it was only about 2x, because uploading the grids dominated.
+    /// </para>
     /// </summary>
-    public enum GpuPrecision { Float, Double }
+    public enum GpuPrecision { Double, Float }
 
     /// <summary>
     /// Which comparer to build. Front ends keep this as a setting and pass it to <see cref="DoseComparers.Create"/>,
@@ -18,7 +30,7 @@ namespace DSClibrary.Comparing
     public sealed record ComparerSettings(
         ComparerKind Kind = ComparerKind.HandWritten,
         int? Threads = null,
-        GpuPrecision Precision = GpuPrecision.Float,
+        GpuPrecision Precision = GpuPrecision.Double,
         bool UseThresholdBox = true,
         string? Device = null);
 

@@ -50,8 +50,15 @@ namespace DSClibrary.Comparing
         /// <summary>Which comparer produced this (<see cref="DoseComparer.Description"/>), so a number can be traced to its engine.</summary>
         public string Comparer { get; }
 
-        /// <summary>The maximum the threshold and global tolerance were fractions of, and why; null for gamma rows and failures.</summary>
+        /// <summary>The maximum the threshold and global tolerance were fractions of, and why; null for failures.</summary>
         public ReferenceMaximum? Maximum { get; }
+
+        /// <summary>Each dose's field edges against its own plan's jaws (Studies.JawEdgeCheck); null for failures.</summary>
+        public Studies.JawEdgeResult? SourceEdges { get; init; }
+        public Studies.JawEdgeResult? TargetEdges { get; init; }
+
+        /// <summary>The two edge checks as one line: "agree", the disagreements, or why not checked.</summary>
+        public string EdgeCheck => Succeeded ? Studies.JawEdgeCheck.Describe(SourceEdges, TargetEdges) : "";
 
         /// <summary>Monitor units of each side where the plans supplied them. Recorded, never applied.</summary>
         public double? SourceMonitorUnits { get; }
@@ -164,6 +171,25 @@ namespace DSClibrary.Comparing
         /// </summary>
         public static int DefaultDegreeOfParallelism => Math.Min(4, Environment.ProcessorCount);
 
+        /// <summary>
+        /// How many pairs to run at once when none is set: as many as half the free memory holds, the largest pair's
+        /// two grids at 8 bytes a voxel (from the headers), up to the core count. Comparers that already use the cores
+        /// within a pair (multi-thread, GPU) get at most 2, so one pair loads while another compares.
+        /// <para>
+        /// Measured 2026-11-14 to 15: a fixed 4 ran a 31 GB machine out of memory on 1 mm grids, and with the box a
+        /// single pair needs little beyond its two grids.
+        /// </para>
+        /// </summary>
+        public static int PairsAtOnce(IReadOnlyCollection<MatchedDosePair> pairs, DoseComparer comparer, long? availableBytes = null)
+        {
+            if (pairs.Count == 0) return 1;
+            long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
+            long budget = (availableBytes ?? GC.GetGCMemoryInfo().TotalAvailableMemoryBytes) / 2;
+            int byMemory = largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : Environment.ProcessorCount;
+            int cap = comparer is HandWrittenComparer or SingleThreadComparer ? Environment.ProcessorCount : 2;
+            return Math.Max(1, Math.Min(Math.Min(byMemory, cap), pairs.Count));
+        }
+
         public BatchComparisonResult Compare(
             IEnumerable<MatchedDosePair> pairs,
             Dta dta,
@@ -176,7 +202,7 @@ namespace DSClibrary.Comparing
             if (dta is null) throw new ArgumentNullException(nameof(dta));
 
             var work = pairs.ToArray();
-            int parallelism = Math.Max(1, degreeOfParallelism ?? DefaultDegreeOfParallelism);
+            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, _mathematics));
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
 
@@ -212,14 +238,15 @@ namespace DSClibrary.Comparing
             IEnumerable<MatchedDosePair> pairs,
             GammaOptions options,
             int? degreeOfParallelism = null,
-            CancellationToken cancellation = default)
+            CancellationToken cancellation = default,
+            MaximumKind maximum = MaximumKind.GlobalMax)
         {
             if (pairs is null) throw new ArgumentNullException(nameof(pairs));
             if (options is null) throw new ArgumentNullException(nameof(options));
             options.Validate();
 
             var work = pairs.ToArray();
-            int parallelism = Math.Max(1, degreeOfParallelism ?? DefaultDegreeOfParallelism);
+            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, new HandWrittenComparer()));
             int perGamma = options.DegreeOfParallelism ?? Math.Max(1, Environment.ProcessorCount / parallelism);
             var perPair = options with { DegreeOfParallelism = perGamma };
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
@@ -228,7 +255,7 @@ namespace DSClibrary.Comparing
             Parallel.ForEach(
                 work,
                 new ParallelOptions { MaxDegreeOfParallelism = parallelism, CancellationToken = cancellation },
-                pair => outcomes.Add(CompareOneGamma(pair, perPair, cancellation)));
+                pair => outcomes.Add(CompareOneGamma(pair, perPair, maximum, cancellation)));
 
             batch.Stop();
             var ordered = outcomes.OrderBy(o => o.Key.ToString(), StringComparer.Ordinal).ToArray();
@@ -244,7 +271,7 @@ namespace DSClibrary.Comparing
             relative: !options.LocalGamma,
             gamma: true);
 
-        private ComparisonOutcome CompareOneGamma(MatchedDosePair pair, GammaOptions options, CancellationToken cancellation)
+        private ComparisonOutcome CompareOneGamma(MatchedDosePair pair, GammaOptions options, MaximumKind maximum, CancellationToken cancellation)
         {
             var timer = Stopwatch.StartNew();
             Dta dta = DtaFor(options);
@@ -256,14 +283,25 @@ namespace DSClibrary.Comparing
                 cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal target = _load(pair.Target.Dose.SourcePath);
 
-                GammaResult gamma = GammaShell.Compare(source, target, options, cancellation);
+                // Global gamma divides by the global normalisation and local by each reference voxel; the lower dose
+                // cutoff is a percentage of the normalisation in both. The Max setting supplies it, as it does the
+                // DTA threshold, unless a caller set one. Global Max leaves pymedphys' default, the reference maximum.
+                var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
+                var run = reference.Used == MaximumKind.CaxMax && options.GlobalNormalisation is null
+                    ? options with { GlobalNormalisation = reference.Dose }
+                    : options;
+                GammaResult gamma = GammaShell.Compare(source, target, run, cancellation);
                 var comparison = new SingleComparison(dta, source.DoseValues.Length, gamma.Analysed, gamma.Analysed - gamma.Passed);
 
                 timer.Stop();
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, comparison, null, timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gamma, "GammaShell");
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gamma, "GammaShell", reference)
+                {
+                    SourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam),
+                    TargetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam),
+                };
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
@@ -300,7 +338,11 @@ namespace DSClibrary.Comparing
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, comparison, null, timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: _mathematics.Description, maximum: reference);
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: _mathematics.Description, maximum: reference)
+                {
+                    SourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam),
+                    TargetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam),
+                };
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {

@@ -124,7 +124,7 @@ namespace DSClibraryTests
         }
 
         /// <summary>
-        /// GPU comparers in float, the default. Float rounding may move points that sit within rounding of a
+        /// GPU comparers in float, a user's choice. Float rounding may move points that sit within rounding of a
         /// tolerance or the threshold, so this bound is a placeholder until Cody decides the policy: at most 5 points,
         /// or 0.001 % of points compared, whichever is larger. Every difference is printed.
         /// </summary>
@@ -133,7 +133,7 @@ namespace DSClibraryTests
         {
             var floats = new List<DoseComparer>();
             foreach (var kind in new[] { ComparerKind.Ilgpu, ComparerKind.OpenCl })
-                try { floats.Add(DoseComparers.Create(new ComparerSettings(kind))); } catch (ComparerUnavailableException) { }
+                try { floats.Add(DoseComparers.Create(new ComparerSettings(kind, Precision: GpuPrecision.Float))); } catch (ComparerUnavailableException) { }
             if (floats.Count == 0) Assert.Inconclusive("No GPU comparer starts here.");
             var failures = new List<string>();
             foreach (var (s, t) in ReferencePairs)
