@@ -113,18 +113,20 @@ namespace DSClibrary
         }
 
         /// <summary>
-        /// String constructor
+        /// Reads what <see cref="ToString"/> writes: tolerance and threshold in percent, then Global or Local, then the
+        /// unit. Algorithm and trim aren't in that text, so they take their defaults (dta, 0).
         /// </summary>
         /// <param name="fromDtaToString"></param>
         public Dta(string fromDtaToString)
         {
             if (fromDtaToString == null) throw new ArgumentNullException(nameof(fromDtaToString));
             string[] values = fromDtaToString.Replace(", ", "|").Split('|');
-            Tolerance = Convert.ToDouble(values[0]);
+            if (values.Length != 5) throw new FormatException($"Expected 5 values as Dta.ToString writes them, got {values.Length}: '{fromDtaToString}'.");
+            Tolerance = Convert.ToDouble(values[0]) / 100;
             Distance = Convert.ToDouble(values[1]);
-            Threshhold = Convert.ToDouble(values[2]);
-            Type = Convert.ToBoolean(values[3]) ? CalcType.Global : CalcType.Local;
-            UseMM = (values[4] == "mm" ? true : false);
+            Threshhold = Convert.ToDouble(values[2]) / 100;
+            Type = Enum.Parse<CalcType>(values[3], ignoreCase: true);
+            UseMM = values[4] == "mm";
         }
 
         /// <summary>
