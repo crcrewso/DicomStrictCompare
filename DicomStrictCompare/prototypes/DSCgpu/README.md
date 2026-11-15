@@ -26,15 +26,35 @@ resampled with `GridResampler` so both sides share the chosen resolution:
 - **`IlgpuComparer`** (ILGPU 1.5.3) and **`OpenClComparer`** (Silk.NET.OpenCL 2.23.0, hand-written OpenCL C). Each
   runs in double precision (the engine's arithmetic) and in float (a possible screening pass), one pair at a time.
 
+**Boxed rows** evaluate only the sample points inside the threshold box: the bounding box of source voxels at or
+above threshold, plus the smaller of 1 cm and 2 voxels (never under 1 voxel). Outside it, a point can't reach the
+threshold, because trilinear interpolation never exceeds the voxels around it. Their counts must equal the
+engine's:
+- "boxed" rows find the box by scanning, and the scan is timed;
+- "from load-time maxima" rows read it from per-axis maxima computed beforehand (`Projections`), standing in for
+  keeping them at load.
+
+**"Zeroed" rows** set below-threshold source voxels to 0 first. They're not the same rules, so their counts are
+reported, not required to match.
+
 **Excluded from timing:** loading and resampling. GPU rows include uploading both grids for every pair. Each row is
 the fastest of the repeats, after an untimed warm-up.
 
 ## Running it
 
 ```
-dotnet run -c Release -- <resolution mm> <pairs> [folder or -] [repeats]
+dotnet run -c Release -- <resolution mm> <pairs> [folder or -] [repeats] [options]
 dotnet run -c Release -- 2 16 "Q:\DSCReferences\...\QAtpsPTW" 3
 ```
+
+| Option | Effect |
+|---|---|
+| `--criteria 0.01/0,0.1/0.5,3/2` | tolerance %/distance mm pairs; distance 0 is a dose test only (default `2/2,1/1`) |
+| `--threshold 10` | low-dose cutoff, % of the source maximum |
+| `--crop 0.4` | keep the central fraction of each axis: a smaller phantom at the same resolution |
+| `--pairlist file.tsv --set name` | pairs from a tab-separated file (name, source path, target path) instead of QAtpsPTW. Resolution `0` keeps each grid's own spacing |
+| `--quick` | one trivial batch size and one thread count, for sweeps |
+| `--csv file` | append one row per method |
 
 - **Memory:** about 1.6 GB per pair at 1 mm, 0.26 GB at 2 mm and 0.12 GB at 3 mm, plus float copies at half that.
 - **Linux:** on 2026-11-14, ILGPU found no OpenCL device until it was pointed at `libOpenCL.so.1`, which

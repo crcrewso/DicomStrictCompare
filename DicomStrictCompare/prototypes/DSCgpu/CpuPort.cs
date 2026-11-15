@@ -12,12 +12,13 @@ public static class CpuPort
     public static Counts Compare(double[] s, double[] t, double[] p, int[] q, int threads)
     {
         int nx = q[QNx], ny = q[QNy], nz = q[QNz];
+        int wy = Math.Max(0, q[QJ1] - q[QJ0] + 1);
         long compared = 0, failed = 0;
-        Parallel.For(0, nx * ny, new ParallelOptions { MaxDegreeOfParallelism = threads },
+        Parallel.For(0, WindowLines(q), new ParallelOptions { MaxDegreeOfParallelism = threads },
             () => (0L, 0L),
             (line, _, acc) =>
             {
-                var (c, f) = Line(s, t, p, q, line / ny, line % ny);
+                var (c, f) = Line(s, t, p, q, q[QI0] + line / wy, q[QJ0] + line % wy);
                 return (acc.Item1 + c, acc.Item2 + f);
             },
             acc => { Interlocked.Add(ref compared, acc.Item1); Interlocked.Add(ref failed, acc.Item2); });
@@ -29,7 +30,7 @@ public static class CpuPort
         int compared = 0, failed = 0;
         double x = p[PRegion] + i * p[PStep];
         double y = p[PRegion + 2] + j * p[PStep + 1];
-        for (int k = 0; k < q[QNz]; k++)
+        for (int k = q[QK0]; k <= q[QK1]; k++)
         {
             double z = p[PRegion + 4] + k * p[PStep + 2];
             int r = Evaluate(s, t, p, q, x, y, z);

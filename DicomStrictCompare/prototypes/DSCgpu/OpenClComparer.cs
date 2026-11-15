@@ -72,18 +72,19 @@ public sealed unsafe class OpenClComparer : IDisposable
         __kernel void compare(__global const real* s, __global const real* t, __global const real* p, __global const int* q,
                               __global int* comparedOut, __global int* failedOut)
         {
-            int i = get_global_id(0), j = get_global_id(1);
+            int gi = get_global_id(0), gj = get_global_id(1), wy = q[12] - q[11] + 1;
+            int i = q[9] + gi, j = q[11] + gj;
             int compared = 0, failed = 0;
             real x = p[12] + i * p[18];
             real y = p[14] + j * p[19];
-            for (int k = 0; k < q[6]; k++)
+            for (int k = q[13]; k <= q[14]; k++)
             {
                 real z = p[16] + k * p[20];
                 int r = evaluate(s, t, p, q, x, y, z);
                 if (r > 0) { compared++; if (r == 2) failed++; }
             }
-            comparedOut[i * q[5] + j] = compared;
-            failedOut[i * q[5] + j] = failed;
+            comparedOut[gi * wy + gj] = compared;
+            failedOut[gi * wy + gj] = failed;
         }
         """;
 
@@ -145,7 +146,8 @@ public sealed unsafe class OpenClComparer : IDisposable
     private (Counts, double, double) Run<T>(nint kernel, T[] s, T[] t, T[] p, int[] q, int bytes) where T : unmanaged
     {
         var clock = Stopwatch.StartNew();
-        int lines = q[QNx] * q[QNy];
+        int lines = WindowLines(q);
+        if (lines == 0) return (IlgpuComparer.Sum(Array.Empty<int>(), Array.Empty<int>(), q), 0, 0);
         var buffers = new List<nint>();
         nint Buffer<TB>(TB[] data, MemFlags flags) where TB : unmanaged
         {
@@ -171,7 +173,7 @@ public sealed unsafe class OpenClComparer : IDisposable
                 nint arg = args[a];
                 Check(_cl.SetKernelArg(kernel, a, (nuint)sizeof(nint), &arg), "SetKernelArg");
             }
-            nuint* global = stackalloc nuint[2] { (nuint)q[QNx], (nuint)q[QNy] };
+            nuint* global = stackalloc nuint[2] { (nuint)(q[QI1] - q[QI0] + 1), (nuint)(q[QJ1] - q[QJ0] + 1) };
             Check(_cl.EnqueueNdrangeKernel(_queue, kernel, 2, null, global, null, 0, null, null), "EnqueueNdrangeKernel");
             Check(_cl.Finish(_queue), "Finish");
             double kernelS = clock.Elapsed.TotalSeconds - upload;

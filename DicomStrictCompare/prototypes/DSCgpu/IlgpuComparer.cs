@@ -46,11 +46,12 @@ public sealed class IlgpuComparer : IDisposable
         using var tb = _accelerator.Allocate1D(t);
         using var pb = _accelerator.Allocate1D(p);
         using var qb = _accelerator.Allocate1D(q);
-        using var cb = _accelerator.Allocate1D<int>(q[QNx] * q[QNy]);
-        using var fb = _accelerator.Allocate1D<int>(q[QNx] * q[QNy]);
+        if (WindowLines(q) == 0) return (Sum(Array.Empty<int>(), Array.Empty<int>(), q), 0, 0);
+        using var cb = _accelerator.Allocate1D<int>(WindowLines(q));
+        using var fb = _accelerator.Allocate1D<int>(WindowLines(q));
         _accelerator.Synchronize();
         double upload = clock.Elapsed.TotalSeconds;
-        _double(new Index2D(q[QNx], q[QNy]), sb.View, tb.View, pb.View, qb.View, cb.View, fb.View);
+        _double(new Index2D(q[QI1] - q[QI0] + 1, q[QJ1] - q[QJ0] + 1), sb.View, tb.View, pb.View, qb.View, cb.View, fb.View);
         _accelerator.Synchronize();
         double kernel = clock.Elapsed.TotalSeconds - upload;
         return (Sum(cb.GetAsArray1D(), fb.GetAsArray1D(), q), upload, kernel);
@@ -63,11 +64,12 @@ public sealed class IlgpuComparer : IDisposable
         using var tb = _accelerator.Allocate1D(t);
         using var pb = _accelerator.Allocate1D(p.Select(v => (float)v).ToArray());
         using var qb = _accelerator.Allocate1D(q);
-        using var cb = _accelerator.Allocate1D<int>(q[QNx] * q[QNy]);
-        using var fb = _accelerator.Allocate1D<int>(q[QNx] * q[QNy]);
+        if (WindowLines(q) == 0) return (Sum(Array.Empty<int>(), Array.Empty<int>(), q), 0, 0);
+        using var cb = _accelerator.Allocate1D<int>(WindowLines(q));
+        using var fb = _accelerator.Allocate1D<int>(WindowLines(q));
         _accelerator.Synchronize();
         double upload = clock.Elapsed.TotalSeconds;
-        _float(new Index2D(q[QNx], q[QNy]), sb.View, tb.View, pb.View, qb.View, cb.View, fb.View);
+        _float(new Index2D(q[QI1] - q[QI0] + 1, q[QJ1] - q[QJ0] + 1), sb.View, tb.View, pb.View, qb.View, cb.View, fb.View);
         _accelerator.Synchronize();
         double kernel = clock.Elapsed.TotalSeconds - upload;
         return (Sum(cb.GetAsArray1D(), fb.GetAsArray1D(), q), upload, kernel);
@@ -81,18 +83,18 @@ public sealed class IlgpuComparer : IDisposable
     private static void KernelDouble(Index2D idx, ArrayView<double> s, ArrayView<double> t, ArrayView<double> p, ArrayView<int> q,
         ArrayView<int> comparedOut, ArrayView<int> failedOut)
     {
-        int i = idx.X, j = idx.Y;
+        int i = q[QI0] + idx.X, j = q[QJ0] + idx.Y, wy = q[QJ1] - q[QJ0] + 1;
         int compared = 0, failed = 0;
         double x = p[PRegion] + i * p[PStep];
         double y = p[PRegion + 2] + j * p[PStep + 1];
-        for (int k = 0; k < q[QNz]; k++)
+        for (int k = q[QK0]; k <= q[QK1]; k++)
         {
             double z = p[PRegion + 4] + k * p[PStep + 2];
             int r = EvaluateD(s, t, p, q, x, y, z);
             if (r > 0) { compared++; if (r == 2) failed++; }
         }
-        comparedOut[i * q[QNy] + j] = compared;
-        failedOut[i * q[QNy] + j] = failed;
+        comparedOut[idx.X * wy + idx.Y] = compared;
+        failedOut[idx.X * wy + idx.Y] = failed;
     }
 
     private static int EvaluateD(ArrayView<double> s, ArrayView<double> t, ArrayView<double> p, ArrayView<int> q, double x, double y, double z)
@@ -147,18 +149,18 @@ public sealed class IlgpuComparer : IDisposable
     private static void KernelFloat(Index2D idx, ArrayView<float> s, ArrayView<float> t, ArrayView<float> p, ArrayView<int> q,
         ArrayView<int> comparedOut, ArrayView<int> failedOut)
     {
-        int i = idx.X, j = idx.Y;
+        int i = q[QI0] + idx.X, j = q[QJ0] + idx.Y, wy = q[QJ1] - q[QJ0] + 1;
         int compared = 0, failed = 0;
         float x = p[PRegion] + i * p[PStep];
         float y = p[PRegion + 2] + j * p[PStep + 1];
-        for (int k = 0; k < q[QNz]; k++)
+        for (int k = q[QK0]; k <= q[QK1]; k++)
         {
             float z = p[PRegion + 4] + k * p[PStep + 2];
             int r = EvaluateF(s, t, p, q, x, y, z);
             if (r > 0) { compared++; if (r == 2) failed++; }
         }
-        comparedOut[i * q[QNy] + j] = compared;
-        failedOut[i * q[QNy] + j] = failed;
+        comparedOut[idx.X * wy + idx.Y] = compared;
+        failedOut[idx.X * wy + idx.Y] = failed;
     }
 
     private static int EvaluateF(ArrayView<float> s, ArrayView<float> t, ArrayView<float> p, ArrayView<int> q, float x, float y, float z)
