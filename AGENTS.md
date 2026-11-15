@@ -43,7 +43,7 @@ either.
 |---|---|
 | **Language** | C#, with nullable reference types and implicit usings enabled |
 | **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`) |
-| **DICOM** | An in-house reader and writer (`DSClibrary/Results/DICOM/`) for plans and dose headers, verified in the tests against [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5. EvilDICOM loads dose grids (`DoseMatrixOptimal`); EvilDICOM.CV is used in the GUI |
+| **DICOM** | An in-house reader and writer (`DSClibrary/Results/DICOM/`) for plans and dose headers, verified in the tests against [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5. Dose grids load through `DoseGridReader` into `DoseMatrixOptimal`, checked voxel for voxel against EvilDICOM; EvilDICOM.CV is used in the GUI |
 | **Maths** | MathNet.Numerics |
 | **GUI** | `DSCcore`, Windows Forms, `net8.0-windows`, Windows only. It is being replaced by a cross-platform front end; candidates are in `prototypes/` (Avalonia, Eto, Uno) |
 | **Plots** | ScottPlot 4 (GUI) |
@@ -144,7 +144,10 @@ Python idioms don't carry over automatically. Watch for:
   - Plans and dose headers go through the project's own reader, `Results/DICOM/DicomFileReader`, and its
     typed wrappers `RTPlanResult` and `RTDoseResult`. It stops on what it doesn't handle rather than guessing.
     Its tests check it against EvilDICOM.
-  - Dose grids for comparison load through EvilDICOM into `DoseMatrixOptimal`.
+  - Dose grids for comparison load through `Results/DICOM/DoseGridReader` into `DoseMatrixOptimal`, streamed
+    rather than read whole. `DoseGridReaderOracleTests` checks every voxel against EvilDICOM's `RTDose`.
+  - The one known difference: EvilDICOM reads 16-bit voxels as unsigned and 32-bit as signed, whatever
+    `PixelRepresentation` says. `DoseGridReader` follows `PixelRepresentation` (PS3.3 C.8.8.3.4.6).
   - New code should use these, not parse bytes itself, and not add a third way in.
   - EvilDICOM is used today in `Results/DICOM/`, `DoseMatrixOptimal.cs`, `Units/Dose.cs`,
     `Profiles/DoseVolume.cs` and `Comparing/BatchComparer.cs`.

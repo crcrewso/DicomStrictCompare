@@ -99,6 +99,29 @@ namespace DSClibrary.Results.DICOM
             return Read(bytes.AsSpan(0, stop).ToArray(), path, headerOnly: true);
         }
 
+        /// <summary>
+        /// Reads a file's header from the start of <paramref name="stream"/>, growing the prefix until the
+        /// top-level PixelData is reached, so the voxels are never read. <paramref name="pixelDataAt"/> is
+        /// that element's offset in the file, or -1 when the file has none (the whole file is then parsed).
+        /// </summary>
+        internal static DicomFile ReadHeader(Stream stream, string sourcePath, out long pixelDataAt)
+        {
+            long length = stream.Length;
+            int size = 64 * 1024;
+            while (true)
+            {
+                int n = (int)Math.Min(size, length);
+                var prefix = new byte[n];
+                stream.Position = 0;
+                stream.ReadExactly(prefix);
+                var file = Read(prefix, sourcePath, headerOnly: true, stopAtPixelData: true, out int at);
+                // An element cut off by the prefix end leaves the pixel data unreached, so a hit is complete.
+                if (at >= 0) { pixelDataAt = at; return file; }
+                if (n == length) { pixelDataAt = -1; return Read(prefix, sourcePath); }
+                size = (int)Math.Min((long)size * 4, int.MaxValue);
+            }
+        }
+
         /// <summary>Where the top-level PixelData element starts, or -1 when there is none.</summary>
         private static int PixelDataOffset(ReadOnlyMemory<byte> bytes)
         {

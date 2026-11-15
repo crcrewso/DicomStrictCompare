@@ -48,7 +48,7 @@ Exported per field, that's about 2,080 doses for each calculation, so four calcu
 | F9 | Where it fails (in-field, penumbra, low dose, build-up), with a failure map | later |
 | F10 | Normalisation: absolute, **per MU**, or at a reference point | later |
 | F11 | Measurement beside the calculations | later |
-| F12 | Built for thousands of doses (header index, parallel, cached) | started: header-only reads (below) |
+| F12 | Built for thousands of doses (header index, parallel, cached) | started: header-only reads, streamed grid loads (below) |
 | F13 | Reproducible export (long CSV, reports, provenance header) | later; F5 starts it |
 | F14 | Expected-pairs list from the plan generator (PG-Q7) | later |
 
@@ -97,6 +97,11 @@ Code: `DSClibrary/Studies/Study.cs`.
 So a study reads each dose up to its pixel data and copies the header out. A header-only dose refuses to hand
 out voxels: anything that asks throws, rather than seeing an empty grid. Each file is still read from disk in
 full once; reading only its start is the next F12 step.
+
+**Grids load streamed (F12).** `DoseGridReader` reads a dose's header from the file's start and streams its voxels
+straight into one array: 0.81 GB allocated for a 1 mm QAtpsPTW grid instead of EvilDICOM's 4.6 GB, and about 9×
+faster. It's checked against EvilDICOM voxel for voxel, on `resources/` and on all 325 QAtpsPTW doses (2026-11-14).
+The batch's fixed parallelism of 4 still needs a memory budget: four 1 mm pairs hold 6.5 GB live.
 
 ## F2: pairing rules and a pairing preview
 

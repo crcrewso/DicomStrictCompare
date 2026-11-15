@@ -81,6 +81,32 @@ namespace DSClibrary
             MaxPointDose = new DoseValue(x0 + mx * xRes, y0 + my * yRes, z0 + mz * zRes, DoseValues[maxIndex]);
         }
 
+        /// <summary>
+        /// Takes <paramref name="ownedValues"/> without copying it, for <see cref="Results.DICOM.DoseGridReader"/>:
+        /// a 1 mm grid is 0.8 GB, and a second copy is what made comparisons run out of memory.
+        /// </summary>
+        internal DoseMatrixOptimal(int dimX, int dimY, int dimZ, double x0, double y0, double z0,
+            double xRes, double yRes, double zRes, double scaling, double[] ownedValues, DoseValue maxPointDose)
+        {
+            DimensionX = dimX;
+            DimensionY = dimY;
+            DimensionZ = dimZ;
+            DoseValues = ownedValues ?? throw new ArgumentNullException(nameof(ownedValues));
+            Scaling = scaling;
+            X0 = x0;
+            Y0 = y0;
+            Z0 = z0;
+            XRes = xRes;
+            YRes = yRes;
+            ZRes = zRes;
+            XMax = x0 + (dimX - 1) * xRes;
+            YMax = y0 + (dimY - 1) * yRes;
+            ZMax = z0 + (dimZ - 1) * zRes;
+            Length = DoseValues.Length;
+            Count = Length;
+            MaxPointDose = maxPointDose;
+        }
+
         public bool IsInBounds(Vector3 pt)
         {
             // `is null` and not `null == pt`: Vector3 overloads ==, and that overload dereferences
