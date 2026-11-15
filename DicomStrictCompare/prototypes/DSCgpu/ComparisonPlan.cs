@@ -1,9 +1,10 @@
 using DSClibrary;
+using DSClibrary.Comparing;
 
 namespace DSCgpu;
 
 /// <summary>
-/// One pair's comparison, set up exactly as <c>X86Mathematics.Compare</c> sets it up: the overlap region,
+/// One pair's comparison, set up exactly as <c>HandWrittenComparer.Compare</c> sets it up: the overlap region,
 /// sampled at the coarser spacing per axis, with the same step counts. Packed into a double and an int
 /// array so every backend gets identical inputs.
 /// </summary>

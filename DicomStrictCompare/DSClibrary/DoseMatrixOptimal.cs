@@ -86,8 +86,10 @@ namespace DSClibrary
         /// a 1 mm grid is 0.8 GB, and a second copy is what made comparisons run out of memory.
         /// </summary>
         internal DoseMatrixOptimal(int dimX, int dimY, int dimZ, double x0, double y0, double z0,
-            double xRes, double yRes, double zRes, double scaling, double[] ownedValues, DoseValue maxPointDose)
+            double xRes, double yRes, double zRes, double scaling, double[] ownedValues, DoseValue maxPointDose,
+            AxisMaxima? axisMaxima = null)
         {
+            _axisMaxima = axisMaxima;
             DimensionX = dimX;
             DimensionY = dimY;
             DimensionZ = dimZ;
@@ -106,6 +108,15 @@ namespace DSClibrary
             Count = Length;
             MaxPointDose = maxPointDose;
         }
+
+        private AxisMaxima? _axisMaxima;
+
+        /// <summary>
+        /// The per-axis maxima the threshold box is read from: filled while reading by
+        /// <see cref="Results.DICOM.DoseGridReader"/>, otherwise computed once on first use. A grid's values must
+        /// not change after it is built; nothing in this solution changes them.
+        /// </summary>
+        public AxisMaxima AxisMaxima => LazyInitializer.EnsureInitialized(ref _axisMaxima, () => AxisMaxima.Of(this))!;
 
         public bool IsInBounds(Vector3 pt)
         {

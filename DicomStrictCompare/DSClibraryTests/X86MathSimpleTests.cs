@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSClibrary;
+using DSClibrary.Comparing;
 
 namespace DSClibraryTests
 {
@@ -13,11 +14,11 @@ namespace DSClibraryTests
     /// can calculate without producing exceptions or nulls on known good data 
     /// </summary>
     [TestClass]
-    public class X86MathSimpleTests : X86Mathematics
+    public class X86MathSimpleTests : HandWrittenComparer
     {
 
         DoseMatrixOptimal source;
-        IMathematics mathematics;
+        DoseComparer mathematics;
 
         byte[] sourceFile;
 
@@ -27,13 +28,13 @@ namespace DSClibraryTests
         public void Initialize()
         {
             dta00a = new Dta(false, 0, 0, 0, false);
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
         }
 
         [TestMethod]
         public void CanInitialize()
         {
-            var testing = new X86Mathematics();
+            var testing = new HandWrittenComparer();
             Assert.IsNotNull(testing);
         }
 

@@ -18,7 +18,7 @@ resampled with `GridResampler` so both sides share the chosen resolution:
 **Criteria:** 2 %/2 mm/10 % global, then 1 %/1 mm/10 % global.
 
 **Backends:**
-- **The engine** (`X86Mathematics`), one pair at a time on one thread. This is the reference: every other row's
+- **The engine** (`HandWrittenComparer`, then called `X86Mathematics`), one pair at a time on one thread. This is the reference: every other row's
   compared and failed counts are checked against it, pair by pair.
 - **The engine with 2, 4, 8, … pairs at once:** trivial parallelism, up to 2 × the core count.
 - **`CpuPort`:** the engine's point rules, line for line, on arrays, using 1 thread and then every core within one

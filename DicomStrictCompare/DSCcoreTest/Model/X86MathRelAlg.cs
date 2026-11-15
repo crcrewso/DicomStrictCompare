@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DSClibrary.Comparing;
 
 namespace DCSCore.Model.Tests
 {
@@ -7,7 +8,7 @@ namespace DCSCore.Model.Tests
     public class X86MathRelAlg
     {
         DoseMatrixOptimal source, target;
-        IMathematics mathematics;
+        DoseComparer mathematics;
 
         byte[] sourceFile, targetFile;
 
@@ -53,7 +54,7 @@ namespace DCSCore.Model.Tests
         [TestInitialize()]
         public void Initialize()
         {
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
         }
 
         [TestCleanup()]

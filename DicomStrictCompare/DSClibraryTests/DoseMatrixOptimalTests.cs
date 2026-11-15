@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSClibrary.Comparing;
 
 namespace DSClibraryTests
 {
@@ -64,7 +65,7 @@ namespace DSClibraryTests
         /// <summary>
         /// The Vector3 overload, implemented because its null guard had the same defect as
         /// IsInBounds'. It must agree with the (double, double, double) overload, which is the one
-        /// every caller in X86Mathematics actually uses.
+        /// every caller in HandWrittenComparer actually uses.
         /// </summary>
         [TestMethod()]
         public void GetPointDoseTest1()

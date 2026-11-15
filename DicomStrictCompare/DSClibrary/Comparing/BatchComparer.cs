@@ -47,6 +47,12 @@ namespace DSClibrary.Comparing
 
         public TimeSpan Elapsed { get; }
 
+        /// <summary>Which comparer produced this (<see cref="DoseComparer.Description"/>), so a number can be traced to its engine.</summary>
+        public string Comparer { get; }
+
+        /// <summary>The maximum the threshold and global tolerance were fractions of, and why; null for gamma rows and failures.</summary>
+        public ReferenceMaximum? Maximum { get; }
+
         /// <summary>Monitor units of each side where the plans supplied them. Recorded, never applied.</summary>
         public double? SourceMonitorUnits { get; }
         public double? TargetMonitorUnits { get; }
@@ -62,8 +68,12 @@ namespace DSClibrary.Comparing
             TimeSpan elapsed,
             double? sourceMonitorUnits,
             double? targetMonitorUnits,
-            GammaResult? gamma = null)
+            GammaResult? gamma = null,
+            string comparer = "",
+            ReferenceMaximum? maximum = null)
         {
+            Comparer = comparer;
+            Maximum = maximum;
             Key = key;
             SourcePath = sourcePath;
             TargetPath = targetPath;
@@ -133,17 +143,18 @@ namespace DSClibrary.Comparing
     public sealed class BatchComparer
     {
         private readonly Func<string, DoseMatrixOptimal> _load;
-        private readonly IMathematics _mathematics;
+        private readonly DoseComparer _mathematics;
 
         /// <param name="load">
         /// Loads a grid from a path. Injected so a caller can choose its reader - this library's own
         /// or EvilDICOM - and so tests can supply small grids.
         /// </param>
-        /// <param name="mathematics">The comparison engine. Defaults to <see cref="X86Mathematics"/>.</param>
-        public BatchComparer(Func<string, DoseMatrixOptimal> load, IMathematics? mathematics = null)
+        /// <param name="mathematics">The comparison engine, usually from <see cref="DoseComparers.Create"/>. Defaults to
+        /// <see cref="HandWrittenComparer"/>, so no one's numbers change unless they choose another.</param>
+        public BatchComparer(Func<string, DoseMatrixOptimal> load, DoseComparer? mathematics = null)
         {
             _load = load ?? throw new ArgumentNullException(nameof(load));
-            _mathematics = mathematics ?? new X86Mathematics();
+            _mathematics = mathematics ?? new HandWrittenComparer();
         }
 
         /// <summary>
@@ -158,7 +169,8 @@ namespace DSClibrary.Comparing
             Dta dta,
             bool global = true,
             int? degreeOfParallelism = null,
-            CancellationToken cancellation = default)
+            CancellationToken cancellation = default,
+            MaximumKind maximum = MaximumKind.GlobalMax)
         {
             if (pairs is null) throw new ArgumentNullException(nameof(pairs));
             if (dta is null) throw new ArgumentNullException(nameof(dta));
@@ -175,7 +187,7 @@ namespace DSClibrary.Comparing
                     MaxDegreeOfParallelism = parallelism,
                     CancellationToken = cancellation
                 },
-                pair => outcomes.Add(CompareOne(pair, dta, global, cancellation)));
+                pair => outcomes.Add(CompareOne(pair, dta, global, maximum, cancellation)));
 
             batch.Stop();
 
@@ -251,7 +263,7 @@ namespace DSClibrary.Comparing
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, comparison, null, timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gamma);
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, gamma, "GammaShell");
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
@@ -263,11 +275,11 @@ namespace DSClibrary.Comparing
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits);
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: "GammaShell");
             }
         }
 
-        private ComparisonOutcome CompareOne(MatchedDosePair pair, Dta dta, bool global, CancellationToken cancellation)
+        private ComparisonOutcome CompareOne(MatchedDosePair pair, Dta dta, bool global, MaximumKind maximum, CancellationToken cancellation)
         {
             var timer = Stopwatch.StartNew();
             try
@@ -279,15 +291,16 @@ namespace DSClibrary.Comparing
 
                 // The token goes into the engine, which checks it once per plane, so a cancel stops a
                 // comparison that is under way rather than waiting for it to finish.
+                var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
                 SingleComparison comparison = global
-                    ? _mathematics.CompareRelative(source, target, dta, cancellation)
-                    : _mathematics.CompareAbsolute(source, target, dta, cancellation);
+                    ? _mathematics.CompareRelative(source, target, dta, reference.Dose, cancellation)
+                    : _mathematics.CompareAbsolute(source, target, dta, reference.Dose, cancellation);
 
                 timer.Stop();
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, comparison, null, timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits);
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: _mathematics.Description, maximum: reference);
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
@@ -303,7 +316,7 @@ namespace DSClibrary.Comparing
                 return new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
                     dta, global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits);
+                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: _mathematics.Description);
             }
         }
     }

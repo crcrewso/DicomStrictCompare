@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace DSClibrary
+namespace DSClibrary.Comparing
 {
-
-    public class X86Mathematics : IMathematics
+    /// <summary>
+    /// Cody's original comparison, kept as written: one thread, every sample point. The reference every other
+    /// <see cref="DoseComparer"/> is tested against (formerly <c>X86Mathematics</c>).
+    /// </summary>
+    public class HandWrittenComparer : DoseComparer
     {
-        public X86Mathematics()
+        public HandWrittenComparer()
         {
 
         }
@@ -18,7 +21,7 @@ namespace DSClibrary
         /// </summary>
         public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta)
         {
-            return Compare(source, target, dta, global: false, System.Threading.CancellationToken.None);
+            return Compare(source, target, dta, global: false, source.MaxPointDose.Dose, System.Threading.CancellationToken.None);
         }
 
         /// <summary>
@@ -26,19 +29,19 @@ namespace DSClibrary
         /// </summary>
         public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta)
         {
-            return Compare(source, target, dta, global: true, System.Threading.CancellationToken.None);
+            return Compare(source, target, dta, global: true, source.MaxPointDose.Dose, System.Threading.CancellationToken.None);
         }
 
         /// <inheritdoc />
         public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, System.Threading.CancellationToken cancellation)
         {
-            return Compare(source, target, dta, global: false, cancellation);
+            return Compare(source, target, dta, global: false, source.MaxPointDose.Dose, cancellation);
         }
 
         /// <inheritdoc />
         public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, System.Threading.CancellationToken cancellation)
         {
-            return Compare(source, target, dta, global: true, cancellation);
+            return Compare(source, target, dta, global: true, source.MaxPointDose.Dose, cancellation);
         }
 
         /// <summary>
@@ -60,7 +63,21 @@ namespace DSClibrary
         /// If dta.UseMM is false, the dose test alone decides pass or fail and dta.Distance is ignored. Distances
         /// in voxels are not supported yet.
         /// </summary>
-        private static SingleComparison Compare(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, bool global, System.Threading.CancellationToken cancellation)
+        /// <inheritdoc />
+        public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, System.Threading.CancellationToken cancellation)
+        {
+            return Compare(source, target, dta, global: false, referenceMaximum, cancellation);
+        }
+
+        /// <inheritdoc />
+        public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, System.Threading.CancellationToken cancellation)
+        {
+            return Compare(source, target, dta, global: true, referenceMaximum, cancellation);
+        }
+
+        // maxSource: the dose the threshold and the global tolerance are fractions of (ReferenceMaximum); the
+        // source's volume maximum unless a caller chooses otherwise.
+        private static SingleComparison Compare(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, bool global, double maxSource, System.Threading.CancellationToken cancellation)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (target == null) throw new ArgumentNullException(nameof(target));
@@ -112,7 +129,7 @@ namespace DSClibrary
                     {
                         double z = zMin + k * zRes;
                         voxelsRead++;
-                        switch (EvaluatePoint(source, target, dta, global, region, x, y, z, neighbouringDoses))
+                        switch (EvaluatePoint(source, target, dta, global, maxSource, region, x, y, z, neighbouringDoses))
                         {
                             case PointResult.Passed: compared++; break;
                             case PointResult.Failed: compared++; failed++; break;
@@ -152,7 +169,7 @@ namespace DSClibrary
             {
                 count++;
                 if (!region.Contains(x, y, z)) { continue; }
-                switch (EvaluatePoint(source, target, dta, dta.Global, region, x, y, z, neighbouringDoses))
+                switch (EvaluatePoint(source, target, dta, dta.Global, source.MaxPointDose.Dose, region, x, y, z, neighbouringDoses))
                 {
                     case PointResult.Passed: compared++; break;
                     case PointResult.Failed: compared++; failed++; break;
@@ -178,10 +195,9 @@ namespace DSClibrary
         /// The comparison rules for one point (see Compare). neighbouringDoses is scratch space, reused to avoid
         /// allocating per point.
         /// </summary>
-        private static PointResult EvaluatePoint(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global,
+        private static PointResult EvaluatePoint(DoseMatrixOptimal source, DoseMatrixOptimal target, Dta dta, bool global, double maxSource,
             in Region region, double x, double y, double z, List<double> neighbouringDoses)
         {
-            double maxSource = source.MaxPointDose.Dose;
             double sourcei = source.GetPointDose(x, y, z).Dose;
             if (sourcei < maxSource * dta.Threshhold) { return PointResult.BelowThreshold; }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EvilDICOM.RT;
 using DSClibrary;
+using DSClibrary.Comparing;
 
 namespace DCSCore
 {
@@ -241,7 +242,7 @@ namespace DCSCore
         /// <summary>
         /// Performs the actual work not the most efficient way but I'll work it out
         /// </summary>
-        public void Evaluate(IMathematics mathematics)
+        public void Evaluate(DoseComparer mathematics)
         {
             DoseMatrixOptimal sourceDose = new DoseMatrixOptimal(_source.DoseMatrix());
             DoseMatrixOptimal targetDose = new DoseMatrixOptimal(_target.DoseMatrix());

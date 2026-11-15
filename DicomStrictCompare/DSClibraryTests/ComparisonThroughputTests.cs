@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using DSClibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DSClibrary.Comparing;
 
 namespace DSClibraryTests
 {
@@ -21,7 +22,7 @@ namespace DSClibraryTests
         {
             var source = Load(Properties.Resources.RD_UnitTest_P1Ref_X_100A_10_0_1);
             var target = Load(Properties.Resources.RD_UnitTest_P1Ref_F_100A_10_0_1);
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
 
             Console.WriteLine($"grid {source.DimensionX}x{source.DimensionY}x{source.DimensionZ} "
                               + $"= {source.Length:N0} voxels, {source.Length * 8 / 1024 / 1024} MB as double[]");
@@ -58,7 +59,7 @@ namespace DSClibraryTests
             // allocation, not arithmetic, the thing worth removing first.
             var source = Load(Properties.Resources.RD_UnitTest_P1Ref_X_100A_10_0_1);
             var target = Load(Properties.Resources.RD_UnitTest_P1Ref_F_100A_10_0_1);
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
             var dta = new Dta(true, 0.1, 0.02, 2.0);
 
             // Warm up, so the measurement is not dominated by first-call overhead.

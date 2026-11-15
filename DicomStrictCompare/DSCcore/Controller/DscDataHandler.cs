@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using DSClibrary;
+using DSClibrary.Comparing;
 
 namespace DCSCore
 {
@@ -47,13 +48,13 @@ namespace DCSCore
         /// </summary>
         public ConcurrentBag<MatchedDosePair> DosePairsList { get; private set; }
 
-        private IMathematics mathematics;
+        private DoseComparer mathematics;
 
 
         public DscDataHandler()
         {
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
         }
 
 
@@ -61,7 +62,7 @@ namespace DCSCore
         {
             this.Settings = settings;
             DosePairsList = new ConcurrentBag<MatchedDosePair>();
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
         }
 
 
@@ -94,7 +95,7 @@ namespace DCSCore
 
             // Sets the system to use the correct resources without doubling down on GPU
 
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
             parallel = cpuParallel;
 
             var unmatchedTargetFiles = new ConcurrentBag<string>();

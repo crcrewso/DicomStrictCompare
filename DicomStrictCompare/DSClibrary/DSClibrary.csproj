@@ -8,6 +8,8 @@
     <AssemblyVersion>0.1.1</AssemblyVersion>
     <Title>Dicom Comparison Math Library</Title>
     <Platforms>x64</Platforms>
+    <!-- Silk.NET's OpenCL bindings take pointers (Comparing/Gpu/OpenClComparer.cs). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="3.1.0">
@@ -15,6 +17,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="EvilDICOM" Version="2.0.6.5" />
+    <!-- GPU comparers, in the core library at Cody's word (2026-11-15). ILGPU is University of Illinois/NCSA, Silk.NET is MIT. -->
+    <PackageReference Include="ILGPU" Version="1.5.3" />
+    <PackageReference Include="Silk.NET.OpenCL" Version="2.23.0" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>

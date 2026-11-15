@@ -14,6 +14,7 @@
 // the resolution. Loading and resampling are not timed; every timing is comparison work only.
 using System.Diagnostics;
 using DSClibrary;
+using DSClibrary.Comparing;
 using DSClibrary.Resampling;
 using DSClibrary.Results.DICOM;
 using DSCgpu;
@@ -72,7 +73,7 @@ using var ilgpu = Try(() => new IlgpuComparer(), "ILGPU");
 using var opencl = Try(() => new OpenClComparer(), "Silk.NET OpenCL");
 Log($"ILGPU device: {ilgpu?.Device ?? "none"}; OpenCL device: {opencl?.Device ?? "none"}");
 
-var engine = new X86Mathematics();
+var engine = new HandWrittenComparer();
 foreach (var spec in criteria)
 {
     var dta = new Dta(useMM: true, threshhold: thresholdPct / 100, tolerance: spec.Tol / 100, distance: spec.Dist, relative: true);

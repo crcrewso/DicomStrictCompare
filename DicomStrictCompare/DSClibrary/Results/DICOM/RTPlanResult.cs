@@ -188,6 +188,12 @@ namespace DSClibrary.Results.DICOM
         /// <summary>True when the beam has more than two control points, so its geometry may vary.</summary>
         public bool MayBeDynamic => (NumberOfControlPoints ?? 0) > 2;
 
+        /// <summary>GantryRotationDirection (300A,011F) at the first control point: CW, CC or NONE.</summary>
+        public string? GantryRotationDirection => _firstControlPoint?.GetString(DicomTags.GantryRotationDirection);
+
+        /// <summary>True for an arc: the gantry rotates (CW or CC) during the beam.</summary>
+        public bool IsArc => GantryRotationDirection is "CW" or "CC";
+
         // ---- electron applicator ----
 
         /// <summary>ApplicatorID (300A,0108) from the first item of ApplicatorSequence: "A10" in the reference plans. Null when absent.</summary>

@@ -3,6 +3,7 @@ using System.Globalization;
 using DSClibrary;
 using DSClibrary.Resampling;
 using DSClibrary.Results.DICOM;
+using DSClibrary.Comparing;
 
 namespace DSCresample;
 
@@ -24,7 +25,7 @@ internal static class Verify
 
         Console.WriteLine("file\tfine\tcoarse\tnodes\tmaxRawDiff\tengineCompared\tengineFailed\tfineMaxGy\tcoarseMaxGy\tseconds");
         int bad = 0;
-        var engine = new X86Mathematics();
+        var engine = new HandWrittenComparer();
         // 0.1 % of the maximum, no DTA, every node above 1 % of the maximum evaluated.
         var tight = new Dta(useMM: false, threshhold: 0.01, tolerance: 0.001, distance: 0);
 

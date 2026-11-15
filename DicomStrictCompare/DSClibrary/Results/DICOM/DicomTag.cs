@@ -109,6 +109,7 @@ namespace DSClibrary.Results.DICOM
         public static readonly DicomTag BeamLimitingDevicePositionSequence = new(0x300A, 0x011A);
         public static readonly DicomTag LeafJawPositions = new(0x300A, 0x011C);
         public static readonly DicomTag GantryAngle = new(0x300A, 0x011E);
+        public static readonly DicomTag GantryRotationDirection = new(0x300A, 0x011F);
         public static readonly DicomTag BeamLimitingDeviceAngle = new(0x300A, 0x0120);
         public static readonly DicomTag PatientSupportAngle = new(0x300A, 0x0122);
         public static readonly DicomTag IsocenterPosition = new(0x300A, 0x012C);

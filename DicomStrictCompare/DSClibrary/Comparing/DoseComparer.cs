@@ -1,9 +1,16 @@
 ﻿using System.Linq;
 
-namespace DSClibrary
+namespace DSClibrary.Comparing
 {
-    public abstract class IMathematics
+    /// <summary>
+    /// A dose comparison engine (formerly <c>IMathematics</c>). <see cref="HandWrittenComparer"/> is the reference;
+    /// the others must reproduce its counts. Front ends hold only this type, built by <see cref="DoseComparers.Create"/>.
+    /// </summary>
+    public abstract class DoseComparer
     {
+        /// <summary>What ran, for the record kept with every result: kind, threads, device, precision.</summary>
+        public virtual string Description => GetType().Name;
+
 
 
         /// <summary>
@@ -34,6 +41,16 @@ namespace DSClibrary
             return CompareAbsolute(source, target, dta);
         }
 
+        /// <summary>
+        /// As <see cref="CompareAbsolute(in DoseMatrixOptimal, in DoseMatrixOptimal, Dta, System.Threading.CancellationToken)"/>,
+        /// with the threshold and tolerance taken as fractions of <paramref name="referenceMaximum"/> rather than
+        /// the source's volume maximum (<see cref="ReferenceMaximum"/>).
+        /// </summary>
+        public abstract SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, System.Threading.CancellationToken cancellation);
+
+        /// <summary>As the relative comparison, with a chosen reference maximum (<see cref="ReferenceMaximum"/>).</summary>
+        public abstract SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, System.Threading.CancellationToken cancellation);
+
         /// <summary>As <see cref="CompareRelative(in DoseMatrixOptimal, in DoseMatrixOptimal, Dta)"/>, observing a cancellation token.</summary>
         public virtual SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, System.Threading.CancellationToken cancellation)
         {
@@ -41,8 +58,8 @@ namespace DSClibrary
             return CompareRelative(source, target, dta);
         }
 
-        // Parallelism belongs at the level of batches of comparisons (one file pair per task), not inside a
-        // single comparison. CompareParallel was removed for that reason.
+        // Batches of pairs (BatchComparer) and threads within one pair (MultiThreadComparer) both exist; the
+        // 2026-11-15 measurements are in ~Resources/DSC-notes/2026-11-14-gpu-crossing-point.md on jackdaw.
     }
 
 

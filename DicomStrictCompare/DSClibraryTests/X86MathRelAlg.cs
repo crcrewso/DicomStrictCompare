@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
+using DSClibrary.Comparing;
 
 namespace DSClibraryTests
 {
@@ -18,14 +19,14 @@ namespace DSClibraryTests
     /// checked here.</b> SNC Patient evaluated 15,552 points; these methods compare the whole
     /// overlapping grid, 8,080,200 voxels. The two numbers are not the same measurement, so no
     /// whole-grid expectation can agree with the SNC one. To compare like for like, pass SNC's own
-    /// point list to <see cref="X86Mathematics.CompareAtPoints"/>, which exists for exactly this and
+    /// point list to <see cref="HandWrittenComparer.CompareAtPoints"/>, which exists for exactly this and
     /// applies identical rules - see backlog D6.
     /// </summary>
     [TestClass]
     public class X86MathRelAlg
     {
         DoseMatrixOptimal source, target;
-        IMathematics mathematics;
+        DoseComparer mathematics;
 
         byte[] sourceFile, targetFile;
 
@@ -71,7 +72,7 @@ namespace DSClibraryTests
         [TestInitialize()]
         public void Initialize()
         {
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
         }
 
         [TestCleanup()]

@@ -46,10 +46,14 @@ namespace DSClibrary.Results.DICOM
                 throw new DicomFormatException(
                     $"{name}: PixelData holds {valueLength} bytes but {count} voxels of {bits} bits need {(long)count * bytesPerVoxel}.");
 
+            int dimX = dose.Columns!.Value, dimY = dose.Rows!.Value, dimZ = dose.NumberOfFrames!.Value;
             var values = new double[count];
             var buffer = new byte[ChunkBytes];
+            var axX = AxisMaxima.NegativeInfinity(dimX);
+            var axY = AxisMaxima.NegativeInfinity(dimY);
+            var axZ = AxisMaxima.NegativeInfinity(dimZ);
             stream.Position = valueAt;
-            int done = 0, maxIndex = 0;
+            int done = 0, maxIndex = 0, vx = 0, vy = 0, vz = 0;
             double max = double.NegativeInfinity;
             while (done < count)
             {
@@ -64,6 +68,10 @@ namespace DSClibrary.Results.DICOM
                     double v = raw * scaling;
                     values[done + i] = v;
                     if (v > max) { max = v; maxIndex = done + i; }
+                    if (v > axX[vx]) axX[vx] = v;
+                    if (v > axY[vy]) axY[vy] = v;
+                    if (v > axZ[vz]) axZ[vz] = v;
+                    if (++vx == dimX) { vx = 0; if (++vy == dimY) { vy = 0; vz++; } }
                 }
                 done += voxels;
             }
@@ -77,7 +85,6 @@ namespace DSClibrary.Results.DICOM
             if (!dose.HasUniformFrameSpacing)
                 throw new DicomFormatException($"{name}: GridFrameOffsetVector is not uniformly spaced, and DoseMatrixOptimal holds a single ZRes.");
 
-            int dimX = dose.Columns!.Value, dimY = dose.Rows!.Value, dimZ = dose.NumberOfFrames!.Value;
             double x0 = origin[0], y0 = origin[1];
             double z0 = origin[2] + (offsets.Count > 0 ? offsets[0] : 0.0);
             double xRes = spacing[1], yRes = spacing[0];
@@ -86,7 +93,8 @@ namespace DSClibrary.Results.DICOM
             int mx = maxIndex % dimX, my = maxIndex / dimX % dimY, mz = maxIndex / (dimX * dimY);
             var maxPoint = new DoseValue(x0 + mx * xRes, y0 + my * yRes, z0 + mz * zRes, max);
 
-            return new DoseMatrixOptimal(dimX, dimY, dimZ, x0, y0, z0, xRes, yRes, zRes, scaling, values, maxPoint);
+            return new DoseMatrixOptimal(dimX, dimY, dimZ, x0, y0, z0, xRes, yRes, zRes, scaling, values, maxPoint,
+                new AxisMaxima(axX, axY, axZ));
         }
 
         /// <summary>Where PixelData's value starts, read from its element header at <paramref name="elementAt"/>.</summary>

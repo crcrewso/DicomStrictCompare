@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DSClibrary;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DSClibrary.Comparing;
 
 namespace DSClibraryTests
 {
@@ -74,7 +75,7 @@ namespace DSClibraryTests
         {
             var source = Source();
             var target = Target();
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
 
             var justUnder = mathematics.CompareRelative(source, target, new Dta(false, 0.1, 0.0099, 0));
             var exactly = mathematics.CompareRelative(source, target, new Dta(false, 0.1, 0.01, 0));
@@ -102,7 +103,7 @@ namespace DSClibraryTests
         {
             var source = Source();
             var target = Target();
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
 
             var justUnder = mathematics.CompareAbsolute(source, target, new Dta(false, 0.1, 0.0099, 0, false));
             var exactly = mathematics.CompareAbsolute(source, target, new Dta(false, 0.1, 0.01, 0, false));
@@ -125,7 +126,7 @@ namespace DSClibraryTests
         {
             var source = Source();
             var target = Target();
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
 
             var global = mathematics.CompareRelative(source, target, new Dta(false, 0.1, 0.001, 0, true));
             var local = mathematics.CompareAbsolute(source, target, new Dta(false, 0.1, 0.001, 0, false));
@@ -158,13 +159,13 @@ namespace DSClibraryTests
             var local = new Dta(true, 0, 0.03, 0, relative: false);
             Assert.AreEqual(Dta.CalcType.Local, local.Type);
 
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
 
             Assert.AreEqual(1, mathematics.CompareAbsolute(source, target, local).TotalFailed,
                 "CompareAbsolute runs the local test the Dta asks for");
             Assert.AreEqual(0, mathematics.CompareRelative(source, target, local).TotalFailed,
                 "CompareRelative runs the global test and discards the Dta's Local");
-            Assert.AreEqual(1, X86Mathematics.CompareAtPoints(source, target, local, PointsOf(source)).TotalFailed,
+            Assert.AreEqual(1, HandWrittenComparer.CompareAtPoints(source, target, local, PointsOf(source)).TotalFailed,
                 "CompareAtPoints honours the Dta's Local - and so disagrees with CompareRelative above");
         }
 
@@ -181,7 +182,7 @@ namespace DSClibraryTests
             var dta = new Dta(true, 0, 0.03, 0, relative: false, gamma: true);
             Assert.AreEqual(Dta.CalcAlgorithm.gamma, dta.Algorithm, "the request is recorded");
 
-            var mathematics = new X86Mathematics();
+            var mathematics = new HandWrittenComparer();
             var asGamma = mathematics.CompareAbsolute(source, target, dta);
             var asDta = mathematics.CompareAbsolute(source, target, new Dta(true, 0, 0.03, 0, relative: false));
 

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DSClibrary;
+using DSClibrary.Comparing;
 
 namespace DSClibraryTests
 {
@@ -12,7 +13,7 @@ namespace DSClibraryTests
     [TestClass]
     public class ComparisonRulesTests
     {
-        readonly IMathematics mathematics = new X86Mathematics();
+        readonly DoseComparer mathematics = new HandWrittenComparer();
 
         // Dta(useMM, threshhold, tolerance, distance, relative (true = global), gamma, trim)
         static Dta Global(double tolerance, double distance = 0, double threshold = 0, bool useMM = true) =>
@@ -164,7 +165,7 @@ namespace DSClibraryTests
             foreach (var dta in new[] { Global(0.02, 1, 0.2), Local(0.02, 1, 0.2), Global(0.01), Local(0.03, 2) })
             {
                 var whole = dta.Global ? mathematics.CompareRelative(source, target, dta) : mathematics.CompareAbsolute(source, target, dta);
-                var atPoints = X86Mathematics.CompareAtPoints(source, target, dta, GridPoints(source));
+                var atPoints = HandWrittenComparer.CompareAtPoints(source, target, dta, GridPoints(source));
                 Assert.AreEqual(whole.TotalCount, atPoints.TotalCount, dta.ShortToString());
                 Assert.AreEqual(whole.TotalCompared, atPoints.TotalCompared, dta.ShortToString());
                 Assert.AreEqual(whole.TotalFailed, atPoints.TotalFailed, dta.ShortToString());
@@ -177,8 +178,8 @@ namespace DSClibraryTests
             // Only the middle point differs. Comparing at the two outer points finds no failure; at the middle, one.
             var source = Row(40, 50, 60);
             var target = Row(40, 80, 60);
-            var outer = X86Mathematics.CompareAtPoints(source, target, Global(0.03), new[] { (0.0, 0.0, 0.0), (2.0, 0.0, 0.0) });
-            var middle = X86Mathematics.CompareAtPoints(source, target, Global(0.03), new[] { (1.0, 0.0, 0.0) });
+            var outer = HandWrittenComparer.CompareAtPoints(source, target, Global(0.03), new[] { (0.0, 0.0, 0.0), (2.0, 0.0, 0.0) });
+            var middle = HandWrittenComparer.CompareAtPoints(source, target, Global(0.03), new[] { (1.0, 0.0, 0.0) });
             Assert.AreEqual(0, outer.TotalFailed);
             Assert.AreEqual(1, middle.TotalFailed);
         }
@@ -187,7 +188,7 @@ namespace DSClibraryTests
         public void CompareAtPointsCountsButSkipsPointsOutsideTheGrids()
         {
             var grid = Row(40, 50, 60);
-            var result = X86Mathematics.CompareAtPoints(grid, grid, Global(0.03), new[] { (1.0, 0.0, 0.0), (5.0, 0.0, 0.0) });
+            var result = HandWrittenComparer.CompareAtPoints(grid, grid, Global(0.03), new[] { (1.0, 0.0, 0.0), (5.0, 0.0, 0.0) });
             Assert.AreEqual(2, result.TotalCount);
             Assert.AreEqual(1, result.TotalCompared);
         }

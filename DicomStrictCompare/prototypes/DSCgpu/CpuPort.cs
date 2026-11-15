@@ -1,9 +1,10 @@
 using static DSCgpu.ComparisonPlan;
+using DSClibrary.Comparing;
 
 namespace DSCgpu;
 
 /// <summary>
-/// <c>X86Mathematics.EvaluatePoint</c> and <c>DoseMatrixOptimal.GetPointDose</c>, ported line for line onto
+/// <c>HandWrittenComparer.EvaluatePoint</c> and <c>DoseMatrixOptimal.GetPointDose</c>, ported line for line onto
 /// plain arrays, so one pair can be split across threads. Work is one (i, j) line along z, as in the kernels.
 /// Checked against the engine's counts before any timing is trusted.
 /// </summary>

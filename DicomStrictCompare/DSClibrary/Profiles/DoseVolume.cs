@@ -24,7 +24,7 @@ namespace DSClibrary.Profiles
         /// <c>volume.Dose.Dose</c> read badly.
         /// <para>
         /// <b>Scaled once, never per voxel.</b> The conversion from stored integers happens in a
-        /// single traversal when the file is read, not on each access. X86Mathematics calls
+        /// single traversal when the file is read, not on each access. HandWrittenComparer calls
         /// GetPointDose eight times per evaluated point - source, target and six DTA neighbours - so
         /// at 8,080,200 voxels that is about 65 million reads per comparison, and a multiply plus a
         /// bounds-checked decode on each would be real cost for no benefit. Scaling once is also what

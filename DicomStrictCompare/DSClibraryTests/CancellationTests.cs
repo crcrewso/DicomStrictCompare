@@ -47,7 +47,7 @@ namespace DSClibraryTests
 
             var timer = Stopwatch.StartNew();
             Assert.ThrowsExactly<OperationCanceledException>(() =>
-                new X86Mathematics().CompareRelative(source, source, new Dta(true, 0.10, 0.02, 2.0), cts.Token));
+                new HandWrittenComparer().CompareRelative(source, source, new Dta(true, 0.10, 0.02, 2.0), cts.Token));
             timer.Stop();
             Assert.IsTrue(timer.ElapsedMilliseconds < 500, $"took {timer.ElapsedMilliseconds} ms");
         }
@@ -58,7 +58,7 @@ namespace DSClibraryTests
             // The old entry points are unchanged for callers that have no token (DSCcore among them).
             var pairs = SelfPairs(1);
             var source = LoadWithEvilDicom(pairs[0].Source.Dose.SourcePath);
-            var result = new X86Mathematics().CompareRelative(source, source, new Dta(true, 0.95, 0.02, 2.0));
+            var result = new HandWrittenComparer().CompareRelative(source, source, new Dta(true, 0.95, 0.02, 2.0));
             Assert.AreEqual(0, result.TotalFailed);
         }
 

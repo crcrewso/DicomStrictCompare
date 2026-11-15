@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using DSClibrary.Comparing;
 
 namespace DCSCore.Model.Tests
 {
@@ -6,11 +7,11 @@ namespace DCSCore.Model.Tests
     /// Compares the various algorithm methods to allow for regression testing. 
     /// </summary>
     [TestClass()]
-    public class DoseAlgCompTests: X86Mathematics
+    public class DoseAlgCompTests: HandWrittenComparer
     {
         const int threadMin = 1;
         int ThreadMax => System.Environment.ProcessorCount;
-        X86Mathematics mathematics;
+        HandWrittenComparer mathematics;
         enum DtaTypes { t0d0p0mm, t0d0p0vox, t10d0p0vox, t10d10p10vox, t10d10p10voxRel, t0d0p0mmTrim10, t0d0p0voxTrim10 };
 
         System.Collections.Generic.Dictionary<DtaTypes, Model.Dta> dtas =             
@@ -29,7 +30,7 @@ namespace DCSCore.Model.Tests
         [TestInitialize()]
         public void Initialize()
         {
-            mathematics = new X86Mathematics();
+            mathematics = new HandWrittenComparer();
         }
 
         [TestCleanup()]
