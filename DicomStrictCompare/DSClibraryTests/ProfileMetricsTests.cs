@@ -201,7 +201,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void AProfileAtDepthIsMeasuredInTheNominalPlane()
         {
-            // Cody: a 10 cm field at 10 cm depth is 11 cm wide on the water and is still the 10 cm
+            // crcrewso: a 10 cm field at 10 cm depth is 11 cm wide on the water and is still the 10 cm
             // field. A 110 mm wide field with magnification 1.1 reads 100 mm, offsets scale the same
             // way, and the ratios do not change.
             var onWater = Field(110, _ => 1.0, centreMm: 2.2, spacing: 0.5);

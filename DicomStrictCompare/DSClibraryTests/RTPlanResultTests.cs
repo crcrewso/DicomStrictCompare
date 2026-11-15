@@ -9,7 +9,7 @@ namespace DSClibraryTests
     /// <summary>
     /// The plan reader, against facts measured from the files themselves. A dose file cannot identify
     /// its own beam: energy, modality, angles, field size, SSD and monitor units are all in the plan
-    /// beside it (Cody, 2026-11-08).
+    /// beside it (crcrewso, 2026-11-08).
     /// </summary>
     [TestClass]
     public class RTPlanResultTests

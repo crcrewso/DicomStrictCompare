@@ -127,7 +127,7 @@ namespace DSClibraryTests
 
         /// <summary>
         /// GPU comparers in float, a user's choice. Float rounding may move points that sit within rounding of a
-        /// tolerance or the threshold, so this bound is a placeholder until Cody decides the policy: at most 5 points,
+        /// tolerance or the threshold, so this bound is a placeholder until crcrewso decides the policy: at most 5 points,
         /// or 0.001 % of points compared, whichever is larger. Every difference is printed.
         /// </summary>
         [TestMethod]

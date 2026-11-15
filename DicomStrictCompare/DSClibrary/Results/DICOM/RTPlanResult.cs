@@ -8,7 +8,7 @@ namespace DSClibrary.Results.DICOM
     /// An RT Plan file, as the file has it.
     /// <para>
     /// It is read because a great deal of what identifies a dose is only in the plan beside it
-    /// (Cody, 2026-11-08). An RT Dose carries its grid and its scaling, but the beam that produced it
+    /// (crcrewso, 2026-11-08). An RT Dose carries its grid and its scaling, but the beam that produced it
     /// - energy, modality, gantry and collimator angles, field size, SSD, isocentre, monitor units -
     /// lives here. Measured: the 9 plans in <c>resources/</c> serve all 26 doses, so a handler reads
     /// plans first and then matches each dose to one.

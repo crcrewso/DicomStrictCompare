@@ -10,7 +10,7 @@ namespace DSClibrary.Comparing
     public enum CoreKind { Unknown, Performance, Efficient, LowPowerEfficient }
 
     /// <summary>
-    /// The cores compute threads use by default: one thread per physical core, SMT siblings ignored (Cody, 2026-11-15:
+    /// The cores compute threads use by default: one thread per physical core, SMT siblings ignored (crcrewso, 2026-11-15:
     /// "SMT threads should always be ignored"), and low-power E-cores left out ("limit yourself to not use low power e
     /// cores"). crane measured on a 5900XT that a sibling adds nothing to this double-precision work and can cost up to
     /// 40 %. A low-power core is one with no L3 cache when other cores have one; on AMD every CCD has its own L3, so none
@@ -43,7 +43,7 @@ namespace DSClibrary.Comparing
         public static int MaxThreads => Math.Max(1, Environment.ProcessorCount);
 
         /// <summary>
-        /// Whether compute threads are pinned to cores by default: Linux only. Windows schedules its own (Cody,
+        /// Whether compute threads are pinned to cores by default: Linux only. Windows schedules its own (crcrewso,
         /// 2026-11-15: "let windows figure out the scheduling"); macOS can't pin.
         /// </summary>
         public static bool PinByDefault => OperatingSystem.IsLinux();

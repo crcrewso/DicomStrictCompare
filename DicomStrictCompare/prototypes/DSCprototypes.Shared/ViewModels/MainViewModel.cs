@@ -62,11 +62,11 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnSourceFolderChanged(string value) => Graph.SetSourceFolder(value);
 
-    /// <summary>The Graphs tab: curves out of the matched pairs of the last run (Cody, 2026-11-09: "implement the graph feature").</summary>
+    /// <summary>The Graphs tab: curves out of the matched pairs of the last run (crcrewso, 2026-11-09: "implement the graph feature").</summary>
     public GraphViewModel Graph { get; }
 
     /// <summary>
-    /// Where a Browse dialog should open: the parent of this field's previous choice (Cody,
+    /// Where a Browse dialog should open: the parent of this field's previous choice (crcrewso,
     /// 2026-11-08), else the parent of the other folder, else the last folder picked anywhere.
     /// </summary>
     public static string? ParentOf(string? path)
@@ -113,7 +113,7 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>
     /// CPU threads: every count from 1 to every logical processor, SMT included, defaulting to the recommended one,
-    /// one per usable core (Cody, 2026-11-15). Saved as null when the recommended count is chosen, so a study opened
+    /// one per usable core (crcrewso, 2026-11-15). Saved as null when the recommended count is chosen, so a study opened
     /// on another machine uses that machine's.
     /// </summary>
     [ObservableProperty] private ThreadChoice _threads = AllThreadChoices[CpuTopology.PhysicalCores - 1];
@@ -124,7 +124,7 @@ public sealed partial class MainViewModel : ObservableObject
         AllThreadChoices[Math.Clamp(threads ?? CpuTopology.PhysicalCores, 1, AllThreadChoices.Length) - 1];
 
     /// <summary>
-    /// Float on the GPU engines, a user's choice (Cody, 2026-11-15): some GPUs run double far slower, for example
+    /// Float on the GPU engines, a user's choice (crcrewso, 2026-11-15): some GPUs run double far slower, for example
     /// NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions.
     /// </summary>
     [ObservableProperty] private bool _gpuFloat;

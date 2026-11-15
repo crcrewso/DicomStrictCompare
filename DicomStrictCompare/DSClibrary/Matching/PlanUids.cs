@@ -6,13 +6,13 @@ namespace DSClibrary.Matching
     /// <summary>
     /// Reads a plan's SOPInstanceUID for matching.
     /// <para>
-    /// Measured on 2026-11-09 across the 24 PRD-Before and 27 PRD-After plans in Cody's Equinox
+    /// Measured on 2026-11-09 across the 24 PRD-Before and 27 PRD-After plans in crcrewso's Equinox
     /// export: an Eclipse plan UID is <c>root.installation.serial.YYYYMMDDHHMMSS</c>, shaped like
     /// <c>1.2.246.352.71.5.123456789012.654321.20240727205652</c> (the installation and serial here are
     /// made up), and saving the plan again keeps the serial but writes the new save time, so the same
     /// plan recalculated in August 2026 carries <c>...654321.20260821191739</c>. Matched by the whole
     /// UID, the Before and After exports pair 0 of 726 same-named doses; without the save time they
-    /// pair all 726. Cody, 2026-11-09: "what if you ignore the date part of the uid", and "not all tps
+    /// pair all 726. crcrewso, 2026-11-09: "what if you ignore the date part of the uid", and "not all tps
     /// will add the timestamp in all situations, so the trim should be detecting the date before
     /// ignoring it".
     /// </para>

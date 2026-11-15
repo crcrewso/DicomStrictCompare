@@ -40,14 +40,14 @@ public sealed record DoseCandidate(RTDoseWithPlan Dose, string Note)
 /// <summary>
 /// Reads every PTW mcc file under a folder and describes its scans; matches a scan to the doses
 /// whose plan beam has the same modality, energy, filter and field size. This is the metadata
-/// matching Cody asked for on 2026-11-09 ("matching target profile/dose files to reference through
+/// matching crcrewso asked for on 2026-11-09 ("matching target profile/dose files to reference through
 /// metadata parameters like field size and energy"), done here for scan-to-dose only.
 /// <para>
 /// Measured 2026-11-09 across the 669 photon-area files in <c>Water tank scans\Raw Data</c>
 /// (1,153 scans, no parse failures): SSD is 1000 mm in every scan, inplane is the Y gun-target axis
 /// and crossplane the X left-right axis, depths cluster at dmax, 50, 100, 200 and 300 mm, 981 scans
 /// are in arbitrary units and the rest in GY without a calibration flag - so curves are overlaid
-/// normalised, which is also Cody's rule (2026-11-08: "for the most part profiles are treated as
+/// normalised, which is also crcrewso's rule (2026-11-08: "for the most part profiles are treated as
 /// relative"). The 142 wedge scans carry a WEDGE header and a blank FILTER and are left out for now.
 /// </para>
 /// </summary>

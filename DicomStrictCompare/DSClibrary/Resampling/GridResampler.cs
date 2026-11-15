@@ -5,7 +5,7 @@ namespace DSClibrary.Resampling
     /// <summary>
     /// Resamples a dose grid onto a coarser (or finer) regular grid by trilinear interpolation.
     /// <para>
-    /// Cody, 2026-11-08: "I need some fast dicom sets to run, can you rescale every DICOM dose file
+    /// crcrewso, 2026-11-08: "I need some fast dicom sets to run, can you rescale every DICOM dose file
     /// ... to 5mm voxels?" - and, on the code, "the resampling code will be useful later to this
     /// project". So this is a library feature and not a script.
     /// </para>

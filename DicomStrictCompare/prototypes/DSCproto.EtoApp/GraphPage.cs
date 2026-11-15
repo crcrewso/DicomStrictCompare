@@ -11,7 +11,7 @@ namespace DSCproto.EtoApp;
 
 /// <summary>
 /// The Graphs tab, Eto style: controls are fields, state lives in the panel, and the shared catalogue
-/// and beam-line helpers do the thinking. Two modes (Cody, 2026-11-09): dose versus dose over the
+/// and beam-line helpers do the thinking. Two modes (crcrewso, 2026-11-09): dose versus dose over the
 /// run's matched pairs - depth dose, or a crossplane or inplane profile at dmax, 5, 10 or 20 cm or all
 /// four on one plot - and dose versus water-tank scans, matched by energy, filter and field size.
 /// Grids load on a worker and the last one is kept.
@@ -77,7 +77,7 @@ public sealed class GraphPage : Panel
         _kind.DataStore = new object[] { CurveKind.DepthDose, CurveKind.Crossplane, CurveKind.Inplane };
         _kind.SelectedIndex = 0;
         _depth.DataStore = DepthChoices;
-        _depth.SelectedIndex = 0;   // dmax is the default (Cody, 2026-11-09)
+        _depth.SelectedIndex = 0;   // dmax is the default (crcrewso, 2026-11-09)
         _beam.ItemTextBinding = Binding.Property((BeamDescriptor b) => b.Label);
         _scan.ItemTextBinding = Binding.Property((ScanDescriptor s) => s.Label);
         _dose.ItemTextBinding = Binding.Property((DoseCandidate d) => d.Label);

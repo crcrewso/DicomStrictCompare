@@ -42,17 +42,17 @@ either.
 | | |
 |---|---|
 | **Language** | C#, with nullable reference types and implicit usings enabled |
-| **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`). **LTS releases only** (Cody, 2026-11-15) |
+| **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`). **LTS releases only** (crcrewso, 2026-11-15) |
 | **DICOM** | An in-house reader and writer (`DSClibrary/Results/DICOM/`) for plans and dose headers, verified in the tests against [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5. Dose grids load through `DoseGridReader` into `DoseMatrixOptimal`, checked voxel for voxel against EvilDICOM; EvilDICOM.CV is used in the GUI |
 | **Maths** | MathNet.Numerics |
-| **GUI** | The cross-platform front ends in `prototypes/` (Avalonia first, then Eto and Uno), all in `prototypes/Prototypes.slnx`. `DSCcore`, the old Windows Forms GUI, is no longer built or maintained (Cody, 2026-11-15): it has not built since `8867bbc` moved the library to .NET 10 |
+| **GUI** | The cross-platform front ends in `prototypes/` (Avalonia first, then Eto and Uno), all in `prototypes/Prototypes.slnx`. `DSCcore`, the old Windows Forms GUI, is no longer built or maintained (crcrewso, 2026-11-15): it has not built since `8867bbc` moved the library to .NET 10 |
 | **Plots** | ScottPlot 4 (GUI) |
 | **Tests** | MSTest |
 | **API docs** | DocFX (`docfx.json` in `DSClibrary/` and `DSCcore/`), with the generated HTML in `docs/` |
 | **Licence** | LGPL-3.0. Code ported from other projects keeps its own notice in `THIRD-PARTY-NOTICES.md` |
 | **Target branch** | `master` |
 
-<!-- TODO(Cody): confirm master stays the PR target, or whether a develop branch comes with more contributors. -->
+<!-- TODO(crcrewso): confirm master stays the PR target, or whether a develop branch comes with more contributors. -->
 
 ---
 
@@ -196,7 +196,7 @@ Python idioms don't carry over automatically. Watch for:
   - **It must reproduce `HandWrittenComparer`'s counts exactly** in double, in `DoseComparerEquivalenceTests`.
   - Front ends hold only a `DoseComparer`, chosen by `ComparerSettings`.
   - **Default thread counts come from `CpuTopology.PhysicalCores`, never `Environment.ProcessorCount`:** SMT
-    siblings and low-power E-cores are left out (Cody, 2026-11-15). Pin only where `CpuTopology.PinByDefault`
+    siblings and low-power E-cores are left out (crcrewso, 2026-11-15). Pin only where `CpuTopology.PinByDefault`
     says (Linux); Windows schedules its own threads.
   - **Batches go through `BatchComparer.CompareMany`,** which loads each pair once for every criterion. A comparer
     that can share work across criteria (the GPU ones: one upload per pair) overrides `DoseComparer.CompareAll`.
@@ -223,5 +223,5 @@ Python idioms don't carry over automatically. Watch for:
 
 ## Getting help
 
-<!-- TODO(Cody): pick the channel: GitHub Discussions, issues only, or an email address. -->
+<!-- TODO(crcrewso): pick the channel: GitHub Discussions, issues only, or an email address. -->
 Open an issue on [crcrewso/DicomStrictCompare](https://github.com/crcrewso/DicomStrictCompare/issues).

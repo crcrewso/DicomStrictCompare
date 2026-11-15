@@ -81,7 +81,7 @@ public sealed partial class MainPage : Page
                     Tab("Detector geometry", Placeholder(
                         "Placeholder: detector geometry correction for PTW scans. IDetectorCorrection exists in DSClibrary; no physical kernel is implemented yet (backlog D4), so there is nothing honest to switch on here.")),
                     Tab("Archive", Placeholder(
-                        "Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - Cody, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this page."))));
+                        "Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - crcrewso, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this page."))));
 
     private static TabViewItem Tab(string header, UIElement content) =>
         new TabViewItem().Header(header).IsClosable(false).Content(content);

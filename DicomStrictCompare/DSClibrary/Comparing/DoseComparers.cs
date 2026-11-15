@@ -4,7 +4,7 @@ namespace DSClibrary.Comparing
 
     /// <summary>
     /// GPU arithmetic. <b>Double is the default</b> and reproduces <see cref="HandWrittenComparer"/> exactly. Float is
-    /// for the GPU comparers only and only as a user's choice (Cody, 2026-11-15). It may differ from the reference
+    /// for the GPU comparers only and only as a user's choice (crcrewso, 2026-11-15). It may differ from the reference
     /// on points within rounding of a tolerance or the threshold, a few in millions in the tests.
     /// <para>
     /// <b>Why offer float at all:</b> many consumer GPUs run double far slower than float. Roughly, from vendor

@@ -1,6 +1,6 @@
 // Ported from pymedphys (lib/pymedphys/_interp/interp.py), Copyright (C) 2024-2026 Matthew Jennings,
 // Apache License 2.0 - see THIRD-PARTY-NOTICES.md at the repository root. Ported to C# for
-// DicomStrictCompare by crane-dsc on 2026-11-09 at Cody Crewson's request.
+// DicomStrictCompare by crane-dsc on 2026-11-09 at crcrewso's request.
 using System;
 
 namespace DSClibrary.Gamma

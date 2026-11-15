@@ -1,6 +1,6 @@
 # Design note: a test-plan generator for commissioning datasets
 
-**Status:** proposal, 2026-11-14. Nothing is built yet. Decisions are Cody's; they're labelled **PG-Q1** onwards.
+**Status:** proposal, 2026-11-14. Nothing is built yet. Decisions are crcrewso's; they're labelled **PG-Q1** onwards.
 
 ## The problem
 

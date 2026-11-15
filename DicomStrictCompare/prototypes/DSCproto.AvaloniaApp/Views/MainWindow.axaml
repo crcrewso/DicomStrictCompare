@@ -97,7 +97,7 @@
       </DockPanel>
 
       <!-- The splitter between criteria and results. Avalonia's default template is transparent, so
-           the grab area was an invisible 8 px gap (Cody, 2026-11-09: "is there a way to make the part
+           the grab area was an invisible 8 px gap (crcrewso, 2026-11-09: "is there a way to make the part
            one can grab visible"). A light bar with a grip in the middle, the usual sash look. -->
       <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="8" Margin="0,4" ToolTip.Tip="Drag to resize the criteria panel">
         <GridSplitter.Template>
@@ -135,7 +135,7 @@
         <TabItem Header="Log">
           <TextBox Text="{Binding Log}" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="Cascadia Mono,Consolas,monospace"/>
         </TabItem>
-        <!-- Graphs (Cody, 2026-11-09): curves out of the matched pairs of the last run, filtered by energy
+        <!-- Graphs (crcrewso, 2026-11-09): curves out of the matched pairs of the last run, filtered by energy
              and field size, a depth dose or a profile at a depth chosen with the slider. The view model
              owns the choice and the curve; this view only hands the curve to ScottPlot (code-behind). -->
         <TabItem Header="Graphs">
@@ -221,7 +221,7 @@
         </TabItem>
         <TabItem Header="Archive">
           <TextBlock Margin="12" TextWrapping="Wrap"
-                     Text="Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - Cody, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."/>
+                     Text="Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - crcrewso, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."/>
         </TabItem>
 
         <!-- Study (design/comparison-studies.md, 2026-11-14): several dose sets and the comparisons

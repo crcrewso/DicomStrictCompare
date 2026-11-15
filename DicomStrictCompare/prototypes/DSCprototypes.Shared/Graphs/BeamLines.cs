@@ -89,7 +89,7 @@ public static class BeamLines
         + "taken at the isocentre plane (SSD = SAD assumed). Both sides are sampled at the coarser grid's nodes "
         + "where the grids overlap. Values are Gy as stored.";
 
-    /// <summary>The depths Cody asked the dose-to-dose plots to show (2026-11-09): dmax, then 5, 10 and 20 cm.</summary>
+    /// <summary>The depths crcrewso asked the dose-to-dose plots to show (2026-11-09): dmax, then 5, 10 and 20 cm.</summary>
     public static readonly IReadOnlyList<(string Label, double? Mm)> FixedDepths = new (string, double?)[]
     {
         ("Dmax", null), ("5 cm", 50), ("10 cm", 100), ("20 cm", 200)
@@ -126,7 +126,7 @@ public static class BeamLines
     }
 
     /// <summary>
-    /// Every fixed depth on one plot (Cody, 2026-11-09: "All depths for Inplane or Crossplane in a
+    /// Every fixed depth on one plot (crcrewso, 2026-11-09: "All depths for Inplane or Crossplane in a
     /// single plot should also be an option"): one curve per depth, tagged with its label, sharing
     /// the axis and value labels of the first.
     /// </summary>
@@ -162,7 +162,7 @@ public static class BeamLines
     /// <summary>
     /// A measured scan over the calculated dose, both normalised: a depth dose to its own maximum
     /// and a profile to its own central-axis value, because the scans are in arbitrary units
-    /// (measured: 981 of 1,153) and Cody's rule is that profiles are treated as relative. The dose
+    /// (measured: 981 of 1,153) and crcrewso's rule is that profiles are treated as relative. The dose
     /// is sampled at the scan's own positions through the same geometry reading as the dose-to-dose
     /// curves; positions outside the grid are NaN and dropped by <see cref="ProfileCurve.Overlap"/>.
     /// </summary>

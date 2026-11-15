@@ -11,7 +11,7 @@ namespace DSClibraryTests
     /// <summary>
     /// Verifies this project's own RT Dose reader against EvilDICOM on the real files.
     /// <para>
-    /// This is the point of the whole approach. Cody asked whether to keep EvilDICOM or bring the
+    /// This is the point of the whole approach. crcrewso asked whether to keep EvilDICOM or bring the
     /// reader in house, and the answer taken was neither as an either/or: build our own and keep
     /// EvilDICOM as an oracle, so the migration is <b>verified against the thing it replaces</b>
     /// rather than asserted correct. A hand-rolled DICOM parser deserves no trust otherwise.

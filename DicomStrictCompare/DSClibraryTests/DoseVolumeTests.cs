@@ -93,7 +93,7 @@ namespace DSClibraryTests
         public void AnAbsoluteVolumeReportsItsMaximumInCentigray()
         {
             // EvilDICOM hands back gray, so the gray factory converts once into a centigray grid.
-            // The volume then stores centigray inherently (Cody, 2026-11-08) rather than converting
+            // The volume then stores centigray inherently (crcrewso, 2026-11-08) rather than converting
             // on each read.
             var volume = DoseVolume.FromGrayGrid(Beam(), RealReference(), ValueScale.AbsoluteCentigray);
             Assert.AreEqual(101.7791, volume.MaximumDose!.Value.Centigray, 1e-4);
@@ -122,7 +122,7 @@ namespace DSClibraryTests
         public void MonitorUnitsNeverChangeTheDose()
         {
             // The rule, asserted directly: "MU should be a parameter of the DoseVolume, if it exists,
-            // but should not be used to change the dose" (Cody, 2026-11-08). Three volumes over one
+            // but should not be used to change the dose" (crcrewso, 2026-11-08). Three volumes over one
             // grid at 95, 99 and 101 MU - the P5 Varied MU metersets - must report one dose.
             var grid = Grid();
             var doses = new[] { 95.0, 99.0, 101.0 }

@@ -5,7 +5,7 @@ namespace DSClibrary.Comparing.Gpu
     /// interpolation flags, neighbour flags) and one real array (criterion values, weights). The cells and weights
     /// were chosen in double on the host, so a float kernel interpolates between the same voxels the engine does.
     /// <para>
-    /// <b>Only the calculation box is uploaded</b> (Cody, 2026-11-15: bus bandwidth matters on PCIe and older GPUs).
+    /// <b>Only the calculation box is uploaded</b> (crcrewso, 2026-11-15: bus bandwidth matters on PCIe and older GPUs).
     /// For each grid, the sub-block of voxels the window's sample points and their DTA neighbours read is copied
     /// out, and the cells are shifted to it. The kernel reads the same values as it would from the whole grid.
     /// </para>

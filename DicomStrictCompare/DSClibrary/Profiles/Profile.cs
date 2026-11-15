@@ -35,7 +35,7 @@ namespace DSClibrary.Profiles
         /// calculated dose carries that dose's scale.
         /// <para>
         /// It is read from the source rather than assumed, because some vendors and devices may provide
-        /// absolutely calibrated output - Cody, 2026-11-08, adding immediately that he has <b>not yet
+        /// absolutely calibrated output - crcrewso, 2026-11-08, adding immediately that he has <b>not yet
         /// seen</b> one. So the possibility is representable and is established per file, never by
         /// category; it is not a path anything here has exercised.
         /// <para>
@@ -172,7 +172,7 @@ namespace DSClibrary.Profiles
         /// <summary>
         /// Whether this profile can be compared with another.
         /// <para>
-        /// Cody, 2026-11-08: "for the most part profiles are treated as relative, and only RD to RD
+        /// crcrewso, 2026-11-08: "for the most part profiles are treated as relative, and only RD to RD
         /// comparisons will be looking for absolute dose comparisons." So two curves in the same scale
         /// may be compared as they are, and curves in different scales only once both have been
         /// normalised - at which point the scale no longer matters, because each is a fraction of its

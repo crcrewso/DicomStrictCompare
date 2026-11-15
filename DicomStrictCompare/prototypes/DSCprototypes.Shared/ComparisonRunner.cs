@@ -13,12 +13,12 @@ namespace DSCprototypes.Shared;
 /// <para>
 /// <see cref="Gamma"/> selects the gamma index (<see cref="DSClibrary.Gamma.GammaShell"/>, the pymedphys
 /// port) in place of the strict engine: the same four numbers read as dose criterion, distance
-/// criterion, lower dose cutoff, and global or local normalisation (Cody, 2026-11-09: "wire it in").
+/// criterion, lower dose cutoff, and global or local normalisation (crcrewso, 2026-11-09: "wire it in").
 /// </para>
 /// </summary>
 /// <para>
 /// <see cref="AppliesTo"/> limits the criterion to photon or electron beams, by the source plan's RadiationType
-/// (Cody, 2026-11-15). A pair with no source plan is compared only by <c>Both</c> criteria.
+/// (crcrewso, 2026-11-15). A pair with no source plan is compared only by <c>Both</c> criteria.
 /// </para>
 public sealed record DtaSpec(double TolerancePercent, double DistanceMm, double ThresholdPercent, bool Global, bool Gamma = false,
     BeamsCompared AppliesTo = BeamsCompared.Both)
@@ -172,7 +172,7 @@ public static class ComparisonRunner
         var started = DateTimeOffset.UtcNow;
         var clock = Stopwatch.StartNew();
 
-        // Subfolders included (Cody, 2026-11-08: "all guis should scan subfolders"). A TPS export is
+        // Subfolders included (crcrewso, 2026-11-08: "all guis should scan subfolders"). A TPS export is
         // usually one folder per plan or per patient, and the matching is by UID, so where a file
         // sits does not matter to it.
         progress?.Report($"Reading source folder {request.SourceFolder} and its subfolders");

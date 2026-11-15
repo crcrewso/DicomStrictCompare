@@ -110,7 +110,7 @@ every point is still counted.
 This is the simple dose-difference / DTA approach, **not** a gamma analysis. A gamma function, which will
 search the full sphere around each point, is planned. The GUI's "Gamma?" checkbox is stored but not yet
 used.
-<!-- TODO(Cody): add citations for the dose-difference/DTA method (the old README notes this was still needed). -->
+<!-- TODO(crcrewso): add citations for the dose-difference/DTA method (the old README notes this was still needed). -->
 
 ### Criteria you can set (per row, up to 9 rows)
 
@@ -201,7 +201,7 @@ docs/               Generated DocFX API documentation (HTML)
 
 ## Status
 
-<!-- TODO(Cody): state whether this is actively maintained, and whether Py142 is meant to replace it. -->
+<!-- TODO(crcrewso): state whether this is actively maintained, and whether Py142 is meant to replace it. -->
 The most recent change was in October 2024. A Python, cross-platform reimplementation was started in
 [crcrewso/Py142](https://github.com/crcrewso/Py142).
 

@@ -8,7 +8,7 @@ using DSCprototypes.Shared.Graphs;
 
 namespace DSCprototypes.Shared.ViewModels;
 
-/// <summary>What the Graphs tab compares. Profile to profile is deferred (Cody, 2026-11-09).</summary>
+/// <summary>What the Graphs tab compares. Profile to profile is deferred (crcrewso, 2026-11-09).</summary>
 public enum GraphMode
 {
     /// <summary>The matched pairs of the last run: source over target.</summary>
@@ -26,7 +26,7 @@ public sealed record DepthChoice(string Label, double? Mm, bool All = false)
 /// <summary>
 /// The Graphs tab's state for the XAML-family prototypes. Two modes: dose versus dose draws the
 /// matched pairs of the last run (depth dose, or a crossplane or inplane profile at dmax, 5, 10 or
-/// 20 cm - Cody, 2026-11-09); dose versus scans reads a folder of PTW mcc files and overlays each
+/// 20 cm - crcrewso, 2026-11-09); dose versus scans reads a folder of PTW mcc files and overlays each
 /// scan on the source dose whose beam matches it by energy, filter and field size. Grids load off
 /// the UI thread when a beam or dose is chosen and the last one is kept. Knows nothing about the
 /// plotting control: the view watches <see cref="Curve"/> and draws it.
@@ -55,7 +55,7 @@ public sealed partial class GraphViewModel : ObservableObject
     public IReadOnlyList<GraphMode> Modes { get; } = new[] { GraphMode.DoseVersusDose, GraphMode.DoseVersusScans };
     public IReadOnlyList<CurveKind> Kinds { get; } = new[] { CurveKind.DepthDose, CurveKind.Crossplane, CurveKind.Inplane };
     /// <summary>
-    /// Dmax first when it is on, so it is the default (Cody, 2026-11-09), then each depth, then all of
+    /// Dmax first when it is on, so it is the default (crcrewso, 2026-11-09), then each depth, then all of
     /// them on one plot. Built from <see cref="DepthsText"/>, because depths are a setting (F7, 2026-11-14).
     /// </summary>
     public ObservableCollection<DepthChoice> DepthChoices { get; } = new();

@@ -1,6 +1,6 @@
 # Design note: comparison studies across TPS versions and algorithms
 
-**Status:** proposal, 2026-11-14. F1, F2, F3, F4, F5 and F7 are being built first (Cody, 2026-11-14); the rest
+**Status:** proposal, 2026-11-14. F1, F2, F3, F4, F5 and F7 are being built first (crcrewso, 2026-11-14); the rest
 are recorded for later.
 
 ## The problem
@@ -52,7 +52,7 @@ Exported per field, that's about 2,080 doses for each calculation, so four calcu
 | F13 | Reproducible export (long CSV, reports, provenance header) | later; F5 starts it |
 | F14 | Expected-pairs list from the plan generator (PG-Q7) | later |
 
-**F10, normalisation per MU.** Cody asked on 2026-11-14 whether every field could be normalised by the MU in
+**F10, normalisation per MU.** crcrewso asked on 2026-11-14 whether every field could be normalised by the MU in
 its plan. It belongs here, beside the other normalisations.
 - It has to be opt-in: the standing rule (2026-11-08, in `DoseVolume.MonitorUnits`) is that MU is recorded and
   never applied.
@@ -60,12 +60,12 @@ its plan. It belongs here, beside the other normalisations.
 - It answers a real case: two calculations of one field at different MU, which `resources/`'s "P5 Varied MU" plan
   exists to test.
 
-**F10, the reference dose for the threshold and the global tolerance (Cody, 2026-11-15).** Today both use the
+**F10, the reference dose for the threshold and the global tolerance (crcrewso, 2026-11-15).** Today both use the
 source's volume maximum. Two settings are wanted:
 - **Volume maximum:** today's behaviour, and the default, so no existing number changes.
 - **Central-axis (CAX) maximum.** The CAX is the centre array of the phantom along the dose axis, averaged over the
   3 × 3 grid of nearest neighbours; the reference is the maximum along it.
-- **An off-axis field falls back to the volume maximum.** Off-axis has two terms (Cody, 2026-11-15):
+- **An off-axis field falls back to the volume maximum.** Off-axis has two terms (crcrewso, 2026-11-15):
   1. **Asymmetric jaws:** the field edges' distances from the CAX differ by more than 1 cm, −X against +X or −Y
      against +Y.
      - **With a plan file,** the jaw definitions are the sole test.
@@ -73,20 +73,20 @@ source's volume maximum. Two settings are wanted:
   2. **Symmetric jaws, but the profiles do not intersect the CAX.** The field lies wholly to one side of the
      phantom's centre line, for example an MLC-shaped or shifted field.
 - **"CAX maximum under 80 % of the volume maximum" also counts as off-axis.** It stays in the design but is **not
-  yet implemented** (Cody, 2026-11-15). On the real data, CAX was under 80 % of the volume maximum for 11 of 26
+  yet implemented** (crcrewso, 2026-11-15). On the real data, CAX was under 80 % of the volume maximum for 11 of 26
   QAtpsPTW OtherFields, 26 of 392 QAEclipseDcf fields and 12 of 32 QASacDQA arcs.
-- **A penumbra edge is the 50 % point of the profile** (Cody, 2026-11-15).
+- **A penumbra edge is the 50 % point of the profile** (crcrewso, 2026-11-15).
 - **Where a plan exists, the 50 % edge and the jaw position should agree within 2 mm.** A larger difference is a
   warning on the pair, beside the F3 plan check and F4 dose warnings. It means the dose and the plan may not belong
   together, or the geometry was read wrongly.
-- **Built (`DSClibrary/Studies/JawEdgeCheck.cs`), at 10 cm depth** (Cody, 2026-11-15):
+- **Built (`DSClibrary/Studies/JawEdgeCheck.cs`), at 10 cm depth** (crcrewso, 2026-11-15):
   - the jaws are scaled from the isocentre plane by (SSD + 100 mm) / SAD;
   - the surface comes from the plan's SurfaceEntryPoint, else its SSD, else the dose. The isocentric QAtpsPTW and
     QAEclipseDcf plans state neither;
   - the 50 % level is half the dose at the jaws' field centre, which is the CAX for a symmetric field;
   - collimator angles are multiples of 45, verified at 90 and 270 on QAtpsPTW's half-beam fields.
 - **Not checked:** electrons, wedged fields, MLC-shaped or closed-MLC fields, arcs, and **FFF fields for now**
-  (Cody: "ignoring FFFs is a perfectly reasonable solution for now").
+  (crcrewso: "ignoring FFFs is a perfectly reasonable solution for now").
   - FFF field size is quoted as if the beam were flattened. Measured on QAtpsPTW: the inflection point agreed on
     every FFF field above 15 cm, and 50 % of the centre on every one below. That's a starting point for later.
 - **On real data:** every checked field agreed within 0.62 mm. That's 78 fields: 24 QAtpsPTW AXB, 18
@@ -227,7 +227,7 @@ Code: `DSClibrary/Studies/DoseDescription.cs`.
 - **the result:** compared, failed, % failed, pass rate, max gamma (gamma rows);
 - **the checks:** F3 plan differences and F4 warnings, as short text.
 
-**Index tables are pivots over those rows,** Cody's example being "Field size vs Energy global pass rate". For a
+**Index tables are pivots over those rows,** crcrewso's example being "Field size vs Energy global pass rate". For a
 chosen comparison and criterion:
 - **rows** are field sizes, smallest first;
 - **columns** are energies, in physical order: photons by energy with flattened before FFF, then electrons;

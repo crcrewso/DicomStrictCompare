@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- net10.0 with the library (Cody, 2026-11-08). The 2021-era MSTest 2.2.8 / Test SDK 17.1 pair
+    <!-- net10.0 with the library (crcrewso, 2026-11-08). The 2021-era MSTest 2.2.8 / Test SDK 17.1 pair
          discovers no tests under a .NET 10 host (measured on crane, 2026-11-08), hence the raise. -->
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

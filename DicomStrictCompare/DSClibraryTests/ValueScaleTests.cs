@@ -12,7 +12,7 @@ namespace DSClibraryTests
     /// <summary>
     /// What values mean, and what may therefore be compared with what.
     /// <para>
-    /// Cody, 2026-11-08: "for the most part profiles are treated as relative, and only RD to RD
+    /// crcrewso, 2026-11-08: "for the most part profiles are treated as relative, and only RD to RD
     /// comparisons will be looking for absolute dose comparisons", and separately that some vendors
     /// may provide absolutely calibrated output although he has not yet seen one.
     /// </para>
@@ -80,7 +80,7 @@ namespace DSClibraryTests
         [TestMethod]
         public void ACalibratedDoseUnitReadsAsAbsolute()
         {
-            // Written so the possibility is representable. NO FILE EXERCISES THIS - Cody has not seen
+            // Written so the possibility is representable. NO FILE EXERCISES THIS - crcrewso has not seen
             // a device that produces it - so the first real file taking this branch wants checking by
             // hand rather than trusting.
             Assert.AreEqual(ValueScale.AbsoluteCentigray,

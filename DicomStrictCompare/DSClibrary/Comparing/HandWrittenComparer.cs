@@ -6,7 +6,7 @@ using System.Linq;
 namespace DSClibrary.Comparing
 {
     /// <summary>
-    /// Cody's original comparison, kept as written: one thread, every sample point. The reference every other
+    /// crcrewso's original comparison, kept as written: one thread, every sample point. The reference every other
     /// <see cref="DoseComparer"/> is tested against (formerly <c>X86Mathematics</c>).
     /// </summary>
     public class HandWrittenComparer : DoseComparer

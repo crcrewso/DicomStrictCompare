@@ -32,7 +32,7 @@ namespace DSClibrary.Comparing
         /// <summary>
         /// As <see cref="CompareAbsolute(in DoseMatrixOptimal, in DoseMatrixOptimal, Dta)"/>, observing a
         /// cancellation token while it runs. A whole-grid comparison takes seconds, so a batch that only
-        /// checks between pairs cannot stop promptly (Cody, 2026-11-08: "Cancel should also work faster").
+        /// checks between pairs cannot stop promptly (crcrewso, 2026-11-08: "Cancel should also work faster").
         /// The default honours the token only on entry, so an implementation that does not override it is
         /// still correct, just slow to stop.
         /// </summary>

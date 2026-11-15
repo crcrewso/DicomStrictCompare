@@ -1,6 +1,6 @@
 # Notes for an Eto version of the Study screens
 
-**Status:** notes kept while the Avalonia Study tab is built (Cody, 2026-11-14: "Avalonia is fine, carry on, but
+**Status:** notes kept while the Avalonia Study tab is built (crcrewso, 2026-11-14: "Avalonia is fine, carry on, but
 keep notes to aide a possible Eto solution"). Nothing here is built. Companion to `comparison-studies.md`.
 
 ## What an Eto Study page can reuse unchanged

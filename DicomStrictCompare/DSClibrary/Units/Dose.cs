@@ -15,7 +15,7 @@ namespace DSClibrary.Units
     /// reason: the unit lives in the type instead of in a property name.
     /// <para>
     /// <b>Canonically centigray</b>, because that is what this project's dose volumes are specified
-    /// in (Cody, 2026-11-08). DICOM states dose in gray - <c>DoseUnits</c> is <c>GY</c> in every
+    /// in (crcrewso, 2026-11-08). DICOM states dose in gray - <c>DoseUnits</c> is <c>GY</c> in every
     /// reference file measured - and EvilDICOM hands back gray, so the factor of a hundred is real and
     /// has to be applied somewhere. Applying it in a named conversion at the boundary is the whole
     /// point: a bare double that is sometimes Gy and sometimes cGy is the same class of mistake as the
@@ -28,7 +28,7 @@ namespace DSClibrary.Units
     /// </para>
     /// <para>
     /// <b>On precision.</b> RT Dose stores unsigned integers with a scale factor because the format
-    /// predates cheap doubles, and the factor was how precision was preserved (Cody, 2026-11-08).
+    /// predates cheap doubles, and the factor was how precision was preserved (crcrewso, 2026-11-08).
     /// Once read, that device has done its job: the measured files use at most 2,904,474 of the 32-bit
     /// range, about seven significant figures, where a double carries about sixteen. So holding
     /// physical dose in a double loses nothing the file contained, and there is no reason to keep the

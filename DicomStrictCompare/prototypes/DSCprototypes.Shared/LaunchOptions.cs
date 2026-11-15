@@ -8,7 +8,7 @@ namespace DSCprototypes.Shared;
 /// Unknown arguments are ignored rather than fatal; a GUI should still open. <c>--show-graphs</c>
 /// switches to the Graphs tab once a scripted run has finished, so a capture shows a curve;
 /// <c>--scans</c> puts the tab in dose-versus-scans mode and loads that folder; <c>--curve</c> and
-/// <c>--depth</c> pick the dose-versus-dose curve, so each of Cody's five plots can be captured;
+/// <c>--depth</c> pick the dose-versus-dose curve, so each of crcrewso's five plots can be captured;
 /// <c>--gamma</c> adds a 3 %/3 mm gamma criterion to the default three, so a scripted run exercises
 /// the gamma path too.
 /// </summary>

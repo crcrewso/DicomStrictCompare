@@ -13,7 +13,7 @@ namespace DSClibrary.Profiles
     /// along -y and a depth dose read as +y would come out backwards - plausible and silent.
     /// </para>
     /// <para>
-    /// Measured: every setup in all nine reference plans is <see cref="HeadFirstSupine"/>. Cody,
+    /// Measured: every setup in all nine reference plans is <see cref="HeadFirstSupine"/>. crcrewso,
     /// 2026-11-08, on why that is not a guarantee: "HFS is normally chosen because it's the planning
     /// system default." So it is the common case and not a safe assumption, which is why it is read
     /// and checked rather than presumed.
@@ -82,7 +82,7 @@ namespace DSClibrary.Profiles
     /// positioned and where the gantry was.
     /// <para>
     /// <b>Deliberately small.</b> This project compares RT Dose to RT Dose like for like, or RT Dose
-    /// to profiles in matching geometry (Cody, 2026-11-08) - in both cases the two sides are already
+    /// to profiles in matching geometry (crcrewso, 2026-11-08) - in both cases the two sides are already
     /// in the same frame. So nothing here rotates a dose grid or resamples one geometry into another:
     /// the only things needed are a compatibility check for the first case and an axis mapping for the
     /// second. A general transform engine would be larger, untestable against the files we have, and

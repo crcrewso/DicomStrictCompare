@@ -10,7 +10,7 @@ namespace DSClibraryTests
     [TestClass]
     public class PlanUidsTests
     {
-        // The shape of the two UIDs one Eclipse plan carried in Cody's PRD-Before and PRD-After
+        // The shape of the two UIDs one Eclipse plan carried in crcrewso's PRD-Before and PRD-After
         // exports: same root, installation and serial, saved 2024-07-27 and again 2026-08-21. The
         // installation and serial components are made up; the real ones identify a clinic's system.
         private const string Before = "1.2.246.352.71.5.123456789012.654321.20240727205652";

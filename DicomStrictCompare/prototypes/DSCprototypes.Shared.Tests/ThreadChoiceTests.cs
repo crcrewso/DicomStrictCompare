@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DSCprototypes.Shared.Tests;
 
-/// <summary>The Threads list (Cody, 2026-11-15): 1 to every logical processor, defaulting to the recommended count.</summary>
+/// <summary>The Threads list (crcrewso, 2026-11-15): 1 to every logical processor, defaulting to the recommended count.</summary>
 [TestClass]
 public class ThreadChoiceTests
 {

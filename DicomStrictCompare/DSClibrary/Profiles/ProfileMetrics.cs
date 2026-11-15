@@ -1,5 +1,5 @@
-// Ported from FauxPID (D:\FauxPID, FauxPID/algorithms/metrics.py and docs/ALGORITHMS.md, Cody Crewson,
-// commit 1014da2 of 2026-08-28) to C# for DicomStrictCompare by crane-dsc on 2026-11-09 at Cody's
+// Ported from FauxPID (D:\FauxPID, FauxPID/algorithms/metrics.py and docs/ALGORITHMS.md, crcrewso,
+// commit 1014da2 of 2026-08-28) to C# for DicomStrictCompare by crane-dsc on 2026-11-09 at crcrewso's
 // request ("get the algorithms ported and I can deal with the implementation later"). The formulas
 // come from the Sun Nuclear IC Profiler help and IEC 60976, as FauxPID's documentation states.
 using System;
@@ -48,7 +48,7 @@ namespace DSClibrary.Profiles
         /// The same curve with every position divided by <paramref name="magnification"/>: a profile
         /// measured at depth, projected back to the plane where field sizes are named.
         /// <para>
-        /// Cody, 2026-11-09: "The beams we're measuring are divergent. The field size is the nominal
+        /// crcrewso, 2026-11-09: "The beams we're measuring are divergent. The field size is the nominal
         /// field size of the projected square at 100 SSD, so a 10 cm depth would be 110 cm from target
         /// and the field would be 11 cm wide (plus scattering) it would still be called a 10 cm field."
         /// So the metrics are taken in the nominal plane: positions scaled by SSD / (SSD + depth),
@@ -103,7 +103,7 @@ namespace DSClibrary.Profiles
 
     /// <summary>
     /// How the IEC 60976 flattened region is taken from the field. Both are offered because each has
-    /// its place (Cody, 2026-11-09).
+    /// its place (crcrewso, 2026-11-09).
     /// </summary>
     public enum IecBanding
     {
@@ -172,7 +172,7 @@ namespace DSClibrary.Profiles
     /// Two things are not FauxPID's. Field sizes are nominal: <see cref="All(Profile, double)"/>
     /// projects a profile scanned at depth back to the plane field sizes are named in
     /// (<see cref="ProfileLine.ProjectedToNominal"/>), because a 10 cm field at 10 cm depth is 11 cm
-    /// wide and is still the 10 cm field (Cody, 2026-11-09). And the IEC 60976 region can be banded
+    /// wide and is still the 10 cm field (crcrewso, 2026-11-09). And the IEC 60976 region can be banded
     /// either on that nominal full field size, as the standard and FauxPID's documentation state it,
     /// or on each half-field as FauxPID's code does it (<see cref="IecBanding"/>, a parameter of the two
     /// IEC metrics; full-field is the default). The two differ: the half-field rule subtracts twice

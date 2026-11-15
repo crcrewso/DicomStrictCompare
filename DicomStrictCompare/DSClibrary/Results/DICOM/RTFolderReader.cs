@@ -9,7 +9,7 @@ namespace DSClibrary.Results.DICOM
     /// A dose together with the plan and beam it came from, if they were found.
     /// <para>
     /// <see cref="Plan"/> and <see cref="Beam"/> are nullable because a dose may arrive without its
-    /// plan - Cody's words were a "potentially accompanying" plan file - and a dose alone is still
+    /// plan - crcrewso's words were a "potentially accompanying" plan file - and a dose alone is still
     /// readable: it has its grid, its scaling and its units. What it lacks is most of what identifies
     /// the beam, which is why the pairing exists at all.
     /// </para>
@@ -22,7 +22,7 @@ namespace DSClibrary.Results.DICOM
 
         /// <summary>
         /// The monitor units of this dose's beam, from the plan's fraction group. Recorded and never
-        /// applied to a dose (Cody, 2026-11-08).
+        /// applied to a dose (crcrewso, 2026-11-08).
         /// </summary>
         public double? MonitorUnits { get; }
 
@@ -89,7 +89,7 @@ namespace DSClibrary.Results.DICOM
     /// <summary>
     /// Reads a folder of RT Dose and RT Plan files in two passes, plans first.
     /// <para>
-    /// Cody's design, 2026-11-08: <i>"reading dose files will be done with an automated handler
+    /// crcrewso's design, 2026-11-08: <i>"reading dose files will be done with an automated handler
     /// finding the plan files first, reading all of their information, then reading the dose files and
     /// matching missing information for each dosevolume"</i>. The measurements support it - the 9
     /// plans in <c>resources/</c> serve all 26 doses, so plans-first reads each plan once instead of

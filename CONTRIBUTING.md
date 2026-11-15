@@ -91,15 +91,15 @@ Do your best with these, and don't worry if you miss one. Reviewers are here to 
 3. Say what the change does and why, how you tested it, and whether anyone's results will change.
 4. Expect review comments. That's how a tool people rely on stays reliable, not a judgement of your work.
 
-<!-- TODO(Cody): add .github/pull_request_template.md (QATrack+'s is a good model), and CI that runs the library
+<!-- TODO(crcrewso): add .github/pull_request_template.md (QATrack+'s is a good model), and CI that runs the library
 tests on Linux and Windows. Neither exists yet. -->
 
 ## Contributors
 
-DicomStrictCompare is maintained by Cody Crewson ([@crcrewso](https://github.com/crcrewso)). Everyone who
+DicomStrictCompare is maintained by [@crcrewso](https://github.com/crcrewso). Everyone who
 contributes code, data, validation or documentation will be listed here.
 
-<!-- TODO(Cody): git history also shows "Icaarus" (3 commits). Is that you, or a past contributor to credit?
+<!-- TODO(crcrewso): git history also shows "Icaarus" (3 commits). Is that you, or a past contributor to credit?
 Decide too whether to list AI agents (crane, Copilot, Claude) here or only in commit trailers. -->
 
 The project builds on others' work: [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) by Rex Cardan, and the
@@ -108,6 +108,6 @@ gamma implementation of [pymedphys](https://github.com/pymedphys/pymedphys). See
 
 ## Code of conduct
 
-<!-- TODO(Cody): add CODE_OF_CONDUCT.md, for example QATrack+'s, or the Contributor Covenant. -->
+<!-- TODO(crcrewso): add CODE_OF_CONDUCT.md, for example QATrack+'s, or the Contributor Covenant. -->
 Be kind, assume good faith, and treat people the way you'd want to be treated. If something goes wrong, contact
 the maintainer.

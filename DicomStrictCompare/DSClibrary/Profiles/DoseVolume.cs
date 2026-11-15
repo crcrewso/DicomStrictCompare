@@ -19,7 +19,7 @@ namespace DSClibrary.Profiles
         public BeamKey Beam { get; }
 
         /// <summary>
-        /// The dose grid, <b>in centigray</b> for an absolute volume (Cody, 2026-11-08: "DoseVolume
+        /// The dose grid, <b>in centigray</b> for an absolute volume (crcrewso, 2026-11-08: "DoseVolume
         /// should store the values in cGy inherently"). Named Grid rather than Dose because
         /// <c>volume.Dose.Dose</c> read badly.
         /// <para>
@@ -58,7 +58,7 @@ namespace DSClibrary.Profiles
         /// The monitor units of the delivery this dose was calculated for, where the source provides
         /// them - from an RT Plan's <c>BeamMeterset</c>.
         /// <para>
-        /// <b>Recorded, never applied</b> (Cody, 2026-11-08): "MU should be a parameter of the
+        /// <b>Recorded, never applied</b> (crcrewso, 2026-11-08): "MU should be a parameter of the
         /// DoseVolume, if it exists, but should not be used to change the dose." A dose from a plan is
         /// the dose that plan calculated; MU is metadata about the delivery that produced it.
         /// </para>

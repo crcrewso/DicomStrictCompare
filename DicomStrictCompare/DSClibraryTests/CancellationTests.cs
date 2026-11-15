@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DSClibraryTests
 {
     /// <summary>
-    /// A cancel must stop a comparison that is under way, not wait for it. Cody, 2026-11-08: "Cancel
+    /// A cancel must stop a comparison that is under way, not wait for it. crcrewso, 2026-11-08: "Cancel
     /// should also work faster than it is currently" - before this the token was checked only between
     /// pairs, so up to four comparisons of two to four seconds each ran to completion first.
     /// </summary>

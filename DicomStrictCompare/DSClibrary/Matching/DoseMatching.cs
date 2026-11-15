@@ -8,7 +8,7 @@ namespace DSClibrary.Matching
     /// <summary>
     /// How a source dose is matched to the target dose that should be compared against it.
     /// <para>
-    /// Cody, 2026-11-08: "matching should either be with identifier or uid". Both are offered rather
+    /// crcrewso, 2026-11-08: "matching should either be with identifier or uid". Both are offered rather
     /// than one chosen, because they fail in opposite situations.
     /// </para>
     /// </summary>

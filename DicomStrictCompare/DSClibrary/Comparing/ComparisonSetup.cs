@@ -58,7 +58,7 @@ namespace DSClibrary.Comparing
     /// <para>
     /// <b>The threshold box.</b> Trilinear interpolation is a weighted average of the surrounding voxels, so a
     /// sample point reaches the threshold only if one of them does. The window is therefore the bounding box of
-    /// source voxels at or above the threshold, plus a margin of 1 cm or 2 voxels, whichever is smaller (Cody,
+    /// source voxels at or above the threshold, plus a margin of 1 cm or 2 voxels, whichever is smaller (crcrewso,
     /// 2026-11-15), and never under 1 voxel. Points outside it are below threshold by construction and are counted
     /// but not visited. The region that bounds DTA neighbours is unchanged, so counts equal the hand-written ones.
     /// </para>

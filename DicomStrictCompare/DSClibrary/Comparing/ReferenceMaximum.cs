@@ -3,7 +3,7 @@ using DSClibrary.Results.DICOM;
 namespace DSClibrary.Comparing
 {
     /// <summary>
-    /// The dose the threshold and the global tolerance are fractions of. Cody, 2026-11-15: a "Max" setting of
+    /// The dose the threshold and the global tolerance are fractions of. crcrewso, 2026-11-15: a "Max" setting of
     /// Global Max or CAX, CAX decided by the jaw settings alone, falling back to Global Max.
     /// </summary>
     public enum MaximumKind
@@ -39,7 +39,7 @@ namespace DSClibrary.Comparing
 
             var iso = beam!.IsocenterPosition;
             var at = new Position3(iso[0], iso[1], iso[2]);
-            // An arc's axis turns about the isocentre, so it is normalised there (Cody, 2026-11-15).
+            // An arc's axis turns about the isocentre, so it is normalised there (crcrewso, 2026-11-15).
             var value = beam.IsArc ? IsocentreAverage(source, at) : CaxMaximum(source, at);
             if (value is null)
                 return Global(source, $"CAX not used (the {(beam.IsArc ? "isocentre" : "central axis")} is not inside the grid); volume maximum");

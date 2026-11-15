@@ -20,7 +20,7 @@ namespace DSClibrary.Studies
     }
 
     /// <summary>
-    /// Does the dose's field match its plan's jaws? Cody, 2026-11-15: the jaw position and the profile's 50 % point
+    /// Does the dose's field match its plan's jaws? crcrewso, 2026-11-15: the jaw position and the profile's 50 % point
     /// should agree within 2 mm, at 10 cm depth. A larger difference suggests the dose and plan don't belong
     /// together, or the geometry was read wrongly (design/comparison-studies.md, F10).
     /// <para>
@@ -66,11 +66,11 @@ namespace DSClibrary.Studies
             if (string.Equals(beam.RadiationType, "ELECTRON", StringComparison.OrdinalIgnoreCase)) return (null, "electron: the applicator defines the field");
             if (beam.WedgeIDs.Count > 0) return (null, "wedged field");
             // FFF field size is quoted as if the beam had been flattened, so neither the plain 50 % point nor the
-            // jaw is directly comparable. Left out for now (Cody, 2026-11-15); see comparison-studies.md, F10.
+            // jaw is directly comparable. Left out for now (crcrewso, 2026-11-15); see comparison-studies.md, F10.
             if (beam.IsFluenceModeFff == true) return (null, "FFF");
             if (beam.IsArc) return (null, "arc");
             if (!Zero(beam.GantryAngle) || !Zero(beam.PatientSupportAngle)) return (null, "gantry and couch must be 0");
-            // Realistic collimator angles are 0, 90 and 270, rarely 45 or 315 (Cody, 2026-11-15).
+            // Realistic collimator angles are 0, 90 and 270, rarely 45 or 315 (crcrewso, 2026-11-15).
             if (beam.BeamLimitingDeviceAngle is not { } collimator || Math.Abs(collimator / 45 - Math.Round(collimator / 45)) * 45 > 0.1)
                 return (null, "collimator angle is not a multiple of 45");
             if (beam.SourceAxisDistance is not { } sad) return (null, "no SAD in the plan");

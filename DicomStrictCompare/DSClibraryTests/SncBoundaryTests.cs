@@ -145,7 +145,7 @@ namespace DSClibraryTests
         /// currently wrong in the application - but a Dta's Type can be silently discarded, and a
         /// SingleComparison then carries a Dta whose ShortToString() reports the mode that did not run.
         ///
-        /// Reported to Cody 2026-11-09 with two ways out: honour Dta.Type in one Compare(source,
+        /// Reported to crcrewso 2026-11-09 with two ways out: honour Dta.Type in one Compare(source,
         /// target, dta) and keep the named methods as mode assertions that throw on contradiction, or
         /// delete Dta.Type and let the method name be the only authority. Update this test when he picks.
         /// </summary>

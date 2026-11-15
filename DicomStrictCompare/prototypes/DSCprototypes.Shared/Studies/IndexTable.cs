@@ -44,7 +44,7 @@ public sealed record IndexCell(
 
 /// <summary>
 /// A pivot of the result rows (F5): one comparison under one criterion, with a beam attribute on each
-/// axis. Cody's first case, 2026-11-14: "Field size vs Energy global pass rate". "Global" there means
+/// axis. crcrewso's first case, 2026-11-14: "Field size vs Energy global pass rate". "Global" there means
 /// over all fields in the cell; the criterion still decides global or local dose difference.
 /// </summary>
 public sealed class IndexTable

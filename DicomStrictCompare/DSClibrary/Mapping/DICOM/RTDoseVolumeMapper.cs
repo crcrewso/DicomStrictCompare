@@ -30,7 +30,7 @@ namespace DSClibrary.Mapping.DICOM
         public const string AssumedSsdHeaderKey = "(assumed) SourceToSurfaceDistance";
 
         /// <summary>
-        /// The SSD used when the plan does not state one. <b>100 cm, on Cody's instruction of
+        /// The SSD used when the plan does not state one. <b>100 cm, on crcrewso's instruction of
         /// 2026-11-08, explicitly to be revisited.</b>
         /// <para>
         /// Why it is needed: <c>SourceToSurfaceDistance</c> (300A,0130) and <c>SurfaceEntryPoint</c>
@@ -100,7 +100,7 @@ namespace DSClibrary.Mapping.DICOM
         /// <c>DoseUnits</c> of <c>GY</c> gives absolute centigray. <c>RELATIVE</c> is refused for now:
         /// no file in <c>resources/</c> uses it, so there is nothing to establish whether its stored
         /// values are a fraction or already a percentage, and the two differ by a factor of a hundred.
-        /// Cody is producing a sample file; until then a clear refusal beats a guessed factor.
+        /// crcrewso is producing a sample file; until then a clear refusal beats a guessed factor.
         /// </summary>
         internal static ValueScale MapValueScale(RTDoseResult dose) => MapValueScale(dose.DoseUnits);
 
@@ -149,7 +149,7 @@ namespace DSClibrary.Mapping.DICOM
         /// no plan, because neither is in the dose file.
         /// <para>
         /// Measured: every setup in all nine plans is HFS and every beam is at gantry 0, so every
-        /// reference volume maps to a supported geometry. Cody, 2026-11-08, on why that is not a
+        /// reference volume maps to a supported geometry. crcrewso, 2026-11-08, on why that is not a
         /// guarantee: HFS is normally chosen because it is the planning system default.
         /// </para>
         /// </summary>

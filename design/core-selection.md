@@ -4,7 +4,7 @@
 
 ## The intent
 
-Never pick substandard cores automatically. Cody, 2026-11-15:
+Never pick substandard cores automatically. crcrewso, 2026-11-15:
 - *"SMT threads should always be ignored"*
 - *"limit yourself to not use low power e cores"*
 - *"The intent is to prevent automatic selection of substandard cores, I'm not sure the best way to do that ... Only
@@ -14,7 +14,7 @@ Never pick substandard cores automatically. Cody, 2026-11-15:
 
 - **One thread per physical core.** SMT siblings are never counted.
 - **Only cores with an L3 cache,** when any core has one. A machine where no core reports an L3 uses every core.
-- **Threads are pinned** one per core on Linux only. Windows schedules its own (Cody, 2026-11-15: *"let windows
+- **Threads are pinned** one per core on Linux only. Windows schedules its own (crcrewso, 2026-11-15: *"let windows
   figure out the scheduling"*); macOS can't pin. `CpuTopology.PinByDefault` says which.
 - **The Threads list** (Avalonia) runs from 1 to every logical processor, SMT included, and defaults to the
   recommended count, marked "(recommended)". A study saves the recommended choice as no number, so another machine
@@ -42,7 +42,7 @@ Raised 2026-11-15; 1 and 2 are now mostly handled, 3 and 4 are open:
 3. **Pinning to one specific core versus letting each thread use any usable core.** Pinning gained 10–22 % against
    all logical processors unpinned, but a pinned thread can't move off a core another program is busy on. Windows
    now doesn't pin; the recommended count unpinned against pinned is unmeasured on Windows (DSCgpu `cores` has both
-   rows). Running two DSC instances at once isn't supported (Cody, 2026-11-15), so two instances pinning to the
+   rows). Running two DSC instances at once isn't supported (crcrewso, 2026-11-15), so two instances pinning to the
    same cores isn't a concern.
 4. **Fewer threads than cores take the lowest-numbered cores** when pinned, so on Linux only now. Sort P-cores
    first if a machine numbers its E-cores first.

@@ -53,7 +53,7 @@ public class BeamLinesTests
 
         // Electrons: the applicator, not the jaws. Measured 2026-11-09: every electron beam in
         // resources/ has applicator A10 with the jaws at +-70 mm, and the first version of this
-        // label called them "14 x 14 cm" (Cody: "some confusion with the field size").
+        // label called them "14 x 14 cm" (crcrewso: "some confusion with the field size").
         var electrons = beams.Where(b => b.IsElectron).ToArray();
         Assert.IsTrue(electrons.Length > 0);
         Assert.IsTrue(electrons.All(b => b.FieldSize == "10 x 10 cm (A10)"), string.Join(", ", electrons.Select(b => b.FieldSize).Distinct()));
@@ -107,7 +107,7 @@ public class BeamLinesTests
         vm.SetSession(session);
 
         Assert.IsTrue(vm.HasBeams);
-        // Photons only for now (Cody, 2026-11-09): 26 pairs less the 8 electron beams.
+        // Photons only for now (crcrewso, 2026-11-09): 26 pairs less the 8 electron beams.
         Assert.AreEqual(18, vm.Beams.Count, "all photon energies and field sizes to begin with");
         Assert.IsFalse(vm.Energies.Any(e => e.EndsWith("MeV")), string.Join(", ", vm.Energies));
         Assert.IsTrue(vm.Status.Contains("8 electron beam(s) not shown"), vm.Status);
@@ -131,7 +131,7 @@ public class BeamLinesTests
         Assert.IsTrue(vm.Curve!.Title.Contains("crossplane"), vm.Curve.Title);
         Assert.IsTrue(vm.DepthText.StartsWith("dmax = ") && vm.DepthText.EndsWith(" mm"), vm.DepthText);
 
-        // The fixed depths Cody asked for: dmax, 5, 10 and 20 cm.
+        // The fixed depths crcrewso asked for: dmax, 5, 10 and 20 cm.
         vm.Depth = vm.DepthChoices.First(d => d.Label == "10 cm");
         Assert.IsTrue(vm.Curve.Title.Contains("at 100 mm depth"), vm.Curve.Title);
         Assert.AreEqual("100 mm", vm.DepthText);

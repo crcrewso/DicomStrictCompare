@@ -59,7 +59,7 @@ public sealed record ComparisonPlan(
     /// <paramref name="q"/> with its window shrunk to the sample points that can pass the threshold. Trilinear
     /// interpolation is a weighted average of the surrounding voxels, so a point reaches the threshold only if one
     /// of them does: the window is the bounding box of source voxels at or above it, plus a margin. The margin is
-    /// 1 cm or 2 voxels, whichever is smaller (Cody, 2026-11-15), never under 1 voxel: below that a straddling
+    /// 1 cm or 2 voxels, whichever is smaller (crcrewso, 2026-11-15), never under 1 voxel: below that a straddling
     /// interpolation cell could be cut off. Points outside are below threshold by construction; the region that
     /// bounds DTA neighbours is unchanged, so the counts must equal the engine's.
     /// </summary>

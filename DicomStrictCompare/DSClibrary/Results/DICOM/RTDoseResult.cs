@@ -9,7 +9,7 @@ namespace DSClibrary.Results.DICOM
     /// An RT Dose file, as the file has it: DICOM's own attribute names, DICOM's own units, and the
     /// voxels as stored integers with the scaling factor beside them rather than multiplied in.
     /// <para>
-    /// Keeping them unmultiplied is the layer's job. Cody, 2026-11-08: a dose volume holds absolute
+    /// Keeping them unmultiplied is the layer's job. crcrewso, 2026-11-08: a dose volume holds absolute
     /// dose in centigray or relative dose in percent, "either would be the voxel value * dose grid
     /// scaling" - so the multiplication is a mapper's decision, taken once, where the unit conversion
     /// to centigray also happens. He also explained why the format is built this way: RT Dose predates

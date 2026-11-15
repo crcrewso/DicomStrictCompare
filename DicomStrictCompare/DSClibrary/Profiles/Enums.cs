@@ -59,7 +59,7 @@ namespace DSClibrary.Profiles
     /// What a set of values means. Shared by <see cref="Profile"/> and <see cref="DoseVolume"/> so
     /// there is one vocabulary rather than two overlapping ones.
     /// <para>
-    /// Cody, 2026-11-08: a dose volume holds either absolute dose in centigray or relative dose in
+    /// crcrewso, 2026-11-08: a dose volume holds either absolute dose in centigray or relative dose in
     /// percent, both being the stored voxel value times DoseGridScaling. And: "for the most part
     /// profiles are treated as relative, and only RD to RD comparisons will be looking for absolute
     /// dose comparisons."

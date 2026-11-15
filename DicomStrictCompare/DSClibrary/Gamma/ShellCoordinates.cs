@@ -1,6 +1,6 @@
 // Ported from pymedphys (lib/pymedphys/_utilities/createshells.py), Copyright (C) 2015-2018 Simon Biggs,
 // Apache License 2.0 - see THIRD-PARTY-NOTICES.md at the repository root. Ported to C# for
-// DicomStrictCompare by crane-dsc on 2026-11-09 at Cody Crewson's request.
+// DicomStrictCompare by crane-dsc on 2026-11-09 at crcrewso's request.
 using System;
 using System.Collections.Generic;
 

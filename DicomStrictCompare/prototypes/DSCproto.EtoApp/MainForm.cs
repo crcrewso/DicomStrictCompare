@@ -123,7 +123,7 @@ public sealed class MainForm : Form
         tabs.Pages.Add(Placeholder("Detector geometry",
             "Placeholder: detector geometry correction for PTW scans. IDetectorCorrection exists in DSClibrary; no physical kernel is implemented yet (backlog D4), so there is nothing honest to switch on here."));
         tabs.Pages.Add(Placeholder("Archive",
-            "Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - Cody, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."));
+            "Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - crcrewso, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."));
 
         var splitter = new Splitter
         {
@@ -191,7 +191,7 @@ public sealed class MainForm : Form
     private string? _lastExportFolder;
 
     /// <summary>
-    /// Where a Browse dialog opens: the parent of this field's previous choice (Cody, 2026-11-08),
+    /// Where a Browse dialog opens: the parent of this field's previous choice (crcrewso, 2026-11-08),
     /// else the parent of the other field's folder, else the last folder picked anywhere.
     /// </summary>
     private string? StartFor(string? own, string? other) =>

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DSClibraryTests
 {
     /// <summary>
-    /// The two-pass handler: plans first, then doses matched to them by UID (Cody's design,
+    /// The two-pass handler: plans first, then doses matched to them by UID (crcrewso's design,
     /// 2026-11-08).
     /// </summary>
     [TestClass]

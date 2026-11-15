@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DSClibraryTests
 {
-    /// <summary>Physical cores without SMT siblings or low-power E-cores (Cody, 2026-11-15), from sysfs-shaped input and from this machine.</summary>
+    /// <summary>Physical cores without SMT siblings or low-power E-cores (crcrewso, 2026-11-15), from sysfs-shaped input and from this machine.</summary>
     [TestClass]
     public class CpuTopologyTests
     {

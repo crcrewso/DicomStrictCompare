@@ -10,7 +10,7 @@ namespace DSClibraryTests
 {
     /// <summary>
     /// Patient orientation, handled for the two cases this project actually has: RT Dose to RT Dose
-    /// like for like, and RT Dose to profiles in matching geometry (Cody, 2026-11-08). In both the two
+    /// like for like, and RT Dose to profiles in matching geometry (crcrewso, 2026-11-08). In both the two
     /// sides are already in one frame, so what is needed is a compatibility check and an axis mapping
     /// - not a transform engine.
     /// </summary>

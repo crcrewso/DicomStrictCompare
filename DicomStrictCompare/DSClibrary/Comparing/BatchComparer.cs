@@ -15,7 +15,7 @@ namespace DSClibrary.Comparing
     /// <summary>
     /// The result of comparing one pair, kept as an object.
     /// <para>
-    /// Retained rather than rendered, because Cody wants an interface that can swap between and
+    /// Retained rather than rendered, because crcrewso wants an interface that can swap between and
     /// compare multiple comparisons (backlog D15) and that is only possible if a comparison's result
     /// survives being computed. It carries what it was given as well as what it found, so it can be
     /// re-rendered, re-tabulated or re-sorted without being recomputed - and so a number in a report
@@ -114,7 +114,7 @@ namespace DSClibrary.Comparing
             : $"{Key}: {Failure}";
     }
 
-    /// <summary>Which beams a criterion compares, by the source plan's RadiationType (Cody, 2026-11-15).</summary>
+    /// <summary>Which beams a criterion compares, by the source plan's RadiationType (crcrewso, 2026-11-15).</summary>
     public enum BeamsCompared { Both, Photon, Electron }
 
     /// <summary>
@@ -196,7 +196,7 @@ namespace DSClibrary.Comparing
         public bool PartialTargetReads { get; init; }
 
         /// <summary>
-        /// Opens a target and reads the rows that matter, the lowest useful region (Cody, 2026-11-15): every
+        /// Opens a target and reads the rows that matter, the lowest useful region (crcrewso, 2026-11-15): every
         /// criterion's reads, from its threshold box and the source (<see cref="Gpu.GpuTables.Reads"/>), and the rows
         /// <see cref="Studies.JawEdgeCheck"/> reads for the target's beam. A criterion that reads past a grid edge (the
         /// engine's rounding quirk) has the target read whole.

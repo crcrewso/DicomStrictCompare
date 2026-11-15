@@ -6,7 +6,7 @@ namespace DSCprototypes.Shared.Graphs;
 
 /// <summary>
 /// A matched pair described by the beam metadata a person filters on: energy and field size, read
-/// from the plan beside the dose. Cody, 2026-11-08: view results "scrolling from pdd through the
+/// from the plan beside the dose. crcrewso, 2026-11-08: view results "scrolling from pdd through the
 /// depths for one FieldSize and one Energy type".
 /// </summary>
 public sealed record BeamDescriptor(
@@ -53,7 +53,7 @@ public static class PairCatalog
     /// The field size a person means. For an electron beam with an applicator that is the
     /// applicator - "10 x 10 cm (A10)" - because the jaws behind it are opened wider (measured
     /// 2026-11-09: +-70 mm behind every A10 in resources/, which first labelled those beams
-    /// "14 x 14 cm"; Cody: "some confusion with the field size"). Otherwise it is crossplane by
+    /// "14 x 14 cm"; crcrewso: "some confusion with the field size"). Otherwise it is crossplane by
     /// inplane at the isocentre from the jaws, "10 x 10 cm". An applicator whose ID does not give
     /// its size shows the ID beside the jaw opening. <see cref="Unknown"/> when nothing says.
     /// </summary>
@@ -78,7 +78,7 @@ public static class PairCatalog
     }
 
     /// <summary>
-    /// Photons only, for now. Cody, 2026-11-09, reviewing the first graphs: "I'm having a hard time
+    /// Photons only, for now. crcrewso, 2026-11-09, reviewing the first graphs: "I'm having a hard time
     /// reviewing these graphs and comparing them to what I remember, could we stick to photon
     /// profiles for now?" The electron beams are still described (so the count can be shown) and
     /// still compared; they are just not offered in the Graphs tab until he asks for them.

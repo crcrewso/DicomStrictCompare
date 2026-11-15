@@ -100,7 +100,7 @@ namespace DSClibraryTests
             Assert.AreEqual(100.0, volume.Beam.FieldInplane!.Value.Millimetres, 1e-9);
             Assert.AreEqual(100.0, volume.Beam.FieldCrossplane!.Value.Millimetres, 1e-9);
 
-            // SSD is absent from all nine plans, so the mapper substitutes 100 cm on Cody's
+            // SSD is absent from all nine plans, so the mapper substitutes 100 cm on crcrewso's
             // instruction of 2026-11-08 - explicitly to be revisited - and records that it did.
             Assert.AreEqual(1000.0, volume.Beam.Ssd!.Value.Millimetres, 1e-9);
             Assert.IsTrue(volume.Beam.IsComplete, "the substitution is what completes the key");
@@ -146,7 +146,7 @@ namespace DSClibraryTests
         public void RelativeDoseIsRefusedRatherThanGuessed()
         {
             // No file uses DoseUnits RELATIVE, so nothing establishes whether its stored values are a
-            // fraction or already a percentage - and those differ by a factor of a hundred. Cody is
+            // fraction or already a percentage - and those differ by a factor of a hundred. crcrewso is
             // producing a sample file; until then a clear refusal beats a guessed factor.
             var relative = Assert.ThrowsExactly<DicomFormatException>(
                 () => RTDoseVolumeMapper.MapValueScale("RELATIVE"));

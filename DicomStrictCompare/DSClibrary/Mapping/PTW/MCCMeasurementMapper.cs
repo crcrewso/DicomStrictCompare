@@ -101,7 +101,7 @@ namespace DSClibrary.Mapping.PTW
         /// anything unestablished falls back to <see cref="ValueScale.ArbitraryUnits"/>.
         /// </para>
         /// <para>
-        /// <b>The absolute branch is written but unexercised.</b> Cody, 2026-11-08, said some vendors
+        /// <b>The absolute branch is written but unexercised.</b> crcrewso, 2026-11-08, said some vendors
         /// may provide absolutely calibrated output and that he has not yet seen one, and no file in
         /// <c>resources/</c> exercises it. So it is here to be representable, not because it has been
         /// verified; the first real file that takes this branch should be checked by hand.
