@@ -16,6 +16,7 @@ flowchart TD
     match --> unmatched["Unmatched and ambiguous doses<br/>reported, never guessed"]
     pairs["Matched pairs"] --> facts["Per pair: FieldFacts, PlanCheck, DoseWarnings"]
     facts --> preview["ComparisonPreview<br/>(Preview ends here)"]
+    machine["MachineSettings file: engine, threads, reading<br/>plus the study's Max and GPU float"] --> engine
     preview --> engine["DoseComparers.Create(ComparerSettings)"]
     engine --> batch["BatchComparer.CompareMany<br/>(diagram 2)"]
     batch --> rows["StudyRow per pair and criterion"]
@@ -32,7 +33,7 @@ flowchart TD
     budget --> atonce["Pairs at once: as many as half the free memory holds,<br/>up to the budget (2 for MultiThread and GPU)"]
     atonce --> mode{"Read queue set?"}
     mode -- no --> workers["Workers, each reads then compares<br/>pinned on Linux for the single-thread engines"]
-    mode -- yes --> readers["K readers"] --> channel["Bounded queue, M pairs held"] --> workers
+    mode -- yes --> readers["K readers, fewer if readers + held + workers<br/>wouldn't fit half the free memory"] --> channel["Bounded queue, M pairs held"] --> workers
     workers --> load
     subgraph load["Load, once per pair"]
         applies["Criteria that apply to the beam<br/>(AppliesTo: Photon, Electron, Both)"] --> src["Source grid: DoseGridReader"]

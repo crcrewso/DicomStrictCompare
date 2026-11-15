@@ -84,15 +84,21 @@ left at Both. A dose with no source plan is compared only by Both criteria. The 
 **Threads use physical cores only.** Every default thread count is one per physical core: SMT siblings are ignored,
 and so are Intel's low-power E-cores (a core with no L3 cache when other cores have one). On Linux the threads are
 pinned, one per core; Windows schedules its own. On a 4 P + 8 E + 4 LP-E laptop, 12 pinned threads beat all 16
-unpinned by 13 %, and adding the 4 LP-E cores gained nothing. The Avalonia window's **Threads** list runs from 1 to
-every logical processor and defaults to that count, marked "(recommended)". The L3 rule is a stand-in under review:
+unpinned by 13 %, and adding the 4 LP-E cores gained nothing. The **Threads** list (Settings tab) runs from 1 to
+every logical processor, in steps of 1 to 4, then 2 to 12, then 4, and defaults to that count, marked "(recommended)". The L3 rule is a stand-in under review:
 [design/core-selection.md](design/core-selection.md).
 
-**Reading, both opt-in, neither changes a count:**
+**Reading, neither changes a count** (on in the apps by default, agreed 2026-11-15; off in the library unless set):
 - **Target box only:** each target is read only where the criteria and the edge check use it, which is the box at
   the lowest threshold among the criteria. A pair with a gamma criterion reads its target whole.
-- **Read queue:** *Readers* files are read at once into a queue of *Held* loaded pairs while the workers compare.
-  0 readers has each worker read its own pair, as before.
+- **Read queue:** *Readers* files (4 by default) are read at once into a queue of *Held* loaded pairs while the
+  workers compare. Fewer readers run if the queued pairs wouldn't fit in half the free memory. 0 readers has each
+  worker read its own pair.
+
+**Settings.** Engine, Threads, pairs at once and the reading options belong to the machine, not to a study: the
+apps' **Settings** tab keeps them in `settings.json` under the user's application data folder
+(`%APPDATA%\DicomStrictCompare` on Windows, `~/.config/DicomStrictCompare` on Linux). A study keeps Max and GPU
+float, which can change results.
 
 **Pairs at once.** Several pairs can run side by side as well. Left at 0, the number is chosen from free memory:
 as many as half of it holds, up to the physical core count, or 2 for the multi-thread and GPU engines.

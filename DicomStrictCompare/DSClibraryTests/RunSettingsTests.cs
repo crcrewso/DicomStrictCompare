@@ -73,6 +73,12 @@ namespace DSClibraryTests
             var one = new BatchComparer(DoseGridReader.Read, new SingleThreadComparer()) { Threads = 1 }
                 .CompareMany(pairs.Take(3), new[] { new Criterion(new Dta(true, 0.10, 0.03, 3, relative: true), true) });
             Assert.AreEqual(1, one.DegreeOfParallelism);
+
+            // The read queue's readers each hold a pair, so readers + held + workers must fit; never fewer than 1.
+            var queue = new BatchComparer.ReadQueue(4, 2);
+            Assert.AreEqual(4, BatchComparer.ReadersThatFit(pairs, queue, workers: 2, availableBytes: 40 * pairBytes));   // 20 fit
+            Assert.AreEqual(2, BatchComparer.ReadersThatFit(pairs, queue, workers: 2, availableBytes: 12 * pairBytes));   // 6 fit
+            Assert.AreEqual(1, BatchComparer.ReadersThatFit(pairs, queue, workers: 2, availableBytes: 2 * pairBytes));    // 1 fits
         }
 
         [TestMethod]

@@ -16,9 +16,10 @@ Never pick substandard cores automatically. crcrewso, 2026-11-15:
 - **Only cores with an L3 cache,** when any core has one. A machine where no core reports an L3 uses every core.
 - **Threads are pinned** one per core on Linux only. Windows schedules its own (crcrewso, 2026-11-15: *"let windows
   figure out the scheduling"*); macOS can't pin. `CpuTopology.PinByDefault` says which.
-- **The Threads list** (Avalonia) runs from 1 to every logical processor, SMT included, and defaults to the
-  recommended count, marked "(recommended)". A study saves the recommended choice as no number, so another machine
-  uses its own. A user's chosen count always wins.
+- **The Threads list** (the Settings tab, Avalonia and Eto) runs from 1 to every logical processor, SMT included, in
+  steps of 1 to 4, then 2 to 12, then 4, and defaults to the recommended count, marked "(recommended)". The machine
+  settings file keeps the recommended choice as no number, so it follows the machine. A user's chosen count always
+  wins.
 
 ## Why L3 is only a stand-in
 

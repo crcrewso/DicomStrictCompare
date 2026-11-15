@@ -5,38 +5,88 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DSCprototypes.Shared.Tests;
 
-/// <summary>The Threads list (crcrewso, 2026-11-15): 1 to every logical processor, defaulting to the recommended count.</summary>
+/// <summary>
+/// The Threads list and the machine settings file (crcrewso, 2026-11-15): steps of 1 to 4, then 2 to 12, then 4,
+/// defaulting to the recommended count; machine settings kept in their own file, not in a study.
+/// </summary>
 [TestClass]
 public class ThreadChoiceTests
 {
-    private static MainViewModel NewMain() => new((_, _) => Task.FromResult<string?>(null));
+    private string _dir = "";
+    [TestInitialize] public void MakeDir() => Directory.CreateDirectory(_dir = Path.Combine(Path.GetTempPath(), "dsc-settings-" + Guid.NewGuid().ToString("N")));
+    [TestCleanup] public void RemoveDir() => Directory.Delete(_dir, recursive: true);
+
+    private static MainViewModel NewMain(string? settingsPath = null) => new((_, _) => Task.FromResult<string?>(null), settingsPath);
 
     [TestMethod]
-    public void TheListRunsToEveryLogicalProcessorAndDefaultsToTheRecommendedCount()
+    public void TheStepsAreOneToFourThenTwoToTwelveThenFour()
     {
-        var vm = NewMain();
-        CollectionAssert.AreEqual(Enumerable.Range(1, Environment.ProcessorCount).ToArray(), vm.ThreadChoices.Select(c => c.Count).ToArray());
-        Assert.AreEqual(1, vm.ThreadChoices.Count(c => c.Recommended));
-        Assert.AreEqual(CpuTopology.PhysicalCores, vm.Threads.Count);
-        Assert.AreEqual($"{CpuTopology.PhysicalCores} (recommended)", vm.Threads.ToString());
-        Assert.IsNull(vm.ComparerSettings.Threads);   // saved as "recommended", so another machine uses its own
+        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 24, 28, 32 }, MachineSettings.ThreadCounts(32, 16).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 6, 8, 10, 12, 16 }, MachineSettings.ThreadCounts(16, 12).ToArray());
+        // An off-step recommended count and maximum are listed too.
+        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 6, 7, 8, 10, 12, 16, 18 }, MachineSettings.ThreadCounts(18, 7).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2 }, MachineSettings.ThreadCounts(2, 2).ToArray());
+        // A count between steps rounds down to a listed one.
+        var listed = MachineSettings.ThreadCounts(32, 16);
+        Assert.AreEqual(12, MachineSettings.ListedThreads(listed, 14));
+        Assert.AreEqual(32, MachineSettings.ListedThreads(listed, 1000));
+        Assert.AreEqual(1, MachineSettings.ListedThreads(listed, 0));
     }
 
     [TestMethod]
-    public void AChosenCountIsSavedAndRestored()
+    public void TheListDefaultsToTheRecommendedCount()
     {
         var vm = NewMain();
-        vm.Threads = vm.ThreadChoices[0];
-        Assert.AreEqual(1, vm.ComparerSettings.Threads);
-        Assert.AreEqual("1", vm.Threads.ToString().Replace(" (recommended)", "", StringComparison.Ordinal));
+        CollectionAssert.AreEqual(MachineSettings.ThreadCounts(Environment.ProcessorCount, CpuTopology.PhysicalCores).ToArray(),
+            vm.ThreadChoices.Select(c => c.Count).ToArray());
+        Assert.AreEqual(1, vm.ThreadChoices.Count(c => c.Recommended));
+        Assert.AreEqual($"{CpuTopology.PhysicalCores} (recommended)", vm.Threads.ToString());
+        Assert.IsNull(vm.ComparerSettings.Threads);   // kept as "recommended", so the file follows the machine
+    }
 
-        var other = NewMain();
-        other.Apply(vm.RunSettings);
-        Assert.AreEqual(1, other.Threads.Count);
-        // A saved count above this machine's processors falls back to the most it has.
-        other.Apply(new StudyRunSettings(Comparer: new ComparerSettings(Threads: 100_000)));
-        Assert.AreEqual(Environment.ProcessorCount, other.Threads.Count);
-        other.Apply(StudyRunSettings.Default);
-        Assert.IsTrue(other.Threads.Recommended);
+    [TestMethod]
+    public void TheAgreedReadingDefaults()
+    {
+        Assert.IsTrue(MachineSettings.Defaults.PartialTargetReads);
+        Assert.AreEqual(4, MachineSettings.Defaults.Readers);
+        var run = NewMain().RunSettings;
+        Assert.IsTrue(run.PartialTargetReads);
+        Assert.AreEqual(4, run.Queue!.Readers);
+    }
+
+    [TestMethod]
+    public void SettingsAreKeptInTheirFileAndNotTakenFromAStudy()
+    {
+        string path = Path.Combine(_dir, "settings.json");
+        var vm = NewMain(path);
+        Assert.IsFalse(File.Exists(path), "nothing is written until a setting changes");
+        vm.Threads = vm.ThreadChoices[0];
+        vm.Engine = ComparerKind.MultiThread;
+        vm.Readers = 2;
+        Assert.IsTrue(File.Exists(path));
+
+        var again = NewMain(path);
+        Assert.AreEqual(1, again.Threads.Count);
+        Assert.AreEqual(ComparerKind.MultiThread, again.Engine);
+        Assert.AreEqual(2, again.Readers);
+
+        // A study decides Max and GPU precision only; this machine's engine and threads stay.
+        again.Apply(new StudyRunSettings(MaximumKind.CaxMax, new ComparerSettings(ComparerKind.OpenCl, 8, GpuPrecision.Float)));
+        Assert.AreEqual(MaximumKind.CaxMax, again.Maximum);
+        Assert.IsTrue(again.GpuFloat);
+        Assert.AreEqual(ComparerKind.MultiThread, again.Engine);
+        Assert.AreEqual(1, again.Threads.Count);
+    }
+
+    [TestMethod]
+    public void AnUnreadableFileGivesTheDefaultsAndSaysSo()
+    {
+        string path = Path.Combine(_dir, "settings.json");
+        File.WriteAllText(path, "{ not json");
+        var s = MachineSettings.Load(path, out var problem);
+        Assert.AreEqual(MachineSettings.Defaults, s);
+        StringAssert.Contains(problem, "using the defaults");
+        Assert.AreEqual(MachineSettings.Defaults, MachineSettings.Load(Path.Combine(_dir, "missing.json"), out var none));
+        Assert.IsNull(none);
     }
 }

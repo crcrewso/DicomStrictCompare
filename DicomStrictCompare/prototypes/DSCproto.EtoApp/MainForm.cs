@@ -66,6 +66,20 @@ public sealed class MainForm : Form
     private readonly GraphPage _graphs;
     private readonly TabControl _tabs = new();
 
+    // Kept with a comparison, because they can change results: Max and GPU float.
+    private readonly DropDown _maximum = new() { ToolTip = "GlobalMax: the source grid's maximum. CaxMax: the 3 x 3 average at the CAX maximum, used only when the source plan's jaws are on axis, otherwise Global Max." };
+    private readonly CheckBox _gpuFloat = new() { Text = "GPU float", ToolTip = "GPU engines only. Float may differ from the reference on a few points in millions; double matches it exactly." };
+
+    // This machine's settings (MachineSettings, kept in its file and saved as they change). None changes a count.
+    private readonly DropDown _engine = new() { ToolTip = "HandWritten is the original and the reference. The others apply the same rules faster and give the same counts." };
+    private readonly DropDown _threads = new() { ToolTip = "CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count leaves out SMT siblings and low-power E-cores." };
+    private readonly NumericStepper _pairsAtOnce = new() { MinValue = 0, MaxValue = 256, Width = 90, ToolTip = "0 chooses from free memory." };
+    private readonly CheckBox _partialTargetReads = new() { ToolTip = "Read each target only where the criteria and the edge check use it. The counts are the same either way." };
+    private readonly NumericStepper _readers = new() { MinValue = 0, MaxValue = 64, Width = 90, ToolTip = "Files read at once, ahead of the comparison; fewer if memory is short. 0 has each worker read its own pair." };
+    private readonly NumericStepper _pairsHeld = new() { MinValue = 1, MaxValue = 64, Width = 90, ToolTip = "Loaded pairs waiting for a worker, when Readers is above 0." };
+    private readonly int[] _threadCounts = MachineSettings.ThreadCounts(CpuTopology.MaxThreads, CpuTopology.PhysicalCores).ToArray();
+    private bool _loadingSettings;
+
     public MainForm()
     {
         _graphs = new GraphPage(ComparisonRunner.LoadGrid, () => (_sourceAlias.Text, _targetAlias.Text), PickFolder, () => _sourceFolder.Text);
@@ -77,6 +91,7 @@ public sealed class MainForm : Form
         BuildCriteriaGrid();
         BuildResultsGrid();
         WireEvents();
+        BuildSettings();
 
         // DynamicLayout: rows and columns described in code, with scaling flags instead of a grid of
         // sizes. BeginVertical/BeginHorizontal is Eto's own layout idiom.
@@ -113,6 +128,7 @@ public sealed class MainForm : Form
         add.Click += (_, _) => _criteria.Add(new CriterionRow());
         remove.Click += (_, _) => { if (_criteriaGrid.SelectedItem is CriterionRow r) _criteria.Remove(r); };
         criteriaPanel.AddRow(new TableLayout(add, remove, null));
+        criteriaPanel.AddRow(new TableLayout(new TableRow(new Label { Text = "Max", VerticalAlignment = VerticalAlignment.Center }, _maximum, _gpuFloat, null)));
         criteriaPanel.Add(null, yscale: true);
 
         var tabs = _tabs;
@@ -124,6 +140,7 @@ public sealed class MainForm : Form
             "Placeholder: detector geometry correction for PTW scans. IDetectorCorrection exists in DSClibrary; no physical kernel is implemented yet (backlog D4), so there is nothing honest to switch on here."));
         tabs.Pages.Add(Placeholder("Archive",
             "Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - crcrewso, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."));
+        tabs.Pages.Add(SettingsPage());
 
         var splitter = new Splitter
         {
@@ -286,6 +303,73 @@ public sealed class MainForm : Form
         _export.Click += (_, _) => Export();
     }
 
+    // ---- Settings ----
+
+    private void BuildSettings()
+    {
+        foreach (var m in Enum.GetValues<MaximumKind>()) _maximum.Items.Add(m.ToString());
+        _maximum.SelectedIndex = 0;
+        foreach (var k in Enum.GetValues<ComparerKind>()) _engine.Items.Add(k.ToString());
+        foreach (int n in _threadCounts) _threads.Items.Add(n == CpuTopology.PhysicalCores ? $"{n} (recommended)" : n.ToString());
+
+        var settings = MachineSettings.Load(MachineSettings.DefaultPath, out var problem);
+        _loadingSettings = true;
+        _engine.SelectedIndex = Array.IndexOf(Enum.GetValues<ComparerKind>(), settings.Engine);
+        _threads.SelectedIndex = Array.IndexOf(_threadCounts, MachineSettings.ListedThreads(_threadCounts, settings.Threads));
+        _pairsAtOnce.Value = settings.PairsAtOnce ?? 0;
+        _partialTargetReads.Checked = settings.PartialTargetReads;
+        _readers.Value = settings.Readers;
+        _pairsHeld.Value = settings.PairsHeld;
+        _loadingSettings = false;
+        if (problem is not null) _status.Text = problem;
+
+        _engine.SelectedIndexChanged += (_, _) => SaveSettings();
+        _threads.SelectedIndexChanged += (_, _) => SaveSettings();
+        _pairsAtOnce.ValueChanged += (_, _) => SaveSettings();
+        _partialTargetReads.CheckedChanged += (_, _) => SaveSettings();
+        _readers.ValueChanged += (_, _) => SaveSettings();
+        _pairsHeld.ValueChanged += (_, _) => SaveSettings();
+    }
+
+    private MachineSettings CurrentSettings()
+    {
+        int threads = _threadCounts[Math.Max(0, _threads.SelectedIndex)];
+        return new MachineSettings
+        {
+            Engine = Enum.GetValues<ComparerKind>()[Math.Max(0, _engine.SelectedIndex)],
+            Threads = threads == CpuTopology.PhysicalCores ? null : threads,
+            PairsAtOnce = _pairsAtOnce.Value > 0 ? (int)_pairsAtOnce.Value : null,
+            PartialTargetReads = _partialTargetReads.Checked == true,
+            Readers = (int)_readers.Value,
+            PairsHeld = Math.Max(1, (int)_pairsHeld.Value),
+        };
+    }
+
+    private void SaveSettings()
+    {
+        if (_loadingSettings) return;
+        try { CurrentSettings().Save(MachineSettings.DefaultPath); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { _status.Text = $"Settings not saved: {ex.Message}"; }
+    }
+
+    private TabPage SettingsPage()
+    {
+        Label L(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center };
+        var table = new TableLayout { Spacing = new Size(12, 8) };
+        table.Rows.Add(new TableRow(L("Engine"), _engine, null));
+        table.Rows.Add(new TableRow(L("Threads"), _threads, null));
+        table.Rows.Add(new TableRow(L("Pairs at once"), _pairsAtOnce, null));
+        table.Rows.Add(new TableRow(L("Target box only"), _partialTargetReads, null));
+        table.Rows.Add(new TableRow(L("Readers"), _readers, null));
+        table.Rows.Add(new TableRow(L("Held"), _pairsHeld, null));
+        var layout = new DynamicLayout { Padding = new Padding(12), DefaultSpacing = new Size(8, 10) };
+        layout.AddRow(new Label { Text = "Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study.", Wrap = WrapMode.Word });
+        layout.AddRow(table);
+        layout.AddRow(new Label { Text = "Kept in " + MachineSettings.DefaultPath, Wrap = WrapMode.Word });
+        layout.Add(null, yscale: true);
+        return new TabPage(layout) { Text = "Settings" };
+    }
+
     private async Task RunAsync()
     {
         if (!Directory.Exists(_sourceFolder.Text) || !Directory.Exists(_targetFolder.Text))
@@ -308,9 +392,13 @@ public sealed class MainForm : Form
         _cancelSource = new CancellationTokenSource();
 
         var strategy = _strategy.SelectedIndex == 0 ? DoseMatchStrategy.PlanAndBeamUid : DoseMatchStrategy.Identifier;
+        var run = CurrentSettings().ToRun(Enum.GetValues<MaximumKind>()[Math.Max(0, _maximum.SelectedIndex)],
+            _gpuFloat.Checked == true ? GpuPrecision.Float : GpuPrecision.Double);
         var request = new ComparisonRequest(
             _sourceFolder.Text, _targetFolder.Text, _sourceAlias.Text, _targetAlias.Text,
-            _criteria.Select(c => c.ToSpec()).ToList(), strategy);
+            _criteria.Select(c => c.ToSpec()).ToList(), strategy,
+            DegreeOfParallelism: run.PairsAtOnce, Maximum: run.Maximum, Comparer: run.ComparerOrDefault,
+            PartialTargetReads: run.PartialTargetReads, Queue: run.Queue);
 
         // Application.Instance.Invoke is Eto's way back to the UI thread from the runner's worker.
         var progress = new Progress<string>(line => Application.Instance.Invoke(() =>

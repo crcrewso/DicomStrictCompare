@@ -47,9 +47,16 @@ public sealed partial class MainViewModel : ObservableObject
     private string? _lastPicked;
     private string? _lastExportFolder;
 
-    public MainViewModel(Func<string, string?, Task<string?>> pickFolder)
+    /// <param name="settingsPath">The machine settings file to load and keep (<see cref="MachineSettings.DefaultPath"/> in the apps); null keeps nothing.</param>
+    public MainViewModel(Func<string, string?, Task<string?>> pickFolder, string? settingsPath = null)
     {
         _pickFolder = pickFolder;
+        SettingsPath = settingsPath;
+        if (settingsPath is not null)
+        {
+            LoadSettings(MachineSettings.Load(settingsPath, out var problem));
+            if (problem is not null) Status = problem;
+        }
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
         Graph = new GraphViewModel(ComparisonRunner.LoadGrid, pickFolder);
         Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList(),
@@ -106,21 +113,84 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private MaximumKind _maximum = MaximumKind.GlobalMax;
     public IReadOnlyList<MaximumKind> MaximumChoices { get; } = Enum.GetValues<MaximumKind>();
 
+    // ---- Machine settings: the Settings tab, kept in MachineSettings' file. None changes a count. ----
+
     /// <summary>The comparison engine; HandWritten, the reference, unless chosen. Used by both tabs.</summary>
     [ObservableProperty] private ComparerKind _engine = ComparerKind.HandWritten;
     public IReadOnlyList<ComparerKind> EngineChoices { get; } = Enum.GetValues<ComparerKind>();
 
     /// <summary>
-    /// CPU threads: every count from 1 to every logical processor, SMT included, defaulting to the recommended one,
-    /// one per usable core (crcrewso, 2026-11-15). Saved as null when the recommended count is chosen, so a study opened
-    /// on another machine uses that machine's.
+    /// CPU threads, from 1 to every logical processor, SMT included, defaulting to the recommended one, one per usable
+    /// core (crcrewso, 2026-11-15). Steps per <see cref="MachineSettings.ThreadCounts"/>. Saved as null when the
+    /// recommended count is chosen, so the file follows the machine.
     /// </summary>
-    [ObservableProperty] private ThreadChoice _threads = AllThreadChoices[CpuTopology.PhysicalCores - 1];
+    [ObservableProperty] private ThreadChoice _threads = ChoiceFor(null);
     public IReadOnlyList<ThreadChoice> ThreadChoices => AllThreadChoices;
-    private static readonly ThreadChoice[] AllThreadChoices = Enumerable.Range(1, CpuTopology.MaxThreads)
+    private static readonly ThreadChoice[] AllThreadChoices = MachineSettings.ThreadCounts(CpuTopology.MaxThreads, CpuTopology.PhysicalCores)
         .Select(n => new ThreadChoice(n, n == CpuTopology.PhysicalCores)).ToArray();
-    private static ThreadChoice ChoiceFor(int? threads) =>
-        AllThreadChoices[Math.Clamp(threads ?? CpuTopology.PhysicalCores, 1, AllThreadChoices.Length) - 1];
+    private static ThreadChoice ChoiceFor(int? threads)
+    {
+        int listed = MachineSettings.ListedThreads(AllThreadChoices.Select(c => c.Count).ToArray(), threads);
+        return AllThreadChoices.First(c => c.Count == listed);
+    }
+
+    /// <summary>Pairs compared at once; 0 chooses from free memory (BatchComparer.PairsAtOnce).</summary>
+    [ObservableProperty] private int _pairsAtOnce;
+
+    /// <summary>Read each target only where the criteria and the edge check use it (not for gamma). Same counts.</summary>
+    [ObservableProperty] private bool _partialTargetReads = MachineSettings.Defaults.PartialTargetReads;
+
+    /// <summary>Files read at once into a queue ahead of the comparison; 0 has each worker read its own pair.</summary>
+    [ObservableProperty] private int _readers = MachineSettings.Defaults.Readers;
+
+    /// <summary>Loaded pairs the queue holds, when Readers is above 0.</summary>
+    [ObservableProperty] private int _pairsHeld = MachineSettings.Defaults.PairsHeld;
+
+    /// <summary>Where the machine settings are kept, or null for not kept (tests).</summary>
+    public string? SettingsPath { get; }
+    private bool _loadingSettings;
+
+    /// <summary>The Settings tab's values as a <see cref="MachineSettings"/>.</summary>
+    public MachineSettings MachineSettings => new()
+    {
+        Engine = Engine,
+        Threads = Threads.Recommended ? null : Threads.Count,
+        PairsAtOnce = PairsAtOnce > 0 ? PairsAtOnce : null,
+        PartialTargetReads = PartialTargetReads,
+        Readers = Math.Max(0, Readers),
+        PairsHeld = Math.Max(1, PairsHeld),
+    };
+
+    private void LoadSettings(MachineSettings s)
+    {
+        _loadingSettings = true;
+        try
+        {
+            Engine = s.Engine;
+            Threads = ChoiceFor(s.Threads);
+            PairsAtOnce = s.PairsAtOnce ?? 0;
+            PartialTargetReads = s.PartialTargetReads;
+            Readers = s.Readers;
+            PairsHeld = s.PairsHeld;
+        }
+        finally { _loadingSettings = false; }
+    }
+
+    private void SaveSettings()
+    {
+        if (_loadingSettings || SettingsPath is null) return;
+        try { MachineSettings.Save(SettingsPath); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Status = $"Settings not saved: {ex.Message}"; }
+    }
+
+    partial void OnEngineChanged(ComparerKind value) => SaveSettings();
+    partial void OnThreadsChanged(ThreadChoice value) => SaveSettings();
+    partial void OnPairsAtOnceChanged(int value) => SaveSettings();
+    partial void OnPartialTargetReadsChanged(bool value) => SaveSettings();
+    partial void OnReadersChanged(int value) => SaveSettings();
+    partial void OnPairsHeldChanged(int value) => SaveSettings();
+
+    // ---- Study settings: kept with a study, because they can change results. ----
 
     /// <summary>
     /// Float on the GPU engines, a user's choice (crcrewso, 2026-11-15): some GPUs run double far slower, for example
@@ -128,34 +198,17 @@ public sealed partial class MainViewModel : ObservableObject
     /// </summary>
     [ObservableProperty] private bool _gpuFloat;
 
-    /// <summary>Pairs compared at once; 0 chooses from free memory (BatchComparer.PairsAtOnce).</summary>
-    [ObservableProperty] private int _pairsAtOnce;
+    public ComparerSettings ComparerSettings => RunSettings.ComparerOrDefault;
+    public StudyRunSettings RunSettings => MachineSettings.ToRun(Maximum, GpuFloat ? GpuPrecision.Float : GpuPrecision.Double);
 
-    /// <summary>Read each target only where the criteria and the edge check use it (not for gamma). Same counts.</summary>
-    [ObservableProperty] private bool _partialTargetReads;
-
-    /// <summary>Files read at once into a queue ahead of the comparison; 0 has each worker read its own pair.</summary>
-    [ObservableProperty] private int _readers;
-
-    /// <summary>Loaded pairs the queue holds, when Readers is above 0.</summary>
-    [ObservableProperty] private int _pairsHeld = 2;
-
-    public ComparerSettings ComparerSettings => new(Engine, Threads.Recommended ? null : Threads.Count,
-        Precision: GpuFloat ? GpuPrecision.Float : GpuPrecision.Double);
-    public StudyRunSettings RunSettings => new(Maximum, ComparerSettings, PairsAtOnce > 0 ? PairsAtOnce : null,
-        PartialTargetReads, Readers > 0 ? Readers : null, Readers > 0 ? PairsHeld : null);
-
-    /// <summary>Takes a study file's run settings, so opening a study restores the engine it was run with.</summary>
+    /// <summary>
+    /// Takes what a study file decides: Max and GPU precision. The machine settings stay this machine's; the study file
+    /// still records them, for a headless run and for the record.
+    /// </summary>
     public void Apply(StudyRunSettings run)
     {
         Maximum = run.Maximum;
-        Engine = run.ComparerOrDefault.Kind;
-        Threads = ChoiceFor(run.ComparerOrDefault.Threads);
         GpuFloat = run.ComparerOrDefault.Precision == GpuPrecision.Float;
-        PairsAtOnce = run.PairsAtOnce ?? 0;
-        PartialTargetReads = run.PartialTargetReads;
-        Readers = run.Readers ?? 0;
-        PairsHeld = run.PairsHeld ?? 2;
     }
     [ObservableProperty] private string _status = "Choose two folders of RT Dose and RT Plan files.";
     [ObservableProperty] private string _log = "";

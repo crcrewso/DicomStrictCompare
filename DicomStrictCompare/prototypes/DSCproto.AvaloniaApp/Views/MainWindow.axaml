@@ -42,34 +42,13 @@
         <TextBlock DockPanel.Dock="Top" Text="Criteria" FontWeight="SemiBold" Margin="0,0,0,6"/>
         <!-- "Max": what the threshold and global tolerance are fractions of. CAX falls back to Global Max unless
              the source plan's jaws are on axis; each result row says which was used. -->
-        <!-- Engine and pairs at once: saved with a study. Float is GPU-only and opt-in. -->
-        <!-- Reading: both opt-in and saved with a study; neither changes a count. -->
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
-          <CheckBox Content="Target box only" IsChecked="{Binding PartialTargetReads}"
-                    ToolTip.Tip="Read each target only where the criteria and the edge check use it. A pair with a gamma criterion reads its target whole. The counts are the same either way."/>
-          <TextBlock Text="Readers" VerticalAlignment="Center"/>
-          <TextBox Text="{Binding Readers}" Width="40" ToolTip.Tip="Files read at once, ahead of the comparison. 0 has each worker read its own pair, as before."/>
-          <TextBlock Text="Held" VerticalAlignment="Center"/>
-          <TextBox Text="{Binding PairsHeld}" Width="40" ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
-        </StackPanel>
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
-          <TextBlock Text="Pairs at once" VerticalAlignment="Center"/>
-          <TextBox Text="{Binding PairsAtOnce}" Width="50" ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the core count (2 for the multi-thread and GPU engines)."/>
-          <CheckBox Content="GPU float" IsChecked="{Binding GpuFloat}"
-                    ToolTip.Tip="GPU engines only. Many GPUs run double far slower than float, for example NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions; double matches it exactly."/>
-        </StackPanel>
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
-          <TextBlock Text="Engine" VerticalAlignment="Center"/>
-          <ComboBox ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding Engine}" MinWidth="130"
-                    ToolTip.Tip="HandWritten is the original and the reference. The others apply the same rules faster and are tested to give the same counts."/>
-          <TextBlock Text="Threads" VerticalAlignment="Center"/>
-          <ComboBox ItemsSource="{Binding ThreadChoices}" SelectedItem="{Binding Threads}" MinWidth="130"
-                    ToolTip.Tip="CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count is one per full-speed core, leaving out SMT siblings and low-power E-cores."/>
-        </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
           <TextBlock Text="Max" VerticalAlignment="Center"/>
           <ComboBox ItemsSource="{Binding MaximumChoices}" SelectedItem="{Binding Maximum}" MinWidth="130"
                     ToolTip.Tip="GlobalMax: the source grid's maximum. CaxMax: the 3 x 3 average at the CAX maximum (arcs: about the isocentre), used only when the source plan's jaws are on axis, otherwise Global Max."/>
+          <!-- Kept with a study, like Max, because it can change counts. Engine, threads and reading are on the Settings tab. -->
+          <CheckBox Content="GPU float" IsChecked="{Binding GpuFloat}"
+                    ToolTip.Tip="GPU engines only. Many GPUs run double far slower than float, for example NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions; double matches it exactly."/>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
           <Button Content="Add" Command="{Binding AddCriterionCommand}"/>
@@ -373,6 +352,33 @@
             </TabControl>
             <TextBlock Grid.Row="1" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,6,0,0"/>
           </Grid>
+        </TabItem>
+        <!-- This machine's settings (MachineSettings, saved as they change). None changes a count. -->
+        <TabItem Header="Settings">
+          <StackPanel Margin="0,12,0,0" Spacing="10" MaxWidth="720" HorizontalAlignment="Left">
+            <TextBlock TextWrapping="Wrap" Text="Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study."/>
+            <Grid ColumnDefinitions="160,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+              <TextBlock Grid.Row="0" Text="Engine" VerticalAlignment="Center"/>
+              <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding Engine}" MinWidth="160"
+                        ToolTip.Tip="HandWritten is the original and the reference. The others apply the same rules faster and are tested to give the same counts."/>
+              <TextBlock Grid.Row="1" Text="Threads" VerticalAlignment="Center"/>
+              <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding ThreadChoices}" SelectedItem="{Binding Threads}" MinWidth="160"
+                        ToolTip.Tip="CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count is one per full-speed core, leaving out SMT siblings and low-power E-cores."/>
+              <TextBlock Grid.Row="2" Text="Pairs at once" VerticalAlignment="Center"/>
+              <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PairsAtOnce}" Width="60" HorizontalAlignment="Left"
+                       ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the thread count (2 for the multi-thread and GPU engines)."/>
+              <TextBlock Grid.Row="3" Text="Target box only" VerticalAlignment="Center"/>
+              <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding PartialTargetReads}"
+                        ToolTip.Tip="Read each target only where the criteria and the edge check use it. A pair with a gamma criterion reads its target whole. The counts are the same either way."/>
+              <TextBlock Grid.Row="4" Text="Readers" VerticalAlignment="Center"/>
+              <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Readers}" Width="60" HorizontalAlignment="Left"
+                       ToolTip.Tip="Files read at once, ahead of the comparison; fewer if memory is short. 0 has each worker read its own pair."/>
+              <TextBlock Grid.Row="5" Text="Held" VerticalAlignment="Center"/>
+              <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
+                       ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
+            </Grid>
+            <TextBlock Text="{Binding SettingsPath, StringFormat='Kept in {0}'}" TextWrapping="Wrap" Opacity="0.7"/>
+          </StackPanel>
         </TabItem>
       </TabControl>
     </Grid>

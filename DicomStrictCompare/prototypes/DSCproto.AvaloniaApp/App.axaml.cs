@@ -18,7 +18,7 @@ public partial class App : Application
             // The view owns the view model's lifetime. The folder picker is a platform service, so the
             // view hands the view model a delegate rather than the view model reaching for the window.
             var window = new MainWindow();
-            var viewModel = new MainViewModel(window.PickFolderAsync);
+            var viewModel = new MainViewModel(window.PickFolderAsync, MachineSettings.DefaultPath);
             var options = LaunchOptions.FromCommandLine();
             viewModel.Apply(options);
             window.DataContext = viewModel;

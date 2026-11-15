@@ -138,12 +138,16 @@ namespace DSClibrary.Comparing
         public TimeSpan Elapsed { get; }
         public int DegreeOfParallelism { get; }
 
+        /// <summary>Readers the read queue ran with, after the memory cap; null without a queue.</summary>
+        public int? Readers { get; }
+
         internal BatchComparisonResult(
-            IReadOnlyList<ComparisonOutcome> outcomes, TimeSpan elapsed, int degreeOfParallelism)
+            IReadOnlyList<ComparisonOutcome> outcomes, TimeSpan elapsed, int degreeOfParallelism, int? readers = null)
         {
             Outcomes = outcomes;
             Elapsed = elapsed;
             DegreeOfParallelism = degreeOfParallelism;
+            Readers = readers;
         }
 
         public IEnumerable<ComparisonOutcome> Succeeded => Outcomes.Where(o => o.Succeeded);
@@ -249,11 +253,31 @@ namespace DSClibrary.Comparing
         {
             int cores = Math.Max(1, threads ?? CpuTopology.PhysicalCores);
             if (pairs.Count == 0) return 1;
-            long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
-            long budget = (availableBytes ?? GC.GetGCMemoryInfo().TotalAvailableMemoryBytes) / 2;
-            int byMemory = largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : cores;
+            int byMemory = PairsThatFit(pairs, availableBytes) ?? cores;
             int cap = comparer is HandWrittenComparer or SingleThreadComparer ? cores : Math.Min(2, cores);
             return Math.Max(1, Math.Min(Math.Min(byMemory, cap), pairs.Count));
+        }
+
+        /// <summary>
+        /// How many loaded pairs half the free memory holds, at the largest pair's two grids in doubles (from the
+        /// headers); null when the headers don't say.
+        /// </summary>
+        public static int? PairsThatFit(IReadOnlyCollection<MatchedDosePair> pairs, long? availableBytes = null)
+        {
+            if (pairs.Count == 0) return null;
+            long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
+            long budget = (availableBytes ?? GC.GetGCMemoryInfo().TotalAvailableMemoryBytes) / 2;
+            return largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : null;
+        }
+
+        /// <summary>
+        /// Readers for the read queue: as asked, but each reader can hold a loaded pair, so readers, held pairs and
+        /// workers together must fit <see cref="PairsThatFit"/>. Never fewer than 1.
+        /// </summary>
+        public static int ReadersThatFit(IReadOnlyCollection<MatchedDosePair> pairs, ReadQueue queue, int workers, long? availableBytes = null)
+        {
+            int asked = Math.Max(1, queue.Readers);
+            return PairsThatFit(pairs, availableBytes) is int fit ? Math.Clamp(fit - Math.Max(1, queue.PairsHeld) - workers, 1, asked) : asked;
         }
 
         /// <summary>One criterion over the batch; see <see cref="CompareMany"/>.</summary>
@@ -334,6 +358,7 @@ namespace DSClibrary.Comparing
             void Keep(IEnumerable<ComparisonOutcome> rows) { foreach (var o in rows) outcomes.Add(o); }
 
             int next = -1;
+            int? readers = null;
             if (Queue is null)
             {
                 // Each worker reads a pair, then compares it.
@@ -352,8 +377,9 @@ namespace DSClibrary.Comparing
             {
                 // Readers fill a bounded queue of loaded pairs; workers compare them (crane's read queue, 2026-11-15).
                 var queue = Channel.CreateBounded<Loaded>(new BoundedChannelOptions(Math.Max(1, Queue.PairsHeld)) { FullMode = BoundedChannelFullMode.Wait });
-                int readersLeft = Math.Max(1, Queue.Readers);
-                for (int r = 0; r < Math.Max(1, Queue.Readers); r++)
+                readers = ReadersThatFit(work, Queue, parallelism);
+                int readersLeft = readers.Value;
+                for (int r = 0; r < readers.Value; r++)
                     Start($"DSC reader {r}", () =>
                     {
                         try
@@ -386,7 +412,7 @@ namespace DSClibrary.Comparing
                 .OrderBy(o => o.Key.ToString(), StringComparer.Ordinal)
                 .ThenBy(o => o.CriterionIndex)
                 .ToArray();
-            return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
+            return new BatchComparisonResult(ordered, batch.Elapsed, parallelism, readers);
         }
 
         /// <summary>
