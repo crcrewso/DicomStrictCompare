@@ -61,6 +61,16 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
+        public void TheRecommendedCountFitsTheList()
+        {
+            // The front ends offer 1..MaxThreads and mark PhysicalCores "(recommended)".
+            Assert.IsTrue(CpuTopology.PhysicalCores >= 1 && CpuTopology.PhysicalCores <= CpuTopology.MaxThreads);
+            Assert.AreEqual(Environment.ProcessorCount, CpuTopology.MaxThreads);
+            Assert.AreEqual(OperatingSystem.IsLinux(), CpuTopology.PinByDefault);   // Windows schedules its own threads
+            Assert.AreEqual(CpuTopology.PinByDefault, new MultiThreadComparer().PinThreads);
+        }
+
+        [TestMethod]
         public void ThisMachineHasCoresAndPinningHolds()
         {
             Console.WriteLine(CpuTopology.Summary);

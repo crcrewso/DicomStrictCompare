@@ -112,6 +112,18 @@ public sealed partial class MainViewModel : ObservableObject
     public IReadOnlyList<ComparerKind> EngineChoices { get; } = Enum.GetValues<ComparerKind>();
 
     /// <summary>
+    /// CPU threads: every count from 1 to every logical processor, SMT included, defaulting to the recommended one,
+    /// one per usable core (Cody, 2026-11-15). Saved as null when the recommended count is chosen, so a study opened
+    /// on another machine uses that machine's.
+    /// </summary>
+    [ObservableProperty] private ThreadChoice _threads = AllThreadChoices[CpuTopology.PhysicalCores - 1];
+    public IReadOnlyList<ThreadChoice> ThreadChoices => AllThreadChoices;
+    private static readonly ThreadChoice[] AllThreadChoices = Enumerable.Range(1, CpuTopology.MaxThreads)
+        .Select(n => new ThreadChoice(n, n == CpuTopology.PhysicalCores)).ToArray();
+    private static ThreadChoice ChoiceFor(int? threads) =>
+        AllThreadChoices[Math.Clamp(threads ?? CpuTopology.PhysicalCores, 1, AllThreadChoices.Length) - 1];
+
+    /// <summary>
     /// Float on the GPU engines, a user's choice (Cody, 2026-11-15): some GPUs run double far slower, for example
     /// NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions.
     /// </summary>
@@ -129,7 +141,8 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Loaded pairs the queue holds, when Readers is above 0.</summary>
     [ObservableProperty] private int _pairsHeld = 2;
 
-    public ComparerSettings ComparerSettings => new(Engine, Precision: GpuFloat ? GpuPrecision.Float : GpuPrecision.Double);
+    public ComparerSettings ComparerSettings => new(Engine, Threads.Recommended ? null : Threads.Count,
+        Precision: GpuFloat ? GpuPrecision.Float : GpuPrecision.Double);
     public StudyRunSettings RunSettings => new(Maximum, ComparerSettings, PairsAtOnce > 0 ? PairsAtOnce : null,
         PartialTargetReads, Readers > 0 ? Readers : null, Readers > 0 ? PairsHeld : null);
 
@@ -138,6 +151,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         Maximum = run.Maximum;
         Engine = run.ComparerOrDefault.Kind;
+        Threads = ChoiceFor(run.ComparerOrDefault.Threads);
         GpuFloat = run.ComparerOrDefault.Precision == GpuPrecision.Float;
         PairsAtOnce = run.PairsAtOnce ?? 0;
         PartialTargetReads = run.PartialTargetReads;
@@ -283,4 +297,10 @@ public sealed partial class MainViewModel : ObservableObject
         var written = CsvReport.Write(Session, folder);
         Status = "Wrote " + string.Join(" and ", written.Select(Path.GetFileName));
     }
+}
+
+/// <summary>One entry of the Threads list: a count, and whether it is the recommended one.</summary>
+public sealed record ThreadChoice(int Count, bool Recommended)
+{
+    public override string ToString() => Recommended ? $"{Count} (recommended)" : Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }

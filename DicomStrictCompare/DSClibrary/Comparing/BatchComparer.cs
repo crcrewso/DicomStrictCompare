@@ -237,20 +237,21 @@ namespace DSClibrary.Comparing
 
         /// <summary>
         /// How many pairs to run at once when none is set: as many as half the free memory holds, the largest pair's
-        /// two grids at 8 bytes a voxel (from the headers), up to the physical core count (SMT siblings are ignored). Comparers that already use the cores
+        /// two grids at 8 bytes a voxel (from the headers), up to the thread budget (by default the physical core count, SMT siblings ignored). Comparers that already use the cores
         /// within a pair (multi-thread, GPU) get at most 2, so one pair loads while another compares.
         /// <para>
         /// Measured 2026-11-14 to 15: a fixed 4 ran a 31 GB machine out of memory on 1 mm grids, and with the box a
         /// single pair needs little beyond its two grids.
         /// </para>
         /// </summary>
-        public static int PairsAtOnce(IReadOnlyCollection<MatchedDosePair> pairs, DoseComparer comparer, long? availableBytes = null)
+        public static int PairsAtOnce(IReadOnlyCollection<MatchedDosePair> pairs, DoseComparer comparer, long? availableBytes = null, int? threads = null)
         {
+            int cores = Math.Max(1, threads ?? CpuTopology.PhysicalCores);
             if (pairs.Count == 0) return 1;
             long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
             long budget = (availableBytes ?? GC.GetGCMemoryInfo().TotalAvailableMemoryBytes) / 2;
-            int byMemory = largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : CpuTopology.PhysicalCores;
-            int cap = comparer is HandWrittenComparer or SingleThreadComparer ? CpuTopology.PhysicalCores : 2;
+            int byMemory = largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : cores;
+            int cap = comparer is HandWrittenComparer or SingleThreadComparer ? cores : Math.Min(2, cores);
             return Math.Max(1, Math.Min(Math.Min(byMemory, cap), pairs.Count));
         }
 
@@ -307,15 +308,17 @@ namespace DSClibrary.Comparing
 
             var work = pairs.ToArray();
             bool anyDta = criteria.Any(c => c.Gamma is null);
-            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, anyDta ? _mathematics : new HandWrittenComparer()));
-            int perGamma = Math.Max(1, CpuTopology.PhysicalCores / parallelism);
+            int threadBudget = Math.Max(1, Threads ?? CpuTopology.PhysicalCores);
+            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, anyDta ? _mathematics : new HandWrittenComparer(), threads: threadBudget));
+            int perGamma = Math.Max(1, threadBudget / parallelism);
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
 
             // Dedicated threads rather than the pool, so a worker can be pinned. A comparer that runs on one thread
-            // gets one worker per core, each pinned, which keeps them off SMT siblings and low-power E-cores.
+            // gets one worker per core, pinned on Linux, which keeps them off SMT siblings and low-power E-cores.
             var cores = CpuTopology.Cores;
-            bool pin = _mathematics is HandWrittenComparer or SingleThreadComparer && parallelism > 1 && parallelism <= cores.Count;
+            bool pin = CpuTopology.PinByDefault && _mathematics is HandWrittenComparer or SingleThreadComparer
+                       && parallelism > 1 && parallelism <= cores.Count;
             var threads = new List<Thread>();
             Exception? error = null;
             // Cancelled by the caller, or by an unexpected error in any thread, so no reader waits on a queue nobody empties.
@@ -393,6 +396,12 @@ namespace DSClibrary.Comparing
 
         /// <summary>Read ahead with a queue; null (the default) has each worker read its own pair, then compare it.</summary>
         public ReadQueue? Queue { get; init; }
+
+        /// <summary>
+        /// The CPU thread budget: the most pairs at once for the single-thread engines, and the threads each gamma
+        /// gets. Null for <see cref="CpuTopology.PhysicalCores"/>; front ends pass <see cref="ComparerSettings.Threads"/>.
+        /// </summary>
+        public int? Threads { get; init; }
 
         /// <summary>The <see cref="Dta"/> that describes a gamma comparison's parameters in the library's older terms.</summary>
         public static Dta DtaFor(GammaOptions options) => new(

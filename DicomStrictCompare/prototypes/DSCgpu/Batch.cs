@@ -1,5 +1,5 @@
 // A whole batch as a user runs it, read and compared through the library's BatchComparer.CompareMany:
-//   dotnet run -c Release -- batch <pairlist.tsv> [--engine MultiThread] [--float] [--workers n] [--readers k] [--held m]
+//   dotnet run -c Release -- batch <pairlist.tsv> [--engine MultiThread] [--float] [--workers n] [--threads t] [--readers k] [--held m]
 //                                  [--partial] [--criteria 3/2,0.1/0.5] [--threshold 10] [--csv path] [--label text]
 // pairlist.tsv: name, source path, target path, tab-separated (the --pairlist format). Each pair is read once for all
 // criteria. Wall clock includes reading; caches are not purged here, so purge them first for cold reads.
@@ -21,6 +21,7 @@ internal static class Batch
         var kind = Enum.Parse<ComparerKind>(Opt("--engine") ?? "MultiThread", ignoreCase: true);
         bool gpuFloat = args.Contains("--float"), partial = args.Contains("--partial");
         int? workers = Opt("--workers") is { } w ? int.Parse(w) : null;
+        int? threads = Opt("--threads") is { } th ? int.Parse(th) : null;   // the GUI's Threads; null is the recommended count
         int readers = int.Parse(Opt("--readers") ?? "0"), held = int.Parse(Opt("--held") ?? "2");
         double threshold = double.Parse(Opt("--threshold") ?? "10", CultureInfo.InvariantCulture) / 100;
         var criteria = (Opt("--criteria") ?? "3/2,0.1/0.5").Split(',').Select(c => c.Split('/'))
@@ -37,11 +38,12 @@ internal static class Batch
             .Select(p => new MatchedDosePair(DoseMatchKey.For(p.S, DoseMatchStrategy.Identifier) ?? DoseMatchKey.For(p.S, DoseMatchStrategy.PlanAndBeamUid)
                 ?? throw new InvalidOperationException($"{p.S.Dose.SourcePath} has no key under either strategy."), p.S, p.T)).ToArray();
 
-        var comparer = DoseComparers.Create(new ComparerSettings(kind, Precision: gpuFloat ? GpuPrecision.Float : GpuPrecision.Double));
+        var comparer = DoseComparers.Create(new ComparerSettings(kind, threads, Precision: gpuFloat ? GpuPrecision.Float : GpuPrecision.Double));
         using var release = comparer as IDisposable;   // GPU comparers hold a device
         var batch = new BatchComparer(DoseGridReader.Read, comparer)
         {
             PartialTargetReads = partial,
+            Threads = threads,
             Queue = readers > 0 ? new BatchComparer.ReadQueue(readers, held) : null,
         };
         Console.WriteLine($"{Environment.MachineName}: {CpuTopology.Summary}");

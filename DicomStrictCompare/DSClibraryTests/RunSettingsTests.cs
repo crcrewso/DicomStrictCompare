@@ -67,6 +67,12 @@ namespace DSClibraryTests
             Assert.AreEqual(1, BatchComparer.PairsAtOnce(pairs, new HandWrittenComparer(), pairBytes));      // never fewer than 1
             Assert.AreEqual(Math.Min(2, pairs.Length), BatchComparer.PairsAtOnce(pairs, new MultiThreadComparer(), 1000 * pairBytes));
             Assert.AreEqual(Math.Min(CpuTopology.PhysicalCores, pairs.Length), BatchComparer.PairsAtOnce(pairs, new SingleThreadComparer(), 1000 * pairBytes));
+            // A thread budget caps the pairs, and a budget of 1 is one pair at a time for every engine.
+            Assert.AreEqual(Math.Min(3, pairs.Length), BatchComparer.PairsAtOnce(pairs, new SingleThreadComparer(), 1000 * pairBytes, threads: 3));
+            Assert.AreEqual(1, BatchComparer.PairsAtOnce(pairs, new MultiThreadComparer(), 1000 * pairBytes, threads: 1));
+            var one = new BatchComparer(DoseGridReader.Read, new SingleThreadComparer()) { Threads = 1 }
+                .CompareMany(pairs.Take(3), new[] { new Criterion(new Dta(true, 0.10, 0.03, 3, relative: true), true) });
+            Assert.AreEqual(1, one.DegreeOfParallelism);
         }
 
         [TestMethod]

@@ -12,9 +12,9 @@
 
         /// <summary>
         /// Pins each thread to its own physical core, so two never share an SMT pair. Only when there are no more
-        /// threads than cores; otherwise the threads run unpinned.
+        /// threads than cores; otherwise the threads run unpinned. Defaults to <see cref="CpuTopology.PinByDefault"/>.
         /// </summary>
-        public bool PinThreads { get; init; } = true;
+        public bool PinThreads { get; init; } = CpuTopology.PinByDefault;
 
         /// <summary>The cores to pin to, for measuring one core type against another; <see cref="CpuTopology.Cores"/> when null.</summary>
         public IReadOnlyList<CpuTopology.Core>? CoreSet { get; init; }

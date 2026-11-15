@@ -7,11 +7,11 @@ thread each, as `BatchComparer` does)?
 ## Two more modes (2026-11-15)
 
 - **`batch <pairlist.tsv>`** runs a pair list through the library's `BatchComparer.CompareMany`, reading included,
-  as a user's run does. Options: `--engine`, `--float`, `--workers`, `--readers` and `--held` (the read queue),
+  as a user's run does. Options: `--engine`, `--float`, `--workers`, `--threads` (the window's Threads), `--readers` and `--held` (the read queue),
   `--partial` (target box only), `--criteria`, `--threshold`, `--csv` and `--label`. It doesn't purge caches, so do
   that first for cold reads.
 - **`cores <source.dcm> <target.dcm>`** times the multi-thread comparer pinned to each core type (P, E, LP-E) and to
-  mixes, on one pair. Add `--nobox` for a heavier load. Every row must give the same counts.
+  mixes, on one pair, then the recommended count unpinned (Windows' default) and every logical processor unpinned. Add `--nobox` for a heavier load. Every row must give the same counts.
 
 ## What it runs
 

@@ -15,7 +15,7 @@ namespace DSClibrary.Comparing
     /// cores"). crane measured on a 5900XT that a sibling adds nothing to this double-precision work and can cost up to
     /// 40 %. A low-power core is one with no L3 cache when other cores have one; on AMD every CCD has its own L3, so none
     /// is left out. Linux reads sysfs, Windows asks the OS, macOS asks sysctl; anything else, or a failure, falls back to
-    /// every logical processor.
+    /// every logical processor. The L3 rule is a stand-in, kept for review: see design/core-selection.md.
     /// </summary>
     public static class CpuTopology
     {
@@ -33,8 +33,20 @@ namespace DSClibrary.Comparing
         /// <summary>The cores compute threads use: <see cref="All"/> without the low-power E-cores, unless that leaves none.</summary>
         public static IReadOnlyList<Core> Cores => Usable(All);
 
-        /// <summary>Compute threads to use by default: one per usable core.</summary>
-        public static int PhysicalCores => Math.Max(1, Cores.Count);
+        /// <summary>
+        /// Compute threads to use by default, the "(recommended)" count: one per usable core, never more than
+        /// <see cref="MaxThreads"/>, which honours a process's CPU limit.
+        /// </summary>
+        public static int PhysicalCores => Math.Max(1, Math.Min(Cores.Count, MaxThreads));
+
+        /// <summary>The most threads a front end offers: every logical processor, SMT siblings included.</summary>
+        public static int MaxThreads => Math.Max(1, Environment.ProcessorCount);
+
+        /// <summary>
+        /// Whether compute threads are pinned to cores by default: Linux only. Windows schedules its own (Cody,
+        /// 2026-11-15: "let windows figure out the scheduling"); macOS can't pin.
+        /// </summary>
+        public static bool PinByDefault => OperatingSystem.IsLinux();
 
         /// <summary>One line for a log: what was found and what is used.</summary>
         public static string Summary =>

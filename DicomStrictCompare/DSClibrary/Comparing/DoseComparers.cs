@@ -24,7 +24,8 @@ namespace DSClibrary.Comparing
 
     /// <summary>
     /// Which comparer to build. Front ends keep this as a setting and pass it to <see cref="DoseComparers.Create"/>,
-    /// so they hold only a <see cref="DoseComparer"/>. Threads applies to MultiThread; Precision and Device to the
+    /// so they hold only a <see cref="DoseComparer"/>. Threads (null: <see cref="CpuTopology.PhysicalCores"/>) is the
+    /// CPU thread budget: MultiThread's threads, and <see cref="BatchComparer.Threads"/>; Precision and Device to the
     /// GPU kinds (Device: part of the device name, or null for the first GPU); UseThresholdBox to all but HandWritten.
     /// </summary>
     public sealed record ComparerSettings(
@@ -71,7 +72,7 @@ namespace DSClibrary.Comparing
             {
                 new(ComparerKind.HandWritten, true, "one thread, every point"),
                 new(ComparerKind.SingleThread, true, "one thread, threshold box"),
-                new(ComparerKind.MultiThread, true, $"{CpuTopology.PhysicalCores} threads, one per physical core, threshold box"),
+                new(ComparerKind.MultiThread, true, $"{CpuTopology.PhysicalCores} threads, one per physical core{(CpuTopology.PinByDefault ? ", pinned" : "")}, threshold box"),
             };
             foreach (var kind in new[] { ComparerKind.Ilgpu, ComparerKind.OpenCl })
             {

@@ -37,7 +37,7 @@ internal static class CoreTypes
         };
         void Pinned(string name, CpuTopology.Core[] cores)
         {
-            if (cores.Length > 0) rows.Add(($"{name}: {cores.Length} pinned", new MultiThreadComparer { Threads = cores.Length, CoreSet = cores, UseThresholdBox = box }));
+            if (cores.Length > 0) rows.Add(($"{name}: {cores.Length} pinned", new MultiThreadComparer { Threads = cores.Length, CoreSet = cores, PinThreads = true, UseThresholdBox = box }));
         }
         Pinned("P", Of(CoreKind.Performance));
         Pinned("E", Of(CoreKind.Efficient));
@@ -45,6 +45,8 @@ internal static class CoreTypes
         Pinned("P + E (the default)", Of(CoreKind.Performance, CoreKind.Efficient));
         Pinned("P + E + LP-E", all.ToArray());
         Pinned("unknown kind (no hybrid)", Of(CoreKind.Unknown));
+        // The recommended count unpinned: the default on Windows, where the OS schedules (Cody, 2026-11-15).
+        rows.Add(($"recommended, unpinned ({CpuTopology.PhysicalCores})", new MultiThreadComparer { Threads = CpuTopology.PhysicalCores, PinThreads = false, UseThresholdBox = box }));
         rows.Add(($"every logical processor, unpinned ({Environment.ProcessorCount})", new MultiThreadComparer { Threads = Environment.ProcessorCount, PinThreads = false, UseThresholdBox = box }));
 
         IReadOnlyList<SingleComparison>? expected = null;

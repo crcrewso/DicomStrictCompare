@@ -192,7 +192,8 @@ public static class ComparisonRunner
         var engine = DoseComparers.Create(request.Comparer ?? new ComparerSettings());
         using var release = engine as IDisposable;
         progress?.Report($"Engine: {engine.Description}");
-        var comparer = new BatchComparer(LoadGrid, engine) { PartialTargetReads = request.PartialTargetReads, Queue = request.Queue };
+        var comparer = new BatchComparer(LoadGrid, engine)
+            { PartialTargetReads = request.PartialTargetReads, Queue = request.Queue, Threads = request.Comparer?.Threads };
         if (request.PartialTargetReads || request.Queue is not null)
             progress?.Report($"Reading: {(request.PartialTargetReads ? "targets only where used" : "whole targets")}"
                 + (request.Queue is { } q ? $", {q.Readers} reader(s), {q.PairsHeld} pair(s) held" : ""));

@@ -79,9 +79,11 @@ A result's elapsed time is therefore the pair's, shared by all its rows.
 left at Both. A dose with no source plan is compared only by Both criteria. The CSVs have an `AppliesTo` column.
 
 **Threads use physical cores only.** Every default thread count is one per physical core: SMT siblings are ignored,
-and so are Intel's low-power E-cores (a core with no L3 cache when other cores have one). Threads are pinned, one
-per core, where Linux or Windows allows. On a 4 P + 8 E + 4 LP-E laptop, 12 pinned threads beat all 16 unpinned
-by 13 %, and adding the 4 LP-E cores gained nothing.
+and so are Intel's low-power E-cores (a core with no L3 cache when other cores have one). On Linux the threads are
+pinned, one per core; Windows schedules its own. On a 4 P + 8 E + 4 LP-E laptop, 12 pinned threads beat all 16
+unpinned by 13 %, and adding the 4 LP-E cores gained nothing. The Avalonia window's **Threads** list runs from 1 to
+every logical processor and defaults to that count, marked "(recommended)". The L3 rule is a stand-in under review:
+[design/core-selection.md](design/core-selection.md).
 
 **Reading, both opt-in, neither changes a count:**
 - **Target box only:** each target is read only where the criteria and the edge check use it, which is the box at
