@@ -40,6 +40,13 @@
 
       <DockPanel Grid.Column="0">
         <TextBlock DockPanel.Dock="Top" Text="Criteria" FontWeight="SemiBold" Margin="0,0,0,6"/>
+        <!-- "Max": what the threshold and global tolerance are fractions of. CAX falls back to Global Max unless
+             the source plan's jaws are on axis; each result row says which was used. -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+          <TextBlock Text="Max" VerticalAlignment="Center"/>
+          <ComboBox ItemsSource="{Binding MaximumChoices}" SelectedItem="{Binding Maximum}" MinWidth="130"
+                    ToolTip.Tip="GlobalMax: the source grid's maximum. CaxMax: the 3 x 3 average at the CAX maximum (arcs: about the isocentre), used only when the source plan's jaws are on axis, otherwise Global Max."/>
+        </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
           <Button Content="Add" Command="{Binding AddCriterionCommand}"/>
           <Button Content="Remove" Command="{Binding RemoveCriterionCommand}"/>
@@ -76,6 +83,7 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="2*"/>
               <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="*"/>
+              <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
               <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
               <DataGridTextColumn Header="Failed" Binding="{Binding Failed, StringFormat=N0}" Width="Auto"/>
               <DataGridTextColumn Header="% failed" Binding="{Binding PercentFailed, StringFormat=0.000}" Width="Auto"/>
@@ -271,6 +279,7 @@
                     <DataGridTextColumn Header="Energy" Binding="{Binding Facts.Energy}" Width="Auto"/>
                     <DataGridTextColumn Header="Field size" Binding="{Binding Facts.FieldSize}" Width="Auto"/>
                     <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="Auto"/>
+                    <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
                     <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate, StringFormat=0.000}" Width="Auto"/>
                     <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
                     <DataGridTextColumn Header="Plan check" Binding="{Binding PlanCheck}" Width="*"/>

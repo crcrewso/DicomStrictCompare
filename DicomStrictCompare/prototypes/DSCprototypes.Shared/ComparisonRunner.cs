@@ -65,7 +65,8 @@ public sealed record ComparisonRequest(
     string TargetAlias,
     IReadOnlyList<DtaSpec> Dtas,
     DoseMatchStrategy Strategy = DoseMatchStrategy.PlanAndBeamUid,
-    int? DegreeOfParallelism = null);
+    int? DegreeOfParallelism = null,
+    MaximumKind Maximum = MaximumKind.GlobalMax);
 
 /// <summary>A result as a grid row: one matched pair under one criterion, flattened for display and CSV.</summary>
 public sealed record ResultRow(
@@ -81,7 +82,9 @@ public sealed record ResultRow(
     double? TargetMonitorUnits,
     double ElapsedSeconds,
     string? Failure,
-    double? MaxGamma = null)
+    double? MaxGamma = null,
+    string? MaximumUsed = null,
+    double? MaximumDose = null)
 {
     public bool Succeeded => Failure is null;
 
@@ -101,7 +104,9 @@ public sealed record ResultRow(
         o.TargetMonitorUnits,
         o.Elapsed.TotalSeconds,
         o.Failure,
-        o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null);
+        o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
+        o.Maximum?.Note,
+        o.Maximum?.Dose);
 }
 
 /// <summary>Everything a run produced, retained (backlog D15) rather than rendered and thrown away.</summary>
@@ -177,7 +182,7 @@ public static class ComparisonRunner
             progress?.Report($"Comparing {match.Pairs.Count} pair(s) at {spec.Label}");
             var batch = spec.Gamma
                 ? comparer.CompareGamma(match.Pairs, spec.ToGammaOptions(), request.DegreeOfParallelism, cancellation)
-                : comparer.Compare(match.Pairs, spec.ToDta(), spec.Global, request.DegreeOfParallelism, cancellation);
+                : comparer.Compare(match.Pairs, spec.ToDta(), spec.Global, request.DegreeOfParallelism, cancellation, request.Maximum);
             outcomes.AddRange(batch.Outcomes);
             rows.AddRange(batch.Outcomes.Select(o => ResultRow.From(o, spec)));
             progress?.Report(batch.ToString());

@@ -7,6 +7,7 @@ using DSClibrary.Matching;
 using DSClibrary.Studies;
 using DSCprototypes.Shared.Graphs;
 using DSCprototypes.Shared.Studies;
+using DSClibrary.Comparing;
 
 namespace DSCprototypes.Shared.ViewModels;
 
@@ -118,15 +119,17 @@ public sealed partial class StudyViewModel : ObservableObject
     private readonly Func<string, string?, Task<string?>> _pickFolder;
     private readonly Func<IReadOnlyList<DtaSpec>> _criteria;
     private readonly Func<string, DoseMatrixOptimal> _loader;
+    private readonly Func<MaximumKind> _maximum;
     private CancellationTokenSource? _cancel;
     private IReadOnlyList<LoadedDose>? _loaded;
     private int _loadSequence;
 
     public StudyViewModel(Func<string, string?, Task<string?>> pickFolder, Func<IReadOnlyList<DtaSpec>> criteria,
-        Func<string, DoseMatrixOptimal>? loader = null)
+        Func<string, DoseMatrixOptimal>? loader = null, Func<MaximumKind>? maximum = null)
     {
         _pickFolder = pickFolder;
         _criteria = criteria;
+        _maximum = maximum ?? (() => MaximumKind.GlobalMax);
         _loader = loader ?? ComparisonRunner.LoadGrid;
     }
 
@@ -282,7 +285,7 @@ public sealed partial class StudyViewModel : ObservableObject
         try
         {
             var session = compare
-                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token)
+                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _maximum())
                 : await StudyRunner.PreviewAsync(study, progress, _cancel.Token);
             Show(session);
             Status = session.Summary;

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DSClibrary.Matching;
+using DSClibrary.Comparing;
 
 namespace DSCprototypes.Shared.ViewModels;
 
@@ -46,7 +47,7 @@ public sealed partial class MainViewModel : ObservableObject
         _pickFolder = pickFolder;
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
         Graph = new GraphViewModel(ComparisonRunner.LoadGrid, pickFolder);
-        Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList());
+        Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList(), maximum: () => Maximum);
     }
 
     /// <summary>The Study tab: several dose sets and the comparisons between them (design/comparison-studies.md).</summary>
@@ -91,6 +92,13 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _sourceAlias = "Reference";
     [ObservableProperty] private string _targetAlias = "Target";
     [ObservableProperty] private bool _matchByUid = true;
+
+    /// <summary>
+    /// The "Max" setting: Global Max, or CAX where the source plan's jaws are on axis (falling back to Global Max).
+    /// Used by both the Comparison and Study tabs, like the criteria.
+    /// </summary>
+    [ObservableProperty] private MaximumKind _maximum = MaximumKind.GlobalMax;
+    public IReadOnlyList<MaximumKind> MaximumChoices { get; } = Enum.GetValues<MaximumKind>();
     [ObservableProperty] private string _status = "Choose two folders of RT Dose and RT Plan files.";
     [ObservableProperty] private string _log = "";
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(RunCommand), nameof(CancelCommand), nameof(ExportCommand))]
@@ -180,7 +188,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         var request = new ComparisonRequest(
             SourceFolder, TargetFolder, SourceAlias, TargetAlias,
-            Criteria.Select(c => c.ToSpec()).ToList(), Strategy);
+            Criteria.Select(c => c.ToSpec()).ToList(), Strategy, Maximum: Maximum);
 
         // IProgress<T> marshals back to the thread that created it, so the runner can report from its worker.
         var progress = new Progress<string>(line => { Log += line + Environment.NewLine; Status = line; });

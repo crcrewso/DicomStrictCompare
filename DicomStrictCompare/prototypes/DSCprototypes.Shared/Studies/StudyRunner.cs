@@ -87,9 +87,11 @@ public sealed record StudyRow(
     double? MaxGamma,
     string SourceFile,
     string TargetFile,
-    string? Failure)
+    string? Failure,
+    ReferenceMaximum? Maximum = null)
 {
     public string Comparison => Pair.Comparison.Name;
+    public string MaximumUsed => Maximum?.Note ?? "";
     public FieldFacts Facts => Pair.Facts;
 
     /// <summary>100 x passed / compared; null when nothing was compared or the comparison failed.</summary>
@@ -142,25 +144,25 @@ public static class StudyRunner
 {
     /// <summary>Reads and pairs only: the preview a person checks before committing to a long run.</summary>
     public static StudySession Preview(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default) =>
-        Execute(study, Array.Empty<DtaSpec>(), null, progress, cancellation, compare: false);
+        Execute(study, Array.Empty<DtaSpec>(), null, progress, cancellation, compare: false, MaximumKind.GlobalMax);
 
     public static StudySession Run(Study study, IReadOnlyList<DtaSpec> criteria, int? degreeOfParallelism = null,
-        IProgress<string>? progress = null, CancellationToken cancellation = default)
+        IProgress<string>? progress = null, CancellationToken cancellation = default, MaximumKind maximum = MaximumKind.GlobalMax)
     {
         ArgumentNullException.ThrowIfNull(criteria);
         if (criteria.Count == 0) throw new ArgumentException("At least one criterion is required.", nameof(criteria));
-        return Execute(study, criteria, degreeOfParallelism, progress, cancellation, compare: true);
+        return Execute(study, criteria, degreeOfParallelism, progress, cancellation, compare: true, maximum);
     }
 
     public static Task<StudySession> RunAsync(Study study, IReadOnlyList<DtaSpec> criteria, IProgress<string>? progress = null,
-        CancellationToken cancellation = default) =>
-        Task.Run(() => Run(study, criteria, null, progress, cancellation), cancellation);
+        CancellationToken cancellation = default, MaximumKind maximum = MaximumKind.GlobalMax) =>
+        Task.Run(() => Run(study, criteria, null, progress, cancellation, maximum), cancellation);
 
     public static Task<StudySession> PreviewAsync(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default) =>
         Task.Run(() => Preview(study, progress, cancellation), cancellation);
 
     private static StudySession Execute(Study study, IReadOnlyList<DtaSpec> criteria, int? parallelism,
-        IProgress<string>? progress, CancellationToken cancellation, bool compare)
+        IProgress<string>? progress, CancellationToken cancellation, bool compare, MaximumKind maximum)
     {
         ArgumentNullException.ThrowIfNull(study);
         var problems = study.Problems();
@@ -217,7 +219,7 @@ public static class StudyRunner
                     progress?.Report($"{preview.Comparison.Name}: comparing {preview.Match.Pairs.Count} pair(s) at {spec.Label}");
                     var batch = spec.Gamma
                         ? comparer.CompareGamma(preview.Match.Pairs, spec.ToGammaOptions(), parallelism, cancellation)
-                        : comparer.Compare(preview.Match.Pairs, spec.ToDta(), spec.Global, parallelism, cancellation);
+                        : comparer.Compare(preview.Match.Pairs, spec.ToDta(), spec.Global, parallelism, cancellation, maximum);
                     foreach (var o in batch.Outcomes)
                     {
                         var pair = byFiles[(o.SourcePath, o.TargetPath)];
@@ -228,7 +230,8 @@ public static class StudyRunner
                             o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
                             Path.GetFileName(o.SourcePath),
                             Path.GetFileName(o.TargetPath),
-                            o.Failure));
+                            o.Failure,
+                            o.Maximum));
                     }
                     progress?.Report(batch.ToString());
                 }

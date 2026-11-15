@@ -3,6 +3,13 @@
     <Project Path="DSCproto.UnoApp/DSCproto.UnoApp/DSCproto.UnoApp.csproj" />
   </Folder>
   <Project Path="../DSClibrary/DSClibrary.csproj" />
+  <Project Path="../DSClibraryTests/DSClibraryTests.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="../tools/DSCresample/DSCresample.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="DSCgpu/DSCgpu.csproj" />
   <Project Path="DSCproto.AvaloniaApp/DSCproto.AvaloniaApp.csproj" />
   <Project Path="DSCproto.EtoApp/DSCproto.EtoApp.csproj" />
   <Project Path="DSCprototypes.Shared.Tests/DSCprototypes.Shared.Tests.csproj" />
