@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using DSClibrary.Gamma;
 using DSClibrary.Matching;
@@ -311,10 +312,69 @@ namespace DSClibrary.Comparing
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
 
-            Parallel.ForEach(
-                work,
-                new ParallelOptions { MaxDegreeOfParallelism = parallelism, CancellationToken = cancellation },
-                pair => { foreach (var o in CompareOne(pair, criteria, perGamma, maximum, cancellation)) outcomes.Add(o); });
+            // Dedicated threads rather than the pool, so a worker can be pinned. A comparer that runs on one thread
+            // gets one worker per core, each pinned, which keeps them off SMT siblings and low-power E-cores.
+            var cores = CpuTopology.Cores;
+            bool pin = _mathematics is HandWrittenComparer or SingleThreadComparer && parallelism > 1 && parallelism <= cores.Count;
+            var threads = new List<Thread>();
+            Exception? error = null;
+            // Cancelled by the caller, or by an unexpected error in any thread, so no reader waits on a queue nobody empties.
+            using var abort = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            var token = abort.Token;
+            void Start(string name, Action body) => threads.Add(new Thread(() =>
+            {
+                try { body(); }
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+                catch (Exception ex) { Interlocked.CompareExchange(ref error, ex, null); abort.Cancel(); }
+            }) { IsBackground = true, Name = name });
+            void Keep(IEnumerable<ComparisonOutcome> rows) { foreach (var o in rows) outcomes.Add(o); }
+
+            int next = -1;
+            if (Queue is null)
+            {
+                // Each worker reads a pair, then compares it.
+                for (int w = 0; w < parallelism; w++)
+                {
+                    int worker = w;
+                    Start($"DSC pair {w}", () =>
+                    {
+                        if (pin) CpuTopology.PinCurrentThread(cores[worker]);
+                        for (int i; (i = Interlocked.Increment(ref next)) < work.Length && !token.IsCancellationRequested;)
+                            Keep(Evaluate(Load(work[i], criteria, maximum, token), criteria, perGamma, token));
+                    });
+                }
+            }
+            else
+            {
+                // Readers fill a bounded queue of loaded pairs; workers compare them (crane's read queue, 2026-11-15).
+                var queue = Channel.CreateBounded<Loaded>(new BoundedChannelOptions(Math.Max(1, Queue.PairsHeld)) { FullMode = BoundedChannelFullMode.Wait });
+                int readersLeft = Math.Max(1, Queue.Readers);
+                for (int r = 0; r < Math.Max(1, Queue.Readers); r++)
+                    Start($"DSC reader {r}", () =>
+                    {
+                        try
+                        {
+                            for (int i; (i = Interlocked.Increment(ref next)) < work.Length && !token.IsCancellationRequested;)
+                                queue.Writer.WriteAsync(Load(work[i], criteria, maximum, token), token).AsTask().GetAwaiter().GetResult();
+                        }
+                        finally { if (Interlocked.Decrement(ref readersLeft) == 0) queue.Writer.TryComplete(); }
+                    });
+                for (int w = 0; w < parallelism; w++)
+                {
+                    int worker = w;
+                    Start($"DSC pair {w}", () =>
+                    {
+                        if (pin) CpuTopology.PinCurrentThread(cores[worker]);
+                        while (queue.Reader.WaitToReadAsync(token).AsTask().GetAwaiter().GetResult())
+                            while (queue.Reader.TryRead(out var loaded))
+                                Keep(Evaluate(loaded, criteria, perGamma, token));
+                    });
+                }
+            }
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+            cancellation.ThrowIfCancellationRequested();
+            if (error is not null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error).Throw();
 
             batch.Stop();
             // A stable order, so two runs of the same batch produce the same report.
@@ -325,6 +385,15 @@ namespace DSClibrary.Comparing
             return new BatchComparisonResult(ordered, batch.Elapsed, parallelism);
         }
 
+        /// <summary>
+        /// Reading ahead: <see cref="Readers"/> threads read pairs into a queue that holds up to <see cref="PairsHeld"/>
+        /// loaded pairs, while the workers compare. Up to Readers + PairsHeld + workers pairs are in memory at once.
+        /// </summary>
+        public sealed record ReadQueue(int Readers, int PairsHeld);
+
+        /// <summary>Read ahead with a queue; null (the default) has each worker read its own pair, then compare it.</summary>
+        public ReadQueue? Queue { get; init; }
+
         /// <summary>The <see cref="Dta"/> that describes a gamma comparison's parameters in the library's older terms.</summary>
         public static Dta DtaFor(GammaOptions options) => new(
             useMM: true,
@@ -334,20 +403,21 @@ namespace DSClibrary.Comparing
             relative: !options.LocalGamma,
             gamma: true);
 
-        private IEnumerable<ComparisonOutcome> CompareOne(MatchedDosePair pair, IReadOnlyList<Criterion> criteria, int perGamma,
-            MaximumKind maximum, CancellationToken cancellation)
+        /// <summary>A pair read and ready to compare, or why it couldn't be read.</summary>
+        private sealed record Loaded(MatchedDosePair Pair, int[] Applicable, DoseMatrixOptimal? Source, DoseMatrixOptimal? Target,
+            ReferenceMaximum? Reference, ComparisonRun[] Runs, int[] Dta, double? FractionRead, TimeSpan Elapsed, string? Failure);
+
+        private Loaded Load(MatchedDosePair pair, IReadOnlyList<Criterion> criteria, MaximumKind maximum, CancellationToken cancellation)
         {
             int[] applicable = Enumerable.Range(0, criteria.Count).Where(n => criteria[n].AppliesToBeam(pair.Source.Beam)).ToArray();
-            if (applicable.Length == 0) return Array.Empty<ComparisonOutcome>();
-            string EngineOf(Criterion c) => c.Gamma is null ? _mathematics.Description : "GammaShell";
-
+            int[] dta = applicable.Where(n => criteria[n].Gamma is null).ToArray();
+            if (applicable.Length == 0) return new Loaded(pair, applicable, null, null, null, Array.Empty<ComparisonRun>(), dta, null, TimeSpan.Zero, null);
             var timer = Stopwatch.StartNew();
             try
             {
                 cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
                 var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
-                int[] dta = applicable.Where(n => criteria[n].Gamma is null).ToArray();
                 var runs = dta.Select(n => new ComparisonRun(criteria[n].Dta, criteria[n].Global, reference.Dose)).ToArray();
 
                 cancellation.ThrowIfCancellationRequested();
@@ -360,7 +430,31 @@ namespace DSClibrary.Comparing
                     fractionRead = partial.FractionRead;
                 }
                 else target = _load(pair.Target.Dose.SourcePath);
+                return new Loaded(pair, applicable, source, target, reference, runs, dta, fractionRead, timer.Elapsed, null);
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
+            catch (Exception ex)
+            {
+                return new Loaded(pair, applicable, null, null, null, Array.Empty<ComparisonRun>(), dta, null, timer.Elapsed, $"{ex.GetType().Name}: {ex.Message}");
+            }
+        }
 
+        private IEnumerable<ComparisonOutcome> Evaluate(Loaded loaded, IReadOnlyList<Criterion> criteria, int perGamma, CancellationToken cancellation)
+        {
+            var (pair, applicable) = (loaded.Pair, loaded.Applicable);
+            if (applicable.Length == 0) return Array.Empty<ComparisonOutcome>();
+            string EngineOf(Criterion c) => c.Gamma is null ? _mathematics.Description : "GammaShell";
+            IEnumerable<ComparisonOutcome> Failed(string failure, TimeSpan elapsed) => applicable.Select(n => new ComparisonOutcome(
+                pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
+                criteria[n].Dta, criteria[n].Global, null, failure, elapsed,
+                pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: EngineOf(criteria[n]))
+            { CriterionIndex = n }).ToArray();
+            if (loaded.Failure is not null) return Failed(loaded.Failure, loaded.Elapsed);
+
+            var timer = Stopwatch.StartNew();
+            try
+            {
+                var (source, target, reference) = (loaded.Source!, loaded.Target!, loaded.Reference!);
                 var sourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam);
                 var targetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam);
 
@@ -368,10 +462,10 @@ namespace DSClibrary.Comparing
                 // which checks it as it runs, so a cancel stops a comparison under way.
                 var counts = new Dictionary<int, SingleComparison>();
                 var gammas = new Dictionary<int, GammaResult>();
-                if (dta.Length > 0)
+                if (loaded.Dta.Length > 0)
                 {
-                    var results = _mathematics.CompareAll(source, target, runs, cancellation);
-                    for (int r = 0; r < dta.Length; r++) counts[dta[r]] = results[r];
+                    var results = _mathematics.CompareAll(source, target, loaded.Runs, cancellation);
+                    for (int r = 0; r < loaded.Dta.Length; r++) counts[loaded.Dta[r]] = results[r];
                 }
 
                 // Global gamma divides by the global normalisation and local by each reference voxel; the lower dose
@@ -388,34 +482,30 @@ namespace DSClibrary.Comparing
                     counts[n] = new SingleComparison(criteria[n].Dta, source.DoseValues.Length, gamma.Analysed, gamma.Analysed - gamma.Passed);
                 }
 
-                timer.Stop();
+                // The pair's whole time: reading it and every criterion, shared by its rows.
+                var elapsed = loaded.Elapsed + timer.Elapsed;
                 return applicable.Select(n => new ComparisonOutcome(
                     pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
-                    criteria[n].Dta, criteria[n].Global, counts[n], null, timer.Elapsed,
+                    criteria[n].Dta, criteria[n].Global, counts[n], null, elapsed,
                     pair.Source.MonitorUnits, pair.Target.MonitorUnits, gammas.GetValueOrDefault(n), EngineOf(criteria[n]), reference)
                 {
                     CriterionIndex = n,
                     SourceEdges = sourceEdges,
                     TargetEdges = targetEdges,
-                    TargetFractionRead = fractionRead,
+                    TargetFractionRead = loaded.FractionRead,
                 }).ToArray();
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
-                // A cancel is not a failed pair: let it out, so Parallel.ForEach ends the batch and the
-                // caller sees OperationCanceledException rather than a report full of "cancelled" rows.
+                // A cancel is not a failed pair: let it out, so the batch ends and the caller sees
+                // OperationCanceledException rather than a report full of "cancelled" rows.
                 throw;
             }
             catch (Exception ex)
             {
                 // One bad pair must not lose the rest of the batch; the failure is carried in each of its
                 // rows so it appears in the report rather than vanishing.
-                timer.Stop();
-                return applicable.Select(n => new ComparisonOutcome(
-                    pair.Key, pair.Source.Dose.SourcePath, pair.Target.Dose.SourcePath,
-                    criteria[n].Dta, criteria[n].Global, null, $"{ex.GetType().Name}: {ex.Message}", timer.Elapsed,
-                    pair.Source.MonitorUnits, pair.Target.MonitorUnits, comparer: EngineOf(criteria[n]))
-                { CriterionIndex = n }).ToArray();
+                return Failed($"{ex.GetType().Name}: {ex.Message}", loaded.Elapsed + timer.Elapsed);
             }
         }
     }

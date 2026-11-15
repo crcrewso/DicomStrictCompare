@@ -43,6 +43,15 @@
         <!-- "Max": what the threshold and global tolerance are fractions of. CAX falls back to Global Max unless
              the source plan's jaws are on axis; each result row says which was used. -->
         <!-- Engine and pairs at once: saved with a study. Float is GPU-only and opt-in. -->
+        <!-- Reading: both opt-in and saved with a study; neither changes a count. -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+          <CheckBox Content="Target box only" IsChecked="{Binding PartialTargetReads}"
+                    ToolTip.Tip="Read each target only where the criteria and the edge check use it. A pair with a gamma criterion reads its target whole. The counts are the same either way."/>
+          <TextBlock Text="Readers" VerticalAlignment="Center"/>
+          <TextBox Text="{Binding Readers}" Width="40" ToolTip.Tip="Files read at once, ahead of the comparison. 0 has each worker read its own pair, as before."/>
+          <TextBlock Text="Held" VerticalAlignment="Center"/>
+          <TextBox Text="{Binding PairsHeld}" Width="40" ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
+        </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
           <TextBlock Text="Pairs at once" VerticalAlignment="Center"/>
           <TextBox Text="{Binding PairsAtOnce}" Width="50" ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the core count (2 for the multi-thread and GPU engines)."/>

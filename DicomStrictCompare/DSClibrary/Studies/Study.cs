@@ -166,16 +166,23 @@ namespace DSClibrary.Studies
     /// comparisons use it.
     /// </summary>
     /// <summary>
-    /// How a study runs, saved with it so a rerun uses the same engine: the Max setting, the comparer, and how many
-    /// pairs run at once (null: chosen from memory, see <see cref="Comparing.BatchComparer.PairsAtOnce"/>).
+    /// How a study runs, saved with it so a rerun uses the same engine: the Max setting, the comparer, how many
+    /// pairs run at once (null: chosen from memory, see <see cref="Comparing.BatchComparer.PairsAtOnce"/>), whether
+    /// targets are read only where they're used, and the read queue (Readers null: each worker reads its own pair).
     /// </summary>
     public sealed record StudyRunSettings(
         Comparing.MaximumKind Maximum = Comparing.MaximumKind.GlobalMax,
         Comparing.ComparerSettings? Comparer = null,
-        int? PairsAtOnce = null)
+        int? PairsAtOnce = null,
+        bool PartialTargetReads = false,
+        int? Readers = null,
+        int? PairsHeld = null)
     {
         public static readonly StudyRunSettings Default = new();
         public Comparing.ComparerSettings ComparerOrDefault => Comparer ?? new Comparing.ComparerSettings();
+
+        /// <summary>The read queue these settings ask for, or null; pairs held defaults to 2.</summary>
+        public Comparing.BatchComparer.ReadQueue? Queue => Readers is > 0 ? new(Readers.Value, PairsHeld is > 0 ? PairsHeld.Value : 2) : null;
     }
 
     public sealed class Study
@@ -231,7 +238,8 @@ namespace DSClibrary.Studies
         internal sealed record DepthFile(bool IncludeDmax, double[] DepthsMm);
         // Optional, so files saved before 2026-11-15 still open, with the defaults.
         internal sealed record RunFile(Comparing.MaximumKind Maximum, Comparing.ComparerKind Comparer, int? Threads,
-            Comparing.GpuPrecision Precision, bool UseThresholdBox, string? Device, int? PairsAtOnce);
+            Comparing.GpuPrecision Precision, bool UseThresholdBox, string? Device, int? PairsAtOnce,
+            bool PartialTargetReads = false, int? Readers = null, int? PairsHeld = null);
         internal sealed record StudyFile(int Version, DoseSet[] Sets, ComparisonFile[] Comparisons, DepthFile Depths, RunFile? Run = null);
 
         // Source-generated, not reflection: a trimmed, AOT or file-based (`dotnet run x.cs`) program has
@@ -249,7 +257,8 @@ namespace DSClibrary.Studies
                 c.Rules.FieldRules.Select(r => new RuleFile(r.Pattern, r.Replacement)).ToArray())).ToArray(),
             new DepthFile(Depths.IncludeDmax, Depths.DepthsMm.ToArray()),
             new RunFile(Run.Maximum, Run.ComparerOrDefault.Kind, Run.ComparerOrDefault.Threads, Run.ComparerOrDefault.Precision,
-                Run.ComparerOrDefault.UseThresholdBox, Run.ComparerOrDefault.Device, Run.PairsAtOnce)), JsonInfo);
+                Run.ComparerOrDefault.UseThresholdBox, Run.ComparerOrDefault.Device, Run.PairsAtOnce,
+                Run.PartialTargetReads, Run.Readers, Run.PairsHeld)), JsonInfo);
 
         public static Study FromJson(string json)
         {
@@ -266,7 +275,8 @@ namespace DSClibrary.Studies
                         (c.FieldRules ?? Array.Empty<RuleFile>()).Select(r => new LabelRule(r.Pattern, r.Replacement))))),
                 file.Depths is null ? null : new DepthSettings(file.Depths.DepthsMm, file.Depths.IncludeDmax),
                 file.Run is not { } r ? null : new StudyRunSettings(r.Maximum,
-                    new Comparing.ComparerSettings(r.Comparer, r.Threads, r.Precision, r.UseThresholdBox, r.Device), r.PairsAtOnce));
+                    new Comparing.ComparerSettings(r.Comparer, r.Threads, r.Precision, r.UseThresholdBox, r.Device), r.PairsAtOnce,
+                    r.PartialTargetReads, r.Readers, r.PairsHeld));
         }
 
         public void Save(string path) => File.WriteAllText(path, ToJson());

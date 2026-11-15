@@ -73,10 +73,13 @@ namespace DSClibraryTests
         public void RunSettingsAreSavedWithTheStudy()
         {
             var run = new StudyRunSettings(MaximumKind.CaxMax,
-                new ComparerSettings(ComparerKind.OpenCl, Precision: GpuPrecision.Float, Device: "Arc"), PairsAtOnce: 3);
+                new ComparerSettings(ComparerKind.OpenCl, Precision: GpuPrecision.Float, Device: "Arc"), PairsAtOnce: 3,
+                PartialTargetReads: true, Readers: 2, PairsHeld: 4);
             var study = new Study(new[] { new DoseSet("A", "/a"), new DoseSet("B", "/b") }, new[] { new SetComparison("A", "B", PairingRules.Exact(DoseMatchStrategy.Identifier)) }, null, run);
             var back = Study.FromJson(study.ToJson());
             Assert.AreEqual(run, back.Run);
+            Assert.AreEqual(new BatchComparer.ReadQueue(2, 4), back.Run.Queue);
+            Assert.IsNull(StudyRunSettings.Default.Queue);
         }
 
         [TestMethod]
@@ -90,6 +93,7 @@ namespace DSClibraryTests
             var study = Study.FromJson(old);
             Assert.AreEqual(StudyRunSettings.Default, study.Run);
             Assert.AreEqual(ComparerKind.HandWritten, study.Run.ComparerOrDefault.Kind);
+            Assert.IsFalse(study.Run.PartialTargetReads);
         }
     }
 }

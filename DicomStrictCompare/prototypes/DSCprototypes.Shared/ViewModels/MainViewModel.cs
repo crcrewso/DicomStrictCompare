@@ -120,8 +120,18 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Pairs compared at once; 0 chooses from free memory (BatchComparer.PairsAtOnce).</summary>
     [ObservableProperty] private int _pairsAtOnce;
 
+    /// <summary>Read each target only where the criteria and the edge check use it (not for gamma). Same counts.</summary>
+    [ObservableProperty] private bool _partialTargetReads;
+
+    /// <summary>Files read at once into a queue ahead of the comparison; 0 has each worker read its own pair.</summary>
+    [ObservableProperty] private int _readers;
+
+    /// <summary>Loaded pairs the queue holds, when Readers is above 0.</summary>
+    [ObservableProperty] private int _pairsHeld = 2;
+
     public ComparerSettings ComparerSettings => new(Engine, Precision: GpuFloat ? GpuPrecision.Float : GpuPrecision.Double);
-    public StudyRunSettings RunSettings => new(Maximum, ComparerSettings, PairsAtOnce > 0 ? PairsAtOnce : null);
+    public StudyRunSettings RunSettings => new(Maximum, ComparerSettings, PairsAtOnce > 0 ? PairsAtOnce : null,
+        PartialTargetReads, Readers > 0 ? Readers : null, Readers > 0 ? PairsHeld : null);
 
     /// <summary>Takes a study file's run settings, so opening a study restores the engine it was run with.</summary>
     public void Apply(StudyRunSettings run)
@@ -130,6 +140,9 @@ public sealed partial class MainViewModel : ObservableObject
         Engine = run.ComparerOrDefault.Kind;
         GpuFloat = run.ComparerOrDefault.Precision == GpuPrecision.Float;
         PairsAtOnce = run.PairsAtOnce ?? 0;
+        PartialTargetReads = run.PartialTargetReads;
+        Readers = run.Readers ?? 0;
+        PairsHeld = run.PairsHeld ?? 2;
     }
     [ObservableProperty] private string _status = "Choose two folders of RT Dose and RT Plan files.";
     [ObservableProperty] private string _log = "";
@@ -221,7 +234,8 @@ public sealed partial class MainViewModel : ObservableObject
         var request = new ComparisonRequest(
             SourceFolder, TargetFolder, SourceAlias, TargetAlias,
             Criteria.Select(c => c.ToSpec()).ToList(), Strategy,
-            DegreeOfParallelism: PairsAtOnce > 0 ? PairsAtOnce : null, Maximum: Maximum, Comparer: ComparerSettings);
+            DegreeOfParallelism: PairsAtOnce > 0 ? PairsAtOnce : null, Maximum: Maximum, Comparer: ComparerSettings,
+            PartialTargetReads: PartialTargetReads, Queue: RunSettings.Queue);
 
         // IProgress<T> marshals back to the thread that created it, so the runner can report from its worker.
         var progress = new Progress<string>(line => { Log += line + Environment.NewLine; Status = line; });

@@ -215,7 +215,7 @@ public static class StudyRunner
             var engine = DoseComparers.Create(run.ComparerOrDefault);
             using var release = engine as IDisposable;
             progress?.Report($"Engine: {engine.Description}");
-            var comparer = new BatchComparer(ComparisonRunner.LoadGrid, engine);
+            var comparer = new BatchComparer(ComparisonRunner.LoadGrid, engine) { PartialTargetReads = run.PartialTargetReads, Queue = run.Queue };
             foreach (var preview in previews)
             {
                 var byFiles = preview.Pairs.ToDictionary(p => (p.Pair.Source.Dose.SourcePath, p.Pair.Target.Dose.SourcePath));

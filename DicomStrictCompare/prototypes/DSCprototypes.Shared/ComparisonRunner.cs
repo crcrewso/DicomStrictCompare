@@ -78,7 +78,9 @@ public sealed record ComparisonRequest(
     DoseMatchStrategy Strategy = DoseMatchStrategy.PlanAndBeamUid,
     int? DegreeOfParallelism = null,
     MaximumKind Maximum = MaximumKind.GlobalMax,
-    ComparerSettings? Comparer = null);
+    ComparerSettings? Comparer = null,
+    bool PartialTargetReads = false,
+    BatchComparer.ReadQueue? Queue = null);
 
 /// <summary>A result as a grid row: one matched pair under one criterion, flattened for display and CSV.</summary>
 public sealed record ResultRow(
@@ -190,7 +192,10 @@ public static class ComparisonRunner
         var engine = DoseComparers.Create(request.Comparer ?? new ComparerSettings());
         using var release = engine as IDisposable;
         progress?.Report($"Engine: {engine.Description}");
-        var comparer = new BatchComparer(LoadGrid, engine);
+        var comparer = new BatchComparer(LoadGrid, engine) { PartialTargetReads = request.PartialTargetReads, Queue = request.Queue };
+        if (request.PartialTargetReads || request.Queue is not null)
+            progress?.Report($"Reading: {(request.PartialTargetReads ? "targets only where used" : "whole targets")}"
+                + (request.Queue is { } q ? $", {q.Readers} reader(s), {q.PairsHeld} pair(s) held" : ""));
 
         // Each pair is loaded once for every criterion (and uploaded once, on a GPU).
         cancellation.ThrowIfCancellationRequested();
@@ -201,6 +206,8 @@ public static class ComparisonRunner
         var outcomes = batch.Outcomes.OrderBy(o => o.CriterionIndex).ToList();
         var rows = outcomes.Select(o => ResultRow.From(o, request.Dtas[o.CriterionIndex])).ToList();
         progress?.Report(batch.ToString());
+        if (outcomes.Where(o => o.TargetFractionRead is not null).Select(o => o.TargetFractionRead!.Value).DefaultIfEmpty(-1).Average() is var f and >= 0)
+            progress?.Report($"Targets read: {f:P1} of their voxels on average");
 
         clock.Stop();
         return new ComparisonSession
