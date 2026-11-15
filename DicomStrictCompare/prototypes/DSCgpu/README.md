@@ -12,6 +12,9 @@ thread each, as `BatchComparer` does)?
   that first for cold reads.
 - **`cores <source.dcm> <target.dcm>`** times the multi-thread comparer pinned to each core type (P, E, LP-E) and to
   mixes, on one pair, then the recommended count unpinned (Windows' default) and every logical processor unpinned. Add `--nobox` for a heavier load. Every row must give the same counts.
+- **`perf/Measure-DscPerformance.ps1`** (crane's runner) runs `quick`, `cores` and `batch` on a machine without Claude
+  and writes `results.json`: every count checked against the reference engine, file hashes, pinning, the machine.
+  `-Anonymous` hides the machine and user names and paths. Windows PowerShell 5.1 or pwsh; see its help.
 
 ## What it runs
 

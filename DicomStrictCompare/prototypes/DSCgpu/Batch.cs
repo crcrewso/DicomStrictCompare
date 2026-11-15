@@ -48,7 +48,8 @@ internal static class Batch
         };
         Console.WriteLine($"{Environment.MachineName}: {CpuTopology.Summary}");
         string setup = $"{comparer.Description}; workers {workers?.ToString() ?? "auto"}; "
-            + (readers > 0 ? $"{readers} reader(s), {held} held" : "each worker reads") + (partial ? "; target box only" : "");
+            + (readers > 0 ? $"{readers} reader(s), {held} held" : "each worker reads") + (partial ? "; target box only" : "")
+            + (CpuTopology.PinByDefault ? "; threads pinned" : "; threads unpinned");   // read by perf/Measure-DscPerformance.ps1
         Console.WriteLine($"{pairs.Length} pairs from {Path.GetFileName(args[0])}; {setup}");
 
         var clock = Stopwatch.StartNew();
