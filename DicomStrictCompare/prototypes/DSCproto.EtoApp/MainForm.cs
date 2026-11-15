@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using DSClibrary.Comparing;
 using DSClibrary.Matching;
 using DSCprototypes.Shared;
 using Eto.Drawing;
@@ -22,11 +23,17 @@ public sealed class MainForm : Form
         public double ThresholdPercent { get; set; } = 10.0;
         public bool Global { get; set; } = true;
         public bool Gamma { get; set; }
-        public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma);
+        public BeamsCompared AppliesTo { get; set; } = BeamsCompared.Both;
+        public string AppliesToText
+        {
+            get => AppliesTo.ToString();
+            set => AppliesTo = Enum.TryParse<BeamsCompared>(value, out var b) ? b : BeamsCompared.Both;
+        }
+        public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma, AppliesTo);
         public static CriterionRow From(DtaSpec s) => new()
         {
             TolerancePercent = s.TolerancePercent, DistanceMm = s.DistanceMm,
-            ThresholdPercent = s.ThresholdPercent, Global = s.Global, Gamma = s.Gamma,
+            ThresholdPercent = s.ThresholdPercent, Global = s.Global, Gamma = s.Gamma, AppliesTo = s.AppliesTo,
         };
     }
 
@@ -240,6 +247,15 @@ public sealed class MainForm : Form
         {
             HeaderText = "Gamma", Editable = true, Width = 60,
             DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Gamma) },
+        });
+        _criteriaGrid.Columns.Add(new GridColumn
+        {
+            HeaderText = "Applies to", Editable = true, Width = 90,
+            DataCell = new ComboBoxCell
+            {
+                DataStore = Enum.GetNames<BeamsCompared>(),
+                Binding = Binding.Property<CriterionRow, object>(r => r.AppliesToText).Convert(o => o, o => o?.ToString() ?? nameof(BeamsCompared.Both)),
+            },
         });
     }
 

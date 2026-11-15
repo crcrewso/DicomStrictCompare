@@ -16,7 +16,12 @@ namespace DSCprototypes.Shared;
 /// criterion, lower dose cutoff, and global or local normalisation (Cody, 2026-11-09: "wire it in").
 /// </para>
 /// </summary>
-public sealed record DtaSpec(double TolerancePercent, double DistanceMm, double ThresholdPercent, bool Global, bool Gamma = false)
+/// <para>
+/// <see cref="AppliesTo"/> limits the criterion to photon or electron beams, by the source plan's RadiationType
+/// (Cody, 2026-11-15). A pair with no source plan is compared only by <c>Both</c> criteria.
+/// </para>
+public sealed record DtaSpec(double TolerancePercent, double DistanceMm, double ThresholdPercent, bool Global, bool Gamma = false,
+    BeamsCompared AppliesTo = BeamsCompared.Both)
 {
     public Dta ToDta() => new(useMM: true,
         threshhold: ThresholdPercent / 100.0,
@@ -38,8 +43,14 @@ public sealed record DtaSpec(double TolerancePercent, double DistanceMm, double 
         MaxGamma: 1.1,
         SkipOncePassed: true);
 
+    /// <summary>The library's criterion: <see cref="BatchComparer.CompareMany"/> runs a list of these on each pair once loaded.</summary>
+    public Criterion ToCriterion() => Gamma
+        ? Criterion.ForGamma(ToGammaOptions(), AppliesTo)
+        : new Criterion(ToDta(), Global, null, AppliesTo);
+
     public string Label =>
-        $"{TolerancePercent:0.#}% / {DistanceMm:0.#} mm / {ThresholdPercent:0.#}% {(Global ? "global" : "local")}{(Gamma ? " gamma" : "")}";
+        $"{TolerancePercent:0.#}% / {DistanceMm:0.#} mm / {ThresholdPercent:0.#}% {(Global ? "global" : "local")}{(Gamma ? " gamma" : "")}"
+        + (AppliesTo == BeamsCompared.Both ? "" : $" ({AppliesTo.ToString().ToLowerInvariant()}s)");
 
     public string Algorithm => Gamma ? "gamma" : "dta";
 
@@ -180,20 +191,16 @@ public static class ComparisonRunner
         using var release = engine as IDisposable;
         progress?.Report($"Engine: {engine.Description}");
         var comparer = new BatchComparer(LoadGrid, engine);
-        var outcomes = new List<ComparisonOutcome>();
-        var rows = new List<ResultRow>();
 
-        foreach (var spec in request.Dtas)
-        {
-            cancellation.ThrowIfCancellationRequested();
-            progress?.Report($"Comparing {match.Pairs.Count} pair(s) at {spec.Label}");
-            var batch = spec.Gamma
-                ? comparer.CompareGamma(match.Pairs, spec.ToGammaOptions(), request.DegreeOfParallelism, cancellation, request.Maximum)
-                : comparer.Compare(match.Pairs, spec.ToDta(), spec.Global, request.DegreeOfParallelism, cancellation, request.Maximum);
-            outcomes.AddRange(batch.Outcomes);
-            rows.AddRange(batch.Outcomes.Select(o => ResultRow.From(o, spec)));
-            progress?.Report(batch.ToString());
-        }
+        // Each pair is loaded once for every criterion (and uploaded once, on a GPU).
+        cancellation.ThrowIfCancellationRequested();
+        progress?.Report($"Comparing {match.Pairs.Count} pair(s) at {request.Dtas.Count} criteria: {string.Join("; ", request.Dtas.Select(d => d.Label))}");
+        var batch = comparer.CompareMany(match.Pairs, request.Dtas.Select(d => d.ToCriterion()).ToArray(),
+            request.DegreeOfParallelism, cancellation, request.Maximum);
+        // Rows criterion by criterion, as before, each in key order.
+        var outcomes = batch.Outcomes.OrderBy(o => o.CriterionIndex).ToList();
+        var rows = outcomes.Select(o => ResultRow.From(o, request.Dtas[o.CriterionIndex])).ToList();
+        progress?.Report(batch.ToString());
 
         clock.Stop();
         return new ComparisonSession

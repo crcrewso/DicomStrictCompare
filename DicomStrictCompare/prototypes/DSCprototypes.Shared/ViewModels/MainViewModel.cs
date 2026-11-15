@@ -15,6 +15,10 @@ public sealed partial class CriterionViewModel : ObservableObject
     [ObservableProperty] private double _thresholdPercent = 10.0;
     [ObservableProperty] private bool _global = true;
     [ObservableProperty] private bool _gamma;
+    [ObservableProperty] private BeamsCompared _appliesTo = BeamsCompared.Both;
+
+    /// <summary>The choices for the "Applies to" column.</summary>
+    public static IReadOnlyList<BeamsCompared> AppliesToChoices { get; } = Enum.GetValues<BeamsCompared>();
 
     public CriterionViewModel() { }
 
@@ -25,9 +29,10 @@ public sealed partial class CriterionViewModel : ObservableObject
         _thresholdPercent = spec.ThresholdPercent;
         _global = spec.Global;
         _gamma = spec.Gamma;
+        _appliesTo = spec.AppliesTo;
     }
 
-    public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma);
+    public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma, AppliesTo);
 }
 
 /// <summary>

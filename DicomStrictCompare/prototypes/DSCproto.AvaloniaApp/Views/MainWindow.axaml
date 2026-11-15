@@ -71,6 +71,15 @@
             <DataGridTextColumn Header="Thr %" Binding="{Binding ThresholdPercent}" Width="*" MinWidth="70"/>
             <DataGridCheckBoxColumn Header="Global" Binding="{Binding Global}" Width="Auto"/>
             <DataGridCheckBoxColumn Header="Gamma" Binding="{Binding Gamma}" Width="Auto"/>
+            <DataGridTemplateColumn Header="Applies to" Width="Auto">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:CriterionViewModel">
+                  <ComboBox ItemsSource="{x:Static vm:CriterionViewModel.AppliesToChoices}" SelectedItem="{Binding AppliesTo}"
+                            HorizontalAlignment="Stretch"
+                            ToolTip.Tip="Which beams this criterion compares, by the source plan's RadiationType. A pair with no source plan is compared only by Both."/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
           </DataGrid.Columns>
         </DataGrid>
       </DockPanel>

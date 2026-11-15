@@ -14,7 +14,7 @@ public static class CsvReport
     public static readonly string[] ResultColumns =
     {
         "SourceAlias", "TargetAlias", "Key", "SourceFile", "TargetFile",
-        "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm", "MaximumUsed", "MaximumDose", "EdgeCheck",
+        "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm", "AppliesTo", "MaximumUsed", "MaximumDose", "EdgeCheck",
         "TotalVoxels", "Compared", "Failed", "PercentFailed", "MaxGamma",
         "SourceMU", "TargetMU", "ElapsedSeconds", "Failure",
     };
@@ -32,6 +32,7 @@ public static class CsvReport
                 F(r.Criterion.TolerancePercent), F(r.Criterion.DistanceMm), F(r.Criterion.ThresholdPercent),
                 r.Criterion.Global ? "global" : "local",
                 r.Criterion.Algorithm,
+                r.Criterion.AppliesTo.ToString(),
                 r.MaximumUsed ?? "",
                 r.MaximumDose is { } m ? m.ToString("G9", CultureInfo.InvariantCulture) : "",
                 r.EdgeCheck,

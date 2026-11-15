@@ -20,7 +20,7 @@ public static class StudyCsv
     {
         "Comparison", "SourceSet", "TargetSet", "Patient", "SourcePlan", "TargetPlan", "Field",
         "Machine", "Energy", "FieldSize", "Collimation", "SSD", "Accessories",
-        "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm", "MaximumUsed", "MaximumDose", "EdgeCheck",
+        "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm", "AppliesTo", "MaximumUsed", "MaximumDose", "EdgeCheck",
         "Compared", "Failed", "PercentFailed", "PassRate", "MaxGamma",
         "PlanCheck", "Warnings", "SourceFile", "TargetFile", "Failure",
     };
@@ -36,7 +36,7 @@ public static class StudyCsv
                 r.Comparison, r.Pair.Comparison.SourceSet, r.Pair.Comparison.TargetSet, f.Patient, f.SourcePlan, f.TargetPlan, f.Field,
                 f.Machine, f.Energy, f.FieldSize, f.Collimation, f.Ssd, f.Accessories,
                 N(r.Criterion.TolerancePercent), N(r.Criterion.DistanceMm), N(r.Criterion.ThresholdPercent),
-                r.Criterion.Global ? "global" : "local", r.Criterion.Algorithm,
+                r.Criterion.Global ? "global" : "local", r.Criterion.Algorithm, r.Criterion.AppliesTo.ToString(),
                 r.MaximumUsed, r.Maximum is { } m ? m.Dose.ToString("G9", CultureInfo.InvariantCulture) : "", r.EdgeCheck,
                 r.Compared.ToString(CultureInfo.InvariantCulture), r.Failed.ToString(CultureInfo.InvariantCulture),
                 r.PercentFailed is { } p ? p.ToString("0.0000", CultureInfo.InvariantCulture) : "",

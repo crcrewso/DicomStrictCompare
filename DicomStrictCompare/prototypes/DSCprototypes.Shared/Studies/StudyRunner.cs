@@ -219,29 +219,26 @@ public static class StudyRunner
             foreach (var preview in previews)
             {
                 var byFiles = preview.Pairs.ToDictionary(p => (p.Pair.Source.Dose.SourcePath, p.Pair.Target.Dose.SourcePath));
-                foreach (var spec in criteria)
+                // Each pair is loaded once for every criterion (and uploaded once, on a GPU).
+                cancellation.ThrowIfCancellationRequested();
+                progress?.Report($"{preview.Comparison.Name}: comparing {preview.Match.Pairs.Count} pair(s) at {criteria.Count} criteria");
+                var batch = comparer.CompareMany(preview.Match.Pairs, criteria.Select(c => c.ToCriterion()).ToArray(), parallelism, cancellation, maximum);
+                // Rows criterion by criterion, as before, each in key order.
+                foreach (var o in batch.Outcomes.OrderBy(o => o.CriterionIndex))
                 {
-                    cancellation.ThrowIfCancellationRequested();
-                    progress?.Report($"{preview.Comparison.Name}: comparing {preview.Match.Pairs.Count} pair(s) at {spec.Label}");
-                    var batch = spec.Gamma
-                        ? comparer.CompareGamma(preview.Match.Pairs, spec.ToGammaOptions(), parallelism, cancellation, maximum)
-                        : comparer.Compare(preview.Match.Pairs, spec.ToDta(), spec.Global, parallelism, cancellation, maximum);
-                    foreach (var o in batch.Outcomes)
-                    {
-                        var pair = byFiles[(o.SourcePath, o.TargetPath)];
-                        rows.Add(new StudyRow(pair, spec,
-                            o.Comparison?.TotalCompared ?? 0,
-                            o.Comparison?.TotalFailed ?? 0,
-                            o.PercentFailed,
-                            o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
-                            Path.GetFileName(o.SourcePath),
-                            Path.GetFileName(o.TargetPath),
-                            o.Failure,
-                            o.Maximum,
-                            o.EdgeCheck));
-                    }
-                    progress?.Report(batch.ToString());
+                    var pair = byFiles[(o.SourcePath, o.TargetPath)];
+                    rows.Add(new StudyRow(pair, criteria[o.CriterionIndex],
+                        o.Comparison?.TotalCompared ?? 0,
+                        o.Comparison?.TotalFailed ?? 0,
+                        o.PercentFailed,
+                        o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
+                        Path.GetFileName(o.SourcePath),
+                        Path.GetFileName(o.TargetPath),
+                        o.Failure,
+                        o.Maximum,
+                        o.EdgeCheck));
                 }
+                progress?.Report(batch.ToString());
             }
         }
 
