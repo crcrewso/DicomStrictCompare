@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/DSCproto.UnoApp/">
-    <Project Path="DSCproto.UnoApp/DSCproto.UnoApp/DSCproto.UnoApp.csproj" />
-  </Folder>
   <Project Path="../DSClibrary/DSClibrary.csproj" />
   <Project Path="../DSClibraryTests/DSClibraryTests.csproj">
     <Platform Project="x64" />

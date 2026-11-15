@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- The view model the two XAML-family prototypes (Avalonia, Uno) share. Eto does not use it. -->
+    <!-- The view model the Avalonia prototype uses. Eto does not use it. -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 

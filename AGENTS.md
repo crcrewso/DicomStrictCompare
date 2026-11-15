@@ -45,7 +45,7 @@ either.
 | **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`). **LTS releases only** (crcrewso, 2026-11-15) |
 | **DICOM** | An in-house reader and writer (`DSClibrary/Results/DICOM/`) for plans and dose headers, verified in the tests against [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5. Dose grids load through `DoseGridReader` into `DoseMatrixOptimal`, checked voxel for voxel against EvilDICOM; EvilDICOM.CV is used in the GUI |
 | **Maths** | MathNet.Numerics |
-| **GUI** | The cross-platform front ends in `prototypes/` (Avalonia first, then Eto and Uno), all in `prototypes/Prototypes.slnx`. `DSCcore`, the old Windows Forms GUI, is no longer built or maintained (crcrewso, 2026-11-15): it has not built since `8867bbc` moved the library to .NET 10 |
+| **GUI** | The cross-platform front ends in `prototypes/` (Avalonia first, then Eto; Uno was dropped 2026-11-15), all in `prototypes/Prototypes.slnx`. `DSCcore`, the old Windows Forms GUI, is no longer built or maintained (crcrewso, 2026-11-15): it has not built since `8867bbc` moved the library to .NET 10 |
 | **Plots** | ScottPlot 4 (GUI) |
 | **Tests** | MSTest |
 | **API docs** | DocFX (`docfx.json` in `DSClibrary/` and `DSCcore/`), with the generated HTML in `docs/` |
@@ -89,7 +89,7 @@ docs/                   generated DocFX HTML; don't hand-edit it
 # Library tests, on any OS (from the repository root)
 dotnet test DicomStrictCompare/DSClibraryTests/DSClibraryTests.csproj
 
-# The front ends and every project in use (the Uno app builds only from its own folder: its SDK pin is there)
+# The front ends and every project in use
 dotnet build DicomStrictCompare/prototypes/Prototypes.slnx
 dotnet run --project DicomStrictCompare/prototypes/DSCproto.AvaloniaApp
 ```

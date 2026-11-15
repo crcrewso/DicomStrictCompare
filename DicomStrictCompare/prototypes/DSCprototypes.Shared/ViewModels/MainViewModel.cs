@@ -36,8 +36,7 @@ public sealed partial class CriterionViewModel : ObservableObject
 }
 
 /// <summary>
-/// The whole window's state, shared by the Avalonia and Uno prototypes because both are MVVM
-/// frameworks and the state is the same. It knows nothing about controls: it exposes properties and
+/// The whole window's state, for the Avalonia prototype, which is MVVM. It knows nothing about controls: it exposes properties and
 /// commands and the view binds to them. The only platform touch, picking a folder, is injected.
 /// </summary>
 public sealed partial class MainViewModel : ObservableObject
