@@ -57,37 +57,76 @@ namespace DSClibrary.Studies
 
         public const double ToleranceMm = 2.0;
         public const double DepthMm = 100.0;
-        public static JawEdgeResult For(DoseMatrixOptimal dose, RTPlanBeam? beam)
+        /// <summary>The plan's facts the check needs, or why it isn't checked; nothing here reads the dose.</summary>
+        private sealed record Field(Position3 Iso, double Sad, double SourceY, IReadOnlyList<double> X, IReadOnlyList<double> Y, double Collimator, RTPlanBeam Beam);
+
+        private static (Field? Field, string? Why) Prepare(RTPlanBeam? beam)
         {
-            if (dose is null) throw new ArgumentNullException(nameof(dose));
-            if (beam is null) return NotChecked("no plan");
-            if (string.Equals(beam.RadiationType, "ELECTRON", StringComparison.OrdinalIgnoreCase)) return NotChecked("electron: the applicator defines the field");
-            if (beam.WedgeIDs.Count > 0) return NotChecked("wedged field");
+            if (beam is null) return (null, "no plan");
+            if (string.Equals(beam.RadiationType, "ELECTRON", StringComparison.OrdinalIgnoreCase)) return (null, "electron: the applicator defines the field");
+            if (beam.WedgeIDs.Count > 0) return (null, "wedged field");
             // FFF field size is quoted as if the beam had been flattened, so neither the plain 50 % point nor the
             // jaw is directly comparable. Left out for now (Cody, 2026-11-15); see comparison-studies.md, F10.
-            if (beam.IsFluenceModeFff == true) return NotChecked("FFF");
-            if (beam.IsArc) return NotChecked("arc");
-            if (!Zero(beam.GantryAngle) || !Zero(beam.PatientSupportAngle)) return NotChecked("gantry and couch must be 0");
+            if (beam.IsFluenceModeFff == true) return (null, "FFF");
+            if (beam.IsArc) return (null, "arc");
+            if (!Zero(beam.GantryAngle) || !Zero(beam.PatientSupportAngle)) return (null, "gantry and couch must be 0");
             // Realistic collimator angles are 0, 90 and 270, rarely 45 or 315 (Cody, 2026-11-15).
             if (beam.BeamLimitingDeviceAngle is not { } collimator || Math.Abs(collimator / 45 - Math.Round(collimator / 45)) * 45 > 0.1)
-                return NotChecked("collimator angle is not a multiple of 45");
-            if (beam.SourceAxisDistance is not { } sad) return NotChecked("no SAD in the plan");
-            if (beam.IsocenterPosition.Count < 3) return NotChecked("no isocentre in the plan");
+                return (null, "collimator angle is not a multiple of 45");
+            if (beam.SourceAxisDistance is not { } sad) return (null, "no SAD in the plan");
+            if (beam.IsocenterPosition.Count < 3) return (null, "no isocentre in the plan");
             var jaws = beam.LeafJawPositions;
             var xj = Pair(jaws, "ASYMX") ?? Pair(jaws, "X");
             var yj = Pair(jaws, "ASYMY") ?? Pair(jaws, "Y");
-            if (xj is null || yj is null) return NotChecked("no X or Y jaw positions");
-            if (MlcDefinesTheField(jaws, xj) is { } mlc) return NotChecked(mlc);
+            if (xj is null || yj is null) return (null, "no X or Y jaw positions");
+            if (MlcDefinesTheField(jaws, xj) is { } mlc) return (null, mlc);
             var iso = new Position3(beam.IsocenterPosition[0], beam.IsocenterPosition[1], beam.IsocenterPosition[2]);
-            double sourceY = iso.Y - sad;   // gantry 0: the beam runs along +y
+            return (new Field(iso, sad, iso.Y - sad, xj, yj, collimator, beam), null);   // gantry 0: the beam runs along +y
 
-            // The surface.
-            double surfaceY; string note;
-            var entry = beam.SurfaceEntryPoint;
-            if (entry.Count >= 3) { surfaceY = entry[1]; note = "surface from the plan's entry point"; }
-            else if (beam.SourceToSurfaceDistance is { } ssdStated) { surfaceY = sourceY + ssdStated; note = "surface from the plan's SSD"; }
-            else if (SurfaceFromDose(dose, iso) is { } y) { surfaceY = y; note = "surface from the dose (no SSD in the plan)"; }
-            else return NotChecked("no surface entry point or SSD, and the CAX column has no dose");
+            static bool Zero(double? a) => a is { } v && Math.Min(Math.Abs(v), Math.Abs(v - 360)) <= 0.1;
+            static IReadOnlyList<double>? Pair(IReadOnlyDictionary<string, IReadOnlyList<double>> all, string type) =>
+                all.TryGetValue(type, out var p) && p.Count == 2 ? p : null;
+        }
+
+        /// <summary>The surface: the plan's entry point, else its SSD, else the dose's CAX column.</summary>
+        private static (double Y, string Note)? Surface(DoseMatrixOptimal dose, Field f)
+        {
+            var entry = f.Beam.SurfaceEntryPoint;
+            if (entry.Count >= 3) return (entry[1], "surface from the plan's entry point");
+            if (f.Beam.SourceToSurfaceDistance is { } ssd) return (f.SourceY + ssd, "surface from the plan's SSD");
+            if (SurfaceFromDose(dose, f.Iso) is { } y) return (y, "surface from the dose (no SSD in the plan)");
+            return null;
+        }
+
+        /// <summary>
+        /// The voxel rows <see cref="For"/> reads, so a partial read (<see cref="DoseGridReader.Open"/>) can include
+        /// them: the CAX column's plane whole when the surface must come from the dose (read through
+        /// <paramref name="readWholePlane"/> before the depth is worked out), then rows about the 10 cm plane in
+        /// every plane. Null when the beam isn't checked or the plane is outside the grid.
+        /// </summary>
+        public static (int Y0, int Y1)? DepthRows(DoseMatrixOptimal dose, RTPlanBeam? beam, Action<int> readWholePlane)
+        {
+            if (Prepare(beam) is not ({ } f, _)) return null;
+            if (f.Beam.SurfaceEntryPoint.Count < 3 && f.Beam.SourceToSurfaceDistance is null)
+            {
+                int iz = (int)Math.Round((f.Iso.Z - dose.Z0) / dose.ZRes);
+                if (iz < 0 || iz >= dose.DimensionZ) return null;
+                readWholePlane(iz);
+            }
+            if (Surface(dose, f) is not { } surface) return null;
+            double plane = surface.Y + DepthMm;
+            if (plane < dose.Y0 || plane > dose.YMax) return null;
+            int row = (int)((plane - dose.Y0) / dose.YRes);
+            return (Math.Max(0, row - 1), Math.Min(dose.DimensionY - 1, row + 2));
+        }
+
+        public static JawEdgeResult For(DoseMatrixOptimal dose, RTPlanBeam? beam)
+        {
+            if (dose is null) throw new ArgumentNullException(nameof(dose));
+            var (f, why) = Prepare(beam);
+            if (f is null) return NotChecked(why!);
+            var (iso, sad, sourceY, xj, yj, collimator) = (f.Iso, f.Sad, f.SourceY, f.X, f.Y, f.Collimator);
+            if (Surface(dose, f) is not var (surfaceY, note)) return NotChecked("no surface entry point or SSD, and the CAX column has no dose");
 
             double plane = surfaceY + DepthMm;
             double scale = (surfaceY - sourceY + DepthMm) / sad;
@@ -121,9 +160,6 @@ namespace DSClibrary.Studies
             return new JawEdgeResult(true, edges, null, note);
 
             static JawEdgeResult NotChecked(string why) => new(false, Array.Empty<FieldEdge>(), why);
-            static bool Zero(double? a) => a is { } v && Math.Min(Math.Abs(v), Math.Abs(v - 360)) <= 0.1;
-            static IReadOnlyList<double>? Pair(IReadOnlyDictionary<string, IReadOnlyList<double>> all, string type) =>
-                all.TryGetValue(type, out var p) && p.Count == 2 ? p : null;
         }
 
         /// <summary>

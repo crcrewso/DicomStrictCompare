@@ -60,6 +60,9 @@ namespace DSClibrary.Comparing
         /// <summary>The two edge checks as one line: "agree", the disagreements, or why not checked.</summary>
         public string EdgeCheck => Succeeded ? Studies.JawEdgeCheck.Describe(SourceEdges, TargetEdges) : "";
 
+        /// <summary>The fraction of the target's voxels read from disk, with <see cref="BatchComparer.PartialTargetReads"/>; null for a full read.</summary>
+        public double? TargetFractionRead { get; init; }
+
         /// <summary>Which of <see cref="BatchComparer.CompareMany"/>'s criteria this row answers; 0 for a single-criterion batch.</summary>
         public int CriterionIndex { get; init; }
 
@@ -185,6 +188,46 @@ namespace DSClibrary.Comparing
         }
 
         /// <summary>
+        /// Read only the target voxels the pair's criteria and the edge check use (<see cref="OpenTarget"/>), when
+        /// none of its criteria is gamma, which checks and flips the whole evaluation grid. Off by default; the counts
+        /// are the same either way.
+        /// </summary>
+        public bool PartialTargetReads { get; init; }
+
+        /// <summary>
+        /// Opens a target and reads the rows that matter, the lowest useful region (Cody, 2026-11-15): every
+        /// criterion's reads, from its threshold box and the source (<see cref="Gpu.GpuTables.Reads"/>), and the rows
+        /// <see cref="Studies.JawEdgeCheck"/> reads for the target's beam. A criterion that reads past a grid edge (the
+        /// engine's rounding quirk) has the target read whole.
+        /// </summary>
+        public static DSClibrary.Results.DICOM.DoseGridReader.PartialDoseGrid OpenTarget(string path, DoseMatrixOptimal source,
+            IEnumerable<ComparisonRun> runs, Results.DICOM.RTPlanBeam? targetBeam)
+        {
+            var partial = Results.DICOM.DoseGridReader.Open(path);
+            try
+            {
+                var g = partial.Grid;
+                int z0 = int.MaxValue, z1 = int.MinValue, y0 = int.MaxValue, y1 = int.MinValue;
+                bool whole = false;
+                foreach (var run in runs)
+                {
+                    var setup = ComparisonSetup.For(source, g, run.Dta, run.Global, true, run.ReferenceMaximum);
+                    if (Gpu.GpuTables.Reads(setup) is not { } r) continue;
+                    if (r.TLo.X < 0 || r.TLo.Y < 0 || r.TLo.Z < 0 || r.THi.X > g.DimensionX - 1 || r.THi.Y > g.DimensionY - 1 || r.THi.Z > g.DimensionZ - 1)
+                        whole = true;
+                    z0 = Math.Min(z0, r.TLo.Z); z1 = Math.Max(z1, r.THi.Z);
+                    y0 = Math.Min(y0, r.TLo.Y); y1 = Math.Max(y1, r.THi.Y);
+                }
+                if (whole) partial.ReadAll();
+                else if (z0 <= z1) partial.ReadRows(z0, z1, y0, y1);
+                if (Studies.JawEdgeCheck.DepthRows(g, targetBeam, partial.ReadPlane) is { } rows)
+                    partial.ReadRows(0, g.DimensionZ - 1, rows.Y0, rows.Y1);
+                return partial;
+            }
+            catch { partial.Dispose(); throw; }
+        }
+
+        /// <summary>
         /// Four is the default rather than the core count, because the
         /// constraint here is memory and not cores: at 61 MB per grid and two grids per comparison,
         /// a sixteen-core machine would try to hold about two gigabytes of dose.
@@ -303,21 +346,30 @@ namespace DSClibrary.Comparing
             {
                 cancellation.ThrowIfCancellationRequested();
                 DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
-                cancellation.ThrowIfCancellationRequested();
-                DoseMatrixOptimal target = _load(pair.Target.Dose.SourcePath);
-
                 var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
+                int[] dta = applicable.Where(n => criteria[n].Gamma is null).ToArray();
+                var runs = dta.Select(n => new ComparisonRun(criteria[n].Dta, criteria[n].Global, reference.Dose)).ToArray();
+
+                cancellation.ThrowIfCancellationRequested();
+                DoseMatrixOptimal target;
+                double? fractionRead = null;
+                if (PartialTargetReads && dta.Length == applicable.Length)
+                {
+                    using var partial = OpenTarget(pair.Target.Dose.SourcePath, source, runs, pair.Target.Beam);
+                    target = partial.Grid;
+                    fractionRead = partial.FractionRead;
+                }
+                else target = _load(pair.Target.Dose.SourcePath);
+
                 var sourceEdges = Studies.JawEdgeCheck.For(source, pair.Source.Beam);
                 var targetEdges = Studies.JawEdgeCheck.For(target, pair.Target.Beam);
 
                 // The DTA criteria together, so a GPU comparer uploads the pair once. The token goes into the engine,
                 // which checks it as it runs, so a cancel stops a comparison under way.
-                int[] dta = applicable.Where(n => criteria[n].Gamma is null).ToArray();
                 var counts = new Dictionary<int, SingleComparison>();
                 var gammas = new Dictionary<int, GammaResult>();
                 if (dta.Length > 0)
                 {
-                    var runs = dta.Select(n => new ComparisonRun(criteria[n].Dta, criteria[n].Global, reference.Dose)).ToArray();
                     var results = _mathematics.CompareAll(source, target, runs, cancellation);
                     for (int r = 0; r < dta.Length; r++) counts[dta[r]] = results[r];
                 }
@@ -345,6 +397,7 @@ namespace DSClibrary.Comparing
                     CriterionIndex = n,
                     SourceEdges = sourceEdges,
                     TargetEdges = targetEdges,
+                    TargetFractionRead = fractionRead,
                 }).ToArray();
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
