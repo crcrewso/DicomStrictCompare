@@ -37,8 +37,8 @@ internal static class Batch
             .Select(p => new MatchedDosePair(DoseMatchKey.For(p.S, DoseMatchStrategy.Identifier) ?? DoseMatchKey.For(p.S, DoseMatchStrategy.PlanAndBeamUid)
                 ?? throw new InvalidOperationException($"{p.S.Dose.SourcePath} has no key under either strategy."), p.S, p.T)).ToArray();
 
-        using var engine = DoseComparers.Create(new ComparerSettings(kind, Precision: gpuFloat ? GpuPrecision.Float : GpuPrecision.Double)) as IDisposable;
-        var comparer = (DoseComparer)engine!;
+        var comparer = DoseComparers.Create(new ComparerSettings(kind, Precision: gpuFloat ? GpuPrecision.Float : GpuPrecision.Double));
+        using var release = comparer as IDisposable;   // GPU comparers hold a device
         var batch = new BatchComparer(DoseGridReader.Read, comparer)
         {
             PartialTargetReads = partial,

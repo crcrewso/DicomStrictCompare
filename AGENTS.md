@@ -195,6 +195,8 @@ Python idioms don't carry over automatically. Watch for:
   - **A new comparer** derives from `DoseComparer` and is built by `DoseComparers.Create`.
   - **It must reproduce `HandWrittenComparer`'s counts exactly** in double, in `DoseComparerEquivalenceTests`.
   - Front ends hold only a `DoseComparer`, chosen by `ComparerSettings`.
+  - **Default thread counts come from `CpuTopology.PhysicalCores`, never `Environment.ProcessorCount`:** SMT
+    siblings and low-power E-cores are left out (Cody, 2026-11-15).
   - **Batches go through `BatchComparer.CompareMany`,** which loads each pair once for every criterion. A comparer
     that can share work across criteria (the GPU ones: one upload per pair) overrides `DoseComparer.CompareAll`.
 - **Commit messages:** start with the area, then an imperative summary (`Gamma: refuse unevenly spaced grids`).

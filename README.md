@@ -78,8 +78,19 @@ A result's elapsed time is therefore the pair's, shared by all its rows.
 **Applies to.** Each criterion can be limited to photon or electron beams, by the source plan's RadiationType, or
 left at Both. A dose with no source plan is compared only by Both criteria. The CSVs have an `AppliesTo` column.
 
+**Threads use physical cores only.** Every default thread count is one per physical core: SMT siblings are ignored,
+and so are Intel's low-power E-cores (a core with no L3 cache when other cores have one). Threads are pinned, one
+per core, where Linux or Windows allows. On a 4 P + 8 E + 4 LP-E laptop, 12 pinned threads beat all 16 unpinned
+by 13 %, and adding the 4 LP-E cores gained nothing.
+
+**Reading, both opt-in, neither changes a count:**
+- **Target box only:** each target is read only where the criteria and the edge check use it, which is the box at
+  the lowest threshold among the criteria. A pair with a gamma criterion reads its target whole.
+- **Read queue:** *Readers* files are read at once into a queue of *Held* loaded pairs while the workers compare.
+  0 readers has each worker read its own pair, as before.
+
 **Pairs at once.** Several pairs can run side by side as well. Left at 0, the number is chosen from free memory:
-as many as half of it holds, up to the core count, or 2 for the multi-thread and GPU engines.
+as many as half of it holds, up to the physical core count, or 2 for the multi-thread and GPU engines.
 
 **Max.** The threshold and the global tolerance are fractions of a maximum: the source's volume maximum (Global
 Max, the default), or the central-axis maximum (CAX), used only when the plan's jaws are on axis. Global gamma uses
