@@ -80,6 +80,8 @@ namespace DSClibrary.Comparing.Gpu
         private readonly nint _device, _context, _queue, _program, _kernel;
         private readonly object _gate = new();
         private readonly long _maxAllocation;
+        // The grid blocks' device buffers, kept between pairs and grown to the largest block so far.
+        private (nint Buffer, long Bytes) _sourceBlock, _targetBlock;
 
         public GpuPrecision Precision { get; }
         public string DeviceName { get; }
@@ -182,7 +184,6 @@ namespace DSClibrary.Comparing.Gpu
 
         private (int, int)[] RunAll<T>(T[] s, T[] tv, ComparisonSetup[] setups, GpuUpload upload, Func<double, T> real, CancellationToken cancellation) where T : unmanaged
         {
-            var pair = new List<nint>();
             nint Buffer<TB>(List<nint> owner, TB[] data) where TB : unmanaged
             {
                 int err;
@@ -198,7 +199,7 @@ namespace DSClibrary.Comparing.Gpu
                 long largest = Math.Max(s.LongLength, tv.LongLength) * sizeof(T);
                 if (largest > _maxAllocation)
                     throw new InvalidOperationException($"A grid block of {largest / 1048576.0:0} MB exceeds {DeviceName}'s {_maxAllocation / 1048576.0:0} MB per buffer.");
-                nint sb = Buffer(pair, s), tb = Buffer(pair, tv);
+                nint sb = Block(ref _sourceBlock, s), tb = Block(ref _targetBlock, tv);
                 var results = new (int, int)[setups.Length];
                 for (int n = 0; n < setups.Length; n++)
                 {
@@ -233,10 +234,37 @@ namespace DSClibrary.Comparing.Gpu
                 }
                 return results;
             }
-            finally
+            catch
             {
-                foreach (var b in pair) _cl.ReleaseMemObject(b);
+                // After a failure the blocks' contents are unknown; start the next pair with new ones.
+                ReleaseBlocks();
+                throw;
             }
+        }
+
+        /// <summary>Writes a grid block into its kept device buffer, replacing the buffer only when it is too small.</summary>
+        private nint Block<T>(ref (nint Buffer, long Bytes) block, T[] data) where T : unmanaged
+        {
+            long bytes = Math.Max(1, data.LongLength) * sizeof(T);
+            if (block.Buffer == 0 || block.Bytes < bytes)
+            {
+                if (block.Buffer != 0) _cl.ReleaseMemObject(block.Buffer);
+                block = (0, 0);
+                int err;
+                nint b = _cl.CreateBuffer(_context, MemFlags.ReadOnly, (nuint)bytes, null, &err);
+                Check(err, "CreateBuffer");
+                block = (b, bytes);
+            }
+            fixed (T* d = data)
+                Check(_cl.EnqueueWriteBuffer(_queue, block.Buffer, true, 0, (nuint)(data.LongLength * sizeof(T)), d, 0, null, null), "EnqueueWriteBuffer");
+            return block.Buffer;
+        }
+
+        private void ReleaseBlocks()
+        {
+            if (_sourceBlock.Buffer != 0) _cl.ReleaseMemObject(_sourceBlock.Buffer);
+            if (_targetBlock.Buffer != 0) _cl.ReleaseMemObject(_targetBlock.Buffer);
+            _sourceBlock = _targetBlock = (0, 0);
         }
 
         private string Extensions(nint device)
@@ -273,6 +301,7 @@ namespace DSClibrary.Comparing.Gpu
 
         public void Dispose()
         {
+            ReleaseBlocks();
             if (_kernel != 0) _cl.ReleaseKernel(_kernel);
             if (_program != 0) _cl.ReleaseProgram(_program);
             if (_queue != 0) _cl.ReleaseCommandQueue(_queue);

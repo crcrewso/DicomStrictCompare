@@ -104,8 +104,11 @@ namespace DSClibrary.Comparing.Gpu
             long bytes = (s.LongLength + tv.LongLength) * Interop.SizeOf<T>();
             if (bytes > _accelerator.MemorySize)
                 throw new InvalidOperationException($"This pair needs {bytes / 1048576.0:0} MB on {DeviceName}, which has {_accelerator.MemorySize / 1048576.0:0} MB.");
-            using var sb = _accelerator.Allocate1D(s);
-            using var tb = _accelerator.Allocate1D(tv);
+            // The grid blocks' device buffers are kept between pairs and grown to the largest block so far.
+            var blocks = _blocks as Blocks<T> ?? new Blocks<T>();
+            _blocks = blocks;
+            var sb = blocks.Write(_accelerator, ref blocks.Source, s);
+            var tb = blocks.Write(_accelerator, ref blocks.Target, tv);
             var results = new (int, int)[setups.Length];
             for (int n = 0; n < setups.Length; n++)
             {
@@ -117,7 +120,7 @@ namespace DSClibrary.Comparing.Gpu
                 using var rb = _accelerator.Allocate1D(Array.ConvertAll(t.Reals, v => real(v)));
                 using var cb = _accelerator.Allocate1D<int>(t.Lines);
                 using var fb = _accelerator.Allocate1D<int>(t.Lines);
-                kernel(new Index2D(t.Lines / t.LinesY, t.LinesY), sb.View, tb.View, hb.View, ib.View, rb.View, cb.View, fb.View);
+                kernel(new Index2D(t.Lines / t.LinesY, t.LinesY), sb, tb, hb.View, ib.View, rb.View, cb.View, fb.View);
                 _accelerator.Synchronize();
                 results[n] = (cb.GetAsArray1D().Sum(), fb.GetAsArray1D().Sum());
             }
@@ -226,8 +229,32 @@ namespace DSClibrary.Comparing.Gpu
             return iz ? c0 * (1 - zd) + c1 * zd : c0;
         }
 
+        private object? _blocks;
+
+        private sealed class Blocks<T> : IDisposable where T : unmanaged
+        {
+            public MemoryBuffer1D<T, Stride1D.Dense>? Source, Target;
+
+            public ArrayView1D<T, Stride1D.Dense> Write(Accelerator accelerator, ref MemoryBuffer1D<T, Stride1D.Dense>? buffer, T[] data)
+            {
+                long length = Math.Max(1, data.LongLength);
+                if (buffer is null || buffer.Length < length)
+                {
+                    buffer?.Dispose();
+                    buffer = null;
+                    buffer = accelerator.Allocate1D<T>(length);
+                }
+                var view = buffer.View.SubView(0, data.LongLength);
+                if (data.LongLength > 0) view.CopyFromCPU(data);
+                return view;
+            }
+
+            public void Dispose() { Source?.Dispose(); Target?.Dispose(); }
+        }
+
         public void Dispose()
         {
+            (_blocks as IDisposable)?.Dispose();
             _accelerator.Dispose();
             _context.Dispose();
         }
