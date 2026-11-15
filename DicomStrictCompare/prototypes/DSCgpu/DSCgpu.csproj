@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Benchmark prototype: does a GPU comparison beat running whole comparisons side by side on the CPU,
+    and from what grid size? Not part of any front end. See README.md beside this file.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\DSClibrary\DSClibrary.csproj" />
+    <PackageReference Include="ILGPU" Version="1.5.3" />
+    <PackageReference Include="Silk.NET.OpenCL" Version="2.23.0" />
+  </ItemGroup>
+
+</Project>
