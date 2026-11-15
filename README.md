@@ -71,6 +71,13 @@ NVIDIA GeForce RTX 20 series at about 1/32 of the float rate and RTX 30 and 40 s
 check your card). For those, the GPU engines offer float. It may differ from the reference by a few points out of
 millions, where a point sits within rounding of a tolerance or the threshold.
 
+**Each pair is loaded once.** Every criterion runs on a pair's grids once they're loaded, with one Max and one edge
+check. A GPU engine also uploads the pair once for all its criteria: the part of each grid that any of them needs.
+A result's elapsed time is therefore the pair's, shared by all its rows.
+
+**Applies to.** Each criterion can be limited to photon or electron beams, by the source plan's RadiationType, or
+left at Both. A dose with no source plan is compared only by Both criteria. The CSVs have an `AppliesTo` column.
+
 **Pairs at once.** Several pairs can run side by side as well. Left at 0, the number is chosen from free memory:
 as many as half of it holds, up to the core count, or 2 for the multi-thread and GPU engines.
 
@@ -100,6 +107,7 @@ used.
 | DTA | Distance to agreement in mm; 0 means dose difference only |
 | Threshold (%) | Percentage of the source maximum below which voxels are not compared |
 | Global? | Tolerance measured against the source maximum (global) instead of the local dose |
+| Applies to | Photon, Electron or Both: which beams the criterion compares (the prototypes' criteria grid) |
 | Trim voxels | Number of voxels to remove from the edge of the overlapping volume, useful when two algorithms are known to disagree on skin dose and you want to exclude it |
 
 Click the introduction text in the app for the same definitions.

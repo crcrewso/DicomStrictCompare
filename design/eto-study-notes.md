@@ -79,6 +79,8 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
   - Eto needs a `DropDown`, a `CheckBox` (whose tooltip names the GPUs with slow double) and a `NumericStepper`.
   - A study file saves all of these (`Study.Run`), and opening one restores them through `MainViewModel.Apply`.
 - **Edge check:** both results grids have an "Edge check" column (`ResultRow.EdgeCheck`, `StudyRow.EdgeCheck`).
+- **Applies to:** both criteria grids have it, Avalonia as a `ComboBox` and Eto as a `ComboBoxCell`, bound to
+  `DtaSpec.AppliesTo` (`BeamsCompared.Both`, `Photon`, `Electron`).
 
 ## Log
 
@@ -86,3 +88,5 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
 - 2026-11-14: sets gained a plan filter (`DoseSet.PlanFilter`), a regular expression on the plan label, so two sets
   can share one export folder. The Eto sets grid needs that column. `StudyRunner` reads each folder once.
 - 2026-11-15: the Max dropdown and the "Max used" columns were added to the Avalonia window. Eto needs the same; see above.
+- 2026-11-15: "Applies to" added to both criteria grids. The runners now load each pair once for all criteria
+  (`BatchComparer.CompareMany`); rows still come out criterion by criterion.
