@@ -60,6 +60,32 @@ its plan. It belongs here, beside the other normalisations.
 - It answers a real case: two calculations of one field at different MU, which `resources/`'s "P5 Varied MU" plan
   exists to test.
 
+**F10, the reference dose for the threshold and the global tolerance (Cody, 2026-11-15).** Today both use the
+source's volume maximum. Two settings are wanted:
+- **Volume maximum:** today's behaviour, and the default, so no existing number changes.
+- **Central-axis (CAX) maximum.** The CAX is the centre array of the phantom along the dose axis, averaged over the
+  3 × 3 grid of nearest neighbours; the reference is the maximum along it.
+- **An off-axis field falls back to the volume maximum.** Off-axis has two terms (Cody, 2026-11-15):
+  1. **Asymmetric jaws:** the field edges' distances from the CAX differ by more than 1 cm, −X against +X or −Y
+     against +Y.
+     - **With a plan file,** the jaw definitions are the sole test.
+     - **Without one,** the same test is applied to the central profiles' penumbra distances.
+  2. **Symmetric jaws, but the profiles do not intersect the CAX.** The field lies wholly to one side of the
+     phantom's centre line, for example an MLC-shaped or shifted field.
+- **The earlier rule, "CAX maximum under 80 % of the volume maximum",** isn't in this two-term statement. Whether it
+  still applies is to confirm.
+- **A penumbra edge is the 50 % point of the profile** (Cody, 2026-11-15).
+- **Where a plan exists, the 50 % edge and the jaw position should agree within 2 mm.** A larger difference is a
+  warning on the pair, beside the F3 plan check and F4 dose warnings. It means the dose and the plan may not belong
+  together, or the geometry was read wrongly.
+- **Still to settle:** jaw positions are defined at the isocentre plane, and a field widens with depth. So the
+  comparison should use the profile at the isocentre plane, or scale a profile at another depth (for example the
+  depth of the CAX maximum) back to it.
+- **Still open:** arcs, plan sums and doses without a plan (today's answer would be the volume maximum).
+- **The one change to the reference:** `HandWrittenComparer` would read the chosen value instead of
+  `source.MaxPointDose`. With the default, the equivalence tests show its counts unchanged.
+- **Like every semantics change,** it needs a README update, tests and a PR note (AGENTS.md).
+
 ---
 
 ## F1: named dose sets

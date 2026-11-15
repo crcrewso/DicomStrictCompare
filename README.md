@@ -56,6 +56,21 @@ to voxels, the dose difference alone decides pass or fail and the DTA distance i
 The result for each pair is the percentage of evaluated points that failed: 0 % means the distributions
 agree everywhere under your criteria, 100 % means no point agreed.
 
+**The same rules, several engines.** The comparison can run on different engines, chosen as a setting:
+- **`HandWrittenComparer`:** the original, one thread, every point. This is the default and the reference.
+- **`SingleThreadComparer` and `MultiThreadComparer`:** the same rules, skipping points that cannot reach the
+  threshold (see below), on one thread or several.
+- **`IlgpuComparer` and `OpenClComparer`:** the same rules on a GPU, in float by default or in double.
+
+The CPU engines, and the GPU engines in double, give exactly the reference's counts; the library's tests check this
+on every reference file and on random edge cases. In float, a GPU may differ by a few points out of millions, where
+a point sits within rounding of a tolerance or the threshold.
+
+**Points that cannot reach the threshold are skipped.** An interpolated dose is a weighted average of the voxels
+around it, so a point can only reach the threshold if one of those voxels does. The faster engines therefore look
+only inside the bounding box of source voxels at or above the threshold (plus a margin). This changes no result:
+every point is still counted.
+
 This is the simple dose-difference / DTA approach, **not** a gamma analysis. A gamma function, which will
 search the full sphere around each point, is planned. The GUI's "Gamma?" checkbox is stored but not yet
 used.
@@ -89,8 +104,10 @@ Click the introduction text in the app for the same definitions.
   cross-platform front end.
 - [.NET 8 SDK](https://dotnet.microsoft.com/) to build, or Visual Studio 2022.
 - NuGet packages restored automatically on build, including
-  [EvilDICOM](http://rexcardan.github.io/Evil-DICOM/) for reading DICOM, MathNet.Numerics, and ScottPlot
-  for the plots.
+  [EvilDICOM](http://rexcardan.github.io/Evil-DICOM/) for reading DICOM, MathNet.Numerics, ScottPlot
+  for the plots, and [ILGPU](https://ilgpu.net/) and Silk.NET.OpenCL for the GPU engines.
+- **For the GPU engines only:** an OpenCL driver for the GPU. On Windows it comes with the graphics driver. On
+  Linux the vendor's OpenCL package is needed (for example `intel-opencl-icd`).
 
 ## Build, run and test
 

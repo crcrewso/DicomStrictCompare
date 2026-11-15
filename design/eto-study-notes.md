@@ -64,8 +64,22 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
   match, give it a text box and call `BeamLines.ProfilesAtAllDepths(lp, kind, depths)`, the overload that takes a
   depth list.
 
+## The Max setting and the comparers (2026-11-15)
+
+- **Max:** the Avalonia window has a "Max" `ComboBox` under the Criteria list, bound to `MainViewModel.Maximum`, with
+  choices from `MaximumChoices` (`MaximumKind.GlobalMax`, `CaxMax`). An Eto form would use a `DropDown` with
+  `DataStore = Enum.GetValues<MaximumKind>()`, and pass the value:
+  - in `ComparisonRequest.Maximum` for a comparison;
+  - as the `maximum` argument of `StudyRunner.RunAsync` for a study.
+- **Max used:** both results grids have a "Max used" column (`ResultRow.MaximumUsed`, `StudyRow.MaximumUsed`),
+  saying which maximum each row used and why it fell back. An Eto `GridView` needs the same column.
+- **Comparers:** none of the front ends offers a comparer choice yet. When one does, it should hold only a
+  `DoseComparer`, built by `DoseComparers.Create(ComparerSettings)`, and fill its choices from
+  `DoseComparers.Available()`. That works the same in Eto.
+
 ## Log
 
 - 2026-11-14: notes started. The Avalonia Study tab builds; it hasn't been tried on screen yet.
 - 2026-11-14: sets gained a plan filter (`DoseSet.PlanFilter`), a regular expression on the plan label, so two sets
   can share one export folder. The Eto sets grid needs that column. `StudyRunner` reads each folder once.
+- 2026-11-15: the Max dropdown and the "Max used" columns were added to the Avalonia window. Eto needs the same; see above.

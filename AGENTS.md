@@ -42,7 +42,7 @@ either.
 | | |
 |---|---|
 | **Language** | C#, with nullable reference types and implicit usings enabled |
-| **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`) |
+| **Runtime** | .NET 10 SDK, pinned in `DicomStrictCompare/global.json` (`rollForward: latestFeature`). **LTS releases only** (Cody, 2026-11-15) |
 | **DICOM** | An in-house reader and writer (`DSClibrary/Results/DICOM/`) for plans and dose headers, verified in the tests against [EvilDICOM](https://github.com/rexcardan/Evil-DICOM) 2.0.6.5. Dose grids load through `DoseGridReader` into `DoseMatrixOptimal`, checked voxel for voxel against EvilDICOM; EvilDICOM.CV is used in the GUI |
 | **Maths** | MathNet.Numerics |
 | **GUI** | `DSCcore`, Windows Forms, `net8.0-windows`, Windows only. It is being replaced by a cross-platform front end; candidates are in `prototypes/` (Avalonia, Eto, Uno) |
@@ -64,7 +64,8 @@ DicomStrictCompare/
   global.json           .NET SDK pin
   .editorconfig         C# style (CRLF, 4 spaces)
   DSClibrary/           the comparison engine, net10.0, any OS
-    Comparing/          batch comparison over matched dose pairs
+    Comparing/          the comparers (HandWrittenComparer is the reference), their factory, and batch comparison
+      Gpu/              ILGPU and Silk.NET OpenCL comparers
     Gamma/              gamma index, ported from pymedphys
     Matching/           pairing source and target doses by patient, plan and field
     Profiles/           profile extraction and FauxPID-style metrics
@@ -187,6 +188,12 @@ Python idioms don't carry over automatically. Watch for:
 - **A change to comparison semantics needs three things:** a README update in the same PR, a test, and a line in
   the PR description saying a user's numbers will change. Comparison semantics are what passes, what fails, and
   what counts.
+- **Comparers:**
+  - **`HandWrittenComparer` is the reference.** Keep it as written: don't optimise it, and don't share code with
+    the faster comparers.
+  - **A new comparer** derives from `DoseComparer` and is built by `DoseComparers.Create`.
+  - **It must reproduce `HandWrittenComparer`'s counts exactly** in double, in `DoseComparerEquivalenceTests`.
+  - Front ends hold only a `DoseComparer`, chosen by `ComparerSettings`.
 - **Commit messages:** start with the area, then an imperative summary (`Gamma: refuse unevenly spaced grids`).
   Put the reasoning in the body, not in code comments.
 - **Comments:** short; a line or two, plus a pointer to the paper or source file.
