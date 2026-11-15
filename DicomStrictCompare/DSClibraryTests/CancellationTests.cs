@@ -65,14 +65,15 @@ namespace DSClibraryTests
         [TestMethod]
         public void CancellingABatchUnderWayStopsItWithinASecond()
         {
-            // Four pairs at a 10% threshold: about 2.6 s each on the reference grids, four in flight.
-            // Cancel one second in and measure from the cancel to the batch ending.
+            // Cancel once a comparison has started, not after a fixed sleep: on a fast, warm machine a fixed second
+            // could outlast the batch (crane, 2026-11-15). Then measure from the cancel to the batch ending.
             var pairs = SelfPairs(4);
-            var comparer = new BatchComparer(LoadWithEvilDicom);
+            var started = new SemaphoreSlim(0);
+            var comparer = new BatchComparer(LoadWithEvilDicom, new SignallingComparer(started));
             using var cts = new CancellationTokenSource();
 
             var batch = Task.Run(() => comparer.Compare(pairs, new Dta(true, 0.10, 0.02, 2.0), true, 4, cts.Token));
-            Thread.Sleep(1000);
+            Assert.IsTrue(started.Wait(TimeSpan.FromSeconds(60)), "no comparison started");
             var fromCancel = Stopwatch.StartNew();
             cts.Cancel();
 
@@ -83,6 +84,24 @@ namespace DSClibraryTests
                 "the batch ends with the cancel, not with a report of failed pairs");
             Assert.IsTrue(fromCancel.ElapsedMilliseconds < 1000,
                 $"the batch took {fromCancel.ElapsedMilliseconds} ms to stop after the cancel");
+        }
+
+        /// <summary>The hand-written engine, saying when a comparison begins.</summary>
+        private sealed class SignallingComparer(SemaphoreSlim started) : DoseComparer
+        {
+            private readonly HandWrittenComparer _inner = new();
+            public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta) => _inner.CompareAbsolute(source, target, dta);
+            public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta) => _inner.CompareRelative(source, target, dta);
+            public override SingleComparison CompareAbsolute(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, CancellationToken cancellation)
+            {
+                started.Release();
+                return _inner.CompareAbsolute(source, target, dta, referenceMaximum, cancellation);
+            }
+            public override SingleComparison CompareRelative(in DoseMatrixOptimal source, in DoseMatrixOptimal target, Dta dta, double referenceMaximum, CancellationToken cancellation)
+            {
+                started.Release();
+                return _inner.CompareRelative(source, target, dta, referenceMaximum, cancellation);
+            }
         }
     }
 }
