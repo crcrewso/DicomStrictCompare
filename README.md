@@ -60,11 +60,27 @@ agree everywhere under your criteria, 100 % means no point agreed.
 - **`HandWrittenComparer`:** the original, one thread, every point. This is the default and the reference.
 - **`SingleThreadComparer` and `MultiThreadComparer`:** the same rules, skipping points that cannot reach the
   threshold (see below), on one thread or several.
-- **`IlgpuComparer` and `OpenClComparer`:** the same rules on a GPU, in float by default or in double.
+- **`IlgpuComparer` and `OpenClComparer`:** the same rules on a GPU, in double. Only the part of each grid the
+  calculation needs is uploaded.
 
-The CPU engines, and the GPU engines in double, give exactly the reference's counts; the library's tests check this
-on every reference file and on random edge cases. In float, a GPU may differ by a few points out of millions, where
-a point sits within rounding of a tolerance or the threshold.
+Every engine gives exactly the reference's counts; the library's tests check this on every reference file and on
+random edge cases.
+
+**Float, on GPUs only, by choice.** Many consumer GPUs run double precision far slower than float, for example
+NVIDIA GeForce RTX 20 series at about 1/32 of the float rate and RTX 30 and 40 series at about 1/64 (vendor figures;
+check your card). For those, the GPU engines offer float. It may differ from the reference by a few points out of
+millions, where a point sits within rounding of a tolerance or the threshold.
+
+**Pairs at once.** Several pairs can run side by side as well. Left at 0, the number is chosen from free memory:
+as many as half of it holds, up to the core count, or 2 for the multi-thread and GPU engines.
+
+**Max.** The threshold and the global tolerance are fractions of a maximum: the source's volume maximum (Global
+Max, the default), or the central-axis maximum (CAX), used only when the plan's jaws are on axis. Global gamma uses
+the same maximum; local gamma uses each reference voxel's dose. Each result says which maximum it used.
+
+**Edge check.** For static flattened photon fields, each dose's 50 % edges at 10 cm depth are compared with its
+plan's jaws, and a difference over 2 mm is reported on the result. Wedged, MLC-shaped, FFF and electron fields are
+not checked yet.
 
 **Points that cannot reach the threshold are skipped.** An interpolated dose is a weighted average of the voxels
 around it, so a point can only reach the threshold if one of those voxels does. The faster engines therefore look
@@ -117,16 +133,16 @@ From the repository root:
 # Library tests (any OS)
 dotnet test DicomStrictCompare/DSClibraryTests/DSClibraryTests.csproj
 
-# GUI (Windows only)
-dotnet run --project DicomStrictCompare/DSCcore/DSCcore.csproj
+# The front-end prototypes (any OS); Avalonia is the one in use
+dotnet run --project DicomStrictCompare/prototypes/DSCproto.AvaloniaApp
 ```
 
 `DSClibraryTests/ComparisonRulesTests.cs` checks each comparison rule above on small synthetic grids.
 Several older tests are still placeholders that call `Assert.Fail()`, and three tests that compare
 against Sun Nuclear results do not pass yet.
 
-The projects are configured for the x64 platform. Opening `DicomStrictCompare/DicomStrictCompare.sln`
-in Visual Studio and running `DSCcore` works too.
+The projects are configured for the x64 platform. `DicomStrictCompare/prototypes/Prototypes.slnx` holds every
+project in use. The old Windows Forms GUI, `DSCcore`, is no longer built or maintained.
 
 The tests use real RT Dose and RT Plan files of a test phantom, stored in
 `DSClibraryTests/Resources/` and `DSCcoreTest/Resources/` and embedded into the test assemblies. These
@@ -154,10 +170,10 @@ make the repository large (around 1.5 GB as a clone).
 ```
 DicomStrictCompare/
   DicomStrictCompare.sln
-  DSCcore/          Windows Forms app: GUI (View/), file matching and output (File Handling/),
+  DSCcore/          the old Windows Forms app, kept for reference and no longer built: GUI (View/), file matching and output (File Handling/),
                     settings and dose-pair handling (Controller/)
   DSClibrary/       Comparison maths: dose matrix, DTA criteria, comparison results, profile tools
-  DSCcoreTest/      MSTest tests for the app project (with test DICOM data)
+  DSCcoreTest/      MSTest tests for the old app (with test DICOM data), no longer built
   DSClibraryTests/  MSTest tests for the library (with test DICOM data and a PTW water tank scan)
 docs/               Generated DocFX API documentation (HTML)
 ```

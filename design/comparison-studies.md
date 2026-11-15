@@ -72,15 +72,25 @@ source's volume maximum. Two settings are wanted:
      - **Without one,** the same test is applied to the central profiles' penumbra distances.
   2. **Symmetric jaws, but the profiles do not intersect the CAX.** The field lies wholly to one side of the
      phantom's centre line, for example an MLC-shaped or shifted field.
-- **The earlier rule, "CAX maximum under 80 % of the volume maximum",** isn't in this two-term statement. Whether it
-  still applies is to confirm.
+- **"CAX maximum under 80 % of the volume maximum" also counts as off-axis.** It stays in the design but is **not
+  yet implemented** (Cody, 2026-11-15). On the real data, CAX was under 80 % of the volume maximum for 11 of 26
+  QAtpsPTW OtherFields, 26 of 392 QAEclipseDcf fields and 12 of 32 QASacDQA arcs.
 - **A penumbra edge is the 50 % point of the profile** (Cody, 2026-11-15).
 - **Where a plan exists, the 50 % edge and the jaw position should agree within 2 mm.** A larger difference is a
   warning on the pair, beside the F3 plan check and F4 dose warnings. It means the dose and the plan may not belong
   together, or the geometry was read wrongly.
-- **Still to settle:** jaw positions are defined at the isocentre plane, and a field widens with depth. So the
-  comparison should use the profile at the isocentre plane, or scale a profile at another depth (for example the
-  depth of the CAX maximum) back to it.
+- **Built (`DSClibrary/Studies/JawEdgeCheck.cs`), at 10 cm depth** (Cody, 2026-11-15):
+  - the jaws are scaled from the isocentre plane by (SSD + 100 mm) / SAD;
+  - the surface comes from the plan's SurfaceEntryPoint, else its SSD, else the dose. The isocentric QAtpsPTW and
+    QAEclipseDcf plans state neither;
+  - the 50 % level is half the dose at the jaws' field centre, which is the CAX for a symmetric field;
+  - collimator angles are multiples of 45, verified at 90 and 270 on QAtpsPTW's half-beam fields.
+- **Not checked:** electrons, wedged fields, MLC-shaped or closed-MLC fields, arcs, and **FFF fields for now**
+  (Cody: "ignoring FFFs is a perfectly reasonable solution for now").
+  - FFF field size is quoted as if the beam were flattened. Measured on QAtpsPTW: the inflection point agreed on
+    every FFF field above 15 cm, and 50 % of the centre on every one below. That's a starting point for later.
+- **On real data:** every checked field agreed within 0.62 mm. That's 78 fields: 24 QAtpsPTW AXB, 18
+  SquareFieldsL, 6 OtherFields and 30 QAEclipseDcf.
 - **Still open:** arcs, plan sums and doses without a plan (today's answer would be the volume maximum).
 - **The one change to the reference:** `HandWrittenComparer` would read the chosen value instead of
   `source.MaxPointDose`. With the default, the equivalence tests show its counts unchanged.

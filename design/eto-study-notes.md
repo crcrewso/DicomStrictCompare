@@ -73,9 +73,12 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
   - as the `maximum` argument of `StudyRunner.RunAsync` for a study.
 - **Max used:** both results grids have a "Max used" column (`ResultRow.MaximumUsed`, `StudyRow.MaximumUsed`),
   saying which maximum each row used and why it fell back. An Eto `GridView` needs the same column.
-- **Comparers:** none of the front ends offers a comparer choice yet. When one does, it should hold only a
-  `DoseComparer`, built by `DoseComparers.Create(ComparerSettings)`, and fill its choices from
-  `DoseComparers.Available()`. That works the same in Eto.
+- **Engine, GPU float, pairs at once:** Avalonia shows these beside Max.
+  - They're `MainViewModel.Engine`, `GpuFloat` and `PairsAtOnce`, and the runners build the engine with
+    `DoseComparers.Create(ComparerSettings)`.
+  - Eto needs a `DropDown`, a `CheckBox` (whose tooltip names the GPUs with slow double) and a `NumericStepper`.
+  - A study file saves all of these (`Study.Run`), and opening one restores them through `MainViewModel.Apply`.
+- **Edge check:** both results grids have an "Edge check" column (`ResultRow.EdgeCheck`, `StudyRow.EdgeCheck`).
 
 ## Log
 
