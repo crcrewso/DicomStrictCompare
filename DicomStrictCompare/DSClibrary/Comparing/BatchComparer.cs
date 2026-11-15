@@ -340,7 +340,7 @@ namespace DSClibrary.Comparing
             var batch = Stopwatch.StartNew();
 
             // Dedicated threads rather than the pool, so a worker can be pinned. A comparer that runs on one thread
-            // gets one worker per core, pinned on Linux, which keeps them off SMT siblings and low-power E-cores.
+            // gets one worker per core; pinned only if CpuTopology.PinByDefault says so (by default the OS places them).
             var cores = CpuTopology.Cores;
             bool pin = CpuTopology.PinByDefault && _mathematics is HandWrittenComparer or SingleThreadComparer
                        && parallelism > 1 && parallelism <= cores.Count;

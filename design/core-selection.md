@@ -14,8 +14,9 @@ Never pick substandard cores automatically. crcrewso, 2026-11-15:
 
 - **One thread per physical core.** SMT siblings are never counted.
 - **Only cores with an L3 cache,** when any core has one. A machine where no core reports an L3 uses every core.
-- **Threads are pinned** one per core on Linux only. Windows schedules its own (crcrewso, 2026-11-15: *"let windows
-  figure out the scheduling"*); macOS can't pin. `CpuTopology.PinByDefault` says which.
+- **Threads aren't pinned**: the OS schedules them on every platform (crcrewso, 2026-11-15: *"let windows figure out
+  the scheduling"*, then *"defaulting to linux be the scheduling agent should be the goal, so let's try it that way for
+  now"*). `CpuTopology.PinByDefault` is false; pinning stays for measuring, in DSCgpu `cores`.
 - **The Threads list** (the Settings tab, Avalonia and Eto) runs from 1 to every logical processor, SMT included, in
   steps of 1 to 4, then 2 to 12, then 4, and defaults to the recommended count, marked "(recommended)". The machine
   settings file keeps the recommended choice as no number, so it follows the machine. A user's chosen count always
@@ -40,12 +41,17 @@ Raised 2026-11-15; 1 and 2 are now mostly handled, 3 and 4 are open:
 1. **Windows detection ignores the process's own CPU limit; Linux honours it.** The count is now capped at
    `Environment.ProcessorCount`, which honours it, and Windows no longer pins, so only the core list itself is off.
 2. **A Linux container's CPU quota:** handled by the same cap, 2026-11-15.
-3. **Pinning to one specific core versus letting each thread use any usable core.** Pinning gained 10–22 % against
-   all logical processors unpinned, but a pinned thread can't move off a core another program is busy on. Windows
-   now doesn't pin; the recommended count unpinned against pinned is unmeasured on Windows (DSCgpu `cores` has both
-   rows). Running two DSC instances at once isn't supported (crcrewso, 2026-11-15), so two instances pinning to the
-   same cores isn't a concern.
-4. **Fewer threads than cores take the lowest-numbered cores** when pinned, so on Linux only now. Sort P-cores
-   first if a machine numbers its E-cores first.
+3. **Pinning, decided for now: the OS schedules** (crcrewso, 2026-11-15). What it costs, measured on jackdaw (Core
+   Ultra X7 358H, Linux), DSCgpu `cores --nobox`, best of 5, identical counts in every row:
+
+   | Pair (grid spacing) | 12 pinned | 12 unpinned | 16 unpinned |
+   |---|---|---|---|
+   | E11V11 vs E15V11 AiXflatXaaa 06x10x10 (2 mm against 2 mm) | 0.075 s | 0.085 s | 0.077 s |
+   | E15V11 vs E15V15 STBflatXaaa 06f10x10 (2 mm against 1 mm) | 0.061 s | 0.088 s | 0.077 s |
+
+   Unpinned, 12 threads are 13–44 % slower than pinned, and slower than 16. *Inferred:* the scheduler puts some
+   of the 12 on the LP-E cores, which work at a third of the speed, and the others then wait. crane's W2 measures the
+   same on Windows. Two DSC instances at once aren't supported (crcrewso, 2026-11-15).
+4. **Fewer threads than cores take the lowest-numbered cores** when pinned. Only matters for measuring now.
 
 A better test of "substandard" than L3 might be measured: a short timed loop per core type at start-up. Not built.

@@ -32,7 +32,7 @@ flowchart TD
     pairs["Pairs and criteria"] --> budget["Thread budget: BatchComparer.Threads<br/>or CpuTopology.PhysicalCores"]
     budget --> atonce["Pairs at once: as many as half the free memory holds,<br/>up to the budget (2 for MultiThread and GPU)"]
     atonce --> mode{"Read queue set?"}
-    mode -- no --> workers["Workers, each reads then compares<br/>pinned on Linux for the single-thread engines"]
+    mode -- no --> workers["Workers, each reads then compares<br/>scheduled by the OS"]
     mode -- yes --> readers["K readers, fewer if readers + held + workers<br/>wouldn't fit half the free memory"] --> channel["Bounded queue, M pairs held"] --> workers
     workers --> load
     subgraph load["Load, once per pair"]
@@ -84,7 +84,7 @@ flowchart LR
     settings["ComparerSettings<br/>Kind, Threads, Precision, UseThresholdBox, Device"] --> create["DoseComparers.Create"]
     create --> hw["HandWritten<br/>every point, one thread: the reference"]
     create --> st["SingleThread<br/>threshold box, one thread"]
-    create --> mt["MultiThread<br/>threshold box, Threads lines at once<br/>pinned one per core on Linux"]
+    create --> mt["MultiThread<br/>threshold box, Threads lines at once<br/>scheduled by the OS"]
     create --> gpu["ILGPU, OpenCL<br/>GpuUpload: the box only, once per pair<br/>double by default"]
     topo["CpuTopology: physical cores with an L3,<br/>no SMT siblings, capped at ProcessorCount"] -. default Threads .-> mt
     topo -. default budget .-> st

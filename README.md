@@ -82,9 +82,9 @@ A result's elapsed time is therefore the pair's, shared by all its rows.
 left at Both. A dose with no source plan is compared only by Both criteria. The CSVs have an `AppliesTo` column.
 
 **Threads use physical cores only.** Every default thread count is one per physical core: SMT siblings are ignored,
-and so are Intel's low-power E-cores (a core with no L3 cache when other cores have one). On Linux the threads are
-pinned, one per core; Windows schedules its own. On a 4 P + 8 E + 4 LP-E laptop, 12 pinned threads beat all 16
-unpinned by 13 %, and adding the 4 LP-E cores gained nothing. The **Threads** list (Settings tab) runs from 1 to
+and so are Intel's low-power E-cores (a core with no L3 cache when other cores have one). The operating system
+schedules the threads; they aren't pinned to cores. On a 4 P + 8 E + 4 LP-E laptop, pinning 12 threads would be
+13–44 % faster (design/core-selection.md), but letting the OS schedule is the goal. The **Threads** list (Settings tab) runs from 1 to
 every logical processor, in steps of 1 to 4, then 2 to 12, then 4, and defaults to that count, marked "(recommended)". The L3 rule is a stand-in under review:
 [design/core-selection.md](design/core-selection.md).
 
@@ -98,7 +98,7 @@ every logical processor, in steps of 1 to 4, then 2 to 12, then 4, and defaults 
 **Settings.** Engine, Threads, pairs at once and the reading options belong to the machine, not to a study: the
 apps' **Settings** tab keeps them in `settings.json` under the user's application data folder
 (`%APPDATA%\DicomStrictCompare` on Windows, `~/.config/DicomStrictCompare` on Linux). A study keeps Max and GPU
-float, which can change results.
+float, which can change results. Study files are a debug and validation tool for now; their format may change.
 
 **Pairs at once.** Several pairs can run side by side as well. Left at 0, the number is chosen from free memory:
 as many as half of it holds, up to the physical core count, or 2 for the multi-thread and GPU engines.

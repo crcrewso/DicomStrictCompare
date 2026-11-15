@@ -43,10 +43,11 @@ namespace DSClibrary.Comparing
         public static int MaxThreads => Math.Max(1, Environment.ProcessorCount);
 
         /// <summary>
-        /// Whether compute threads are pinned to cores by default: Linux only. Windows schedules its own (crcrewso,
-        /// 2026-11-15: "let windows figure out the scheduling"); macOS can't pin.
+        /// Whether compute threads are pinned to cores by default: no, the OS schedules them everywhere (crcrewso,
+        /// 2026-11-15: "defaulting to linux be the scheduling agent should be the goal"). Pinning stays available,
+        /// for measuring (DSCgpu cores). Measured cost on jackdaw: design/core-selection.md.
         /// </summary>
-        public static bool PinByDefault => OperatingSystem.IsLinux();
+        public static bool PinByDefault => false;
 
         /// <summary>One line for a log: what was found and what is used.</summary>
         public static string Summary =>

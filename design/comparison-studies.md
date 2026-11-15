@@ -3,6 +3,11 @@
 **Status:** proposal, 2026-11-14. F1, F2, F3, F4, F5 and F7 are being built first (crcrewso, 2026-11-14); the rest
 are recorded for later.
 
+**Study files are a debug and validation tool for now** (crcrewso, 2026-11-15: *"For now Study files can be
+considered a debug and validation tool only, once the design is more settled this can be revisited"*). Their format
+can change without migration. They still record the machine settings for headless runs; the apps take only Max and
+GPU float from them.
+
 ## The problem
 
 A realistic commissioning question involves more than two folders:

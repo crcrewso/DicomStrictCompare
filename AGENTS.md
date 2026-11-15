@@ -196,8 +196,8 @@ Python idioms don't carry over automatically. Watch for:
   - **It must reproduce `HandWrittenComparer`'s counts exactly** in double, in `DoseComparerEquivalenceTests`.
   - Front ends hold only a `DoseComparer`, chosen by `ComparerSettings`.
   - **Default thread counts come from `CpuTopology.PhysicalCores`, never `Environment.ProcessorCount`:** SMT
-    siblings and low-power E-cores are left out (crcrewso, 2026-11-15). Pin only where `CpuTopology.PinByDefault`
-    says (Linux); Windows schedules its own threads.
+    siblings and low-power E-cores are left out (crcrewso, 2026-11-15). Threads aren't pinned by
+    default (`CpuTopology.PinByDefault` is false): the OS schedules them, on Linux and Windows alike.
   - **Batches go through `BatchComparer.CompareMany`,** which loads each pair once for every criterion. A comparer
     that can share work across criteria (the GPU ones: one upload per pair) overrides `DoseComparer.CompareAll`.
   - **Diagrams:** `design/data-flow.md` draws the data flow in Mermaid (crcrewso, 2026-11-15). A change to a step
