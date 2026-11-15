@@ -45,7 +45,7 @@ flowchart TD
     load --> evaluate
     subgraph evaluate["Evaluate"]
         edges["JawEdgeCheck, source and target"] --> dta["DTA criteria together:<br/>comparer.CompareAll (one GPU upload)"]
-        dta --> gamma["Each gamma criterion: GammaShell.Compare"]
+        dta --> gamma["Each gamma criterion: GammaShell.Compare<br/>points that can't reach the evaluation grid: not analysed, as pymedphys"]
     end
     evaluate --> outcomes["ComparisonOutcome per criterion<br/>sorted by key, then criterion"]
 ```

@@ -75,8 +75,14 @@ namespace DSClibrary.Gamma
         public double GlobalNormalisation { get; }
         public double LowerDoseCutoff { get; }
 
-        /// <summary>Analysed reference points that lie more than one search step outside the evaluation grid; they are compared with the grid's edge and may fail for that reason.</summary>
+        /// <summary>Reference points at or above the cutoff that lie more than one search step outside the evaluation grid.</summary>
         public int OutsideEvaluationGrid { get; }
+
+        /// <summary>
+        /// Reference points at or above the cutoff whose search reached no evaluation point (at the edge of a phantom
+        /// or grid). Not analysed, so NaN, as in pymedphys (crcrewso, 2026-11-15).
+        /// </summary>
+        public int NotReached { get; }
 
         public int Analysed { get; }
         public int Passed { get; }
@@ -88,8 +94,9 @@ namespace DSClibrary.Gamma
         public double MaxGammaFound { get; }
 
         internal GammaResult(double[] gamma, int[] shape, GammaOptions options, double normalisation,
-            double lowerDoseCutoff, int outsideEvaluationGrid)
+            double lowerDoseCutoff, int outsideEvaluationGrid, int notReached = 0)
         {
+            NotReached = notReached;
             Gamma = gamma;
             Shape = shape;
             Options = options;

@@ -116,9 +116,13 @@ around it, so a point can only reach the threshold if one of those voxels does. 
 only inside the bounding box of source voxels at or above the threshold (plus a margin). This changes no result:
 every point is still counted.
 
-This is the simple dose-difference / DTA approach, **not** a gamma analysis. A gamma function, which will
-search the full sphere around each point, is planned. The GUI's "Gamma?" checkbox is stored but not yet
-used.
+This is the simple dose-difference / DTA approach, **not** a gamma analysis.
+
+**Gamma** is a separate choice per criterion (the Gamma column): `GammaShell`, a port of pymedphys' gamma. On
+2026-11-15 it gave pymedphys 0.41.0's counts exactly in all 70 cases of a sweep: 7 E##V## pairs, 0.1 %/0.1 mm to
+10 %/10 mm, global and local, run by an agent that never saw this code. **At the edge of a phantom,** a reference
+point whose search can't reach any evaluation point is not analysed, as in pymedphys: it is left out, not failed
+(`GammaResult.NotReached` counts them).
 <!-- TODO(crcrewso): add citations for the dose-difference/DTA method (the old README notes this was still needed). -->
 
 ### Criteria you can set (per row, up to 9 rows)

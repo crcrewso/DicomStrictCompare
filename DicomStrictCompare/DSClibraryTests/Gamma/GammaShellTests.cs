@@ -241,6 +241,34 @@ namespace DSClibraryTests.Gamma
             Assert.AreEqual(dose.DoseValues.Max(), result.GlobalNormalisation);
         }
 
+        /// <summary>
+        /// At the edge of a phantom: a reference point whose search reaches no evaluation point is not analysed (NaN),
+        /// as in pymedphys, rather than compared with the grid's edge and failed (crcrewso, 2026-11-15). Found by the
+        /// pymedphys sweep: at 0.1 %/0.1 mm, 377 such points were NaN in pymedphys and failed here.
+        /// </summary>
+        [TestMethod]
+        public void PointsTheSearchCantReachAreNotAnalysedAsInPymedphys()
+        {
+            // Reference on x = 0..40 mm, evaluation on x = 2..38 mm: two points at each end lie 1-2 mm outside it.
+            double[] rx = Enumerable.Range(0, 41).Select(i => (double)i).ToArray();
+            double[] ex = Enumerable.Range(2, 37).Select(i => (double)i).ToArray();
+            var reference = new GammaGrid(new[] { rx }, rx.Select(x => 100.0).ToArray());
+            var evaluation = new GammaGrid(new[] { ex }, ex.Select(x => 100.0).ToArray());
+
+            // 0.1 mm, searched to 0.11 mm: the four end points can't reach the evaluation grid.
+            var tight = GammaShell.Compute(reference, evaluation, new GammaOptions(0.1, 0.1, LowerPercentDoseCutoff: 10, MaxGamma: 1.1));
+            Assert.AreEqual(4, tight.NotReached);
+            Assert.AreEqual(rx.Length - 4, tight.Analysed);
+            Assert.AreEqual(100, tight.PassRate);
+            Assert.IsTrue(new[] { 0, 1, 39, 40 }.All(i => double.IsNaN(tight.Gamma[i])));
+
+            // 3 mm, searched to 3.3 mm: every point reaches it, and the end points pass on distance.
+            var loose = GammaShell.Compute(reference, evaluation, new GammaOptions(3, 3, LowerPercentDoseCutoff: 10, MaxGamma: 1.1));
+            Assert.AreEqual(0, loose.NotReached);
+            Assert.AreEqual(rx.Length, loose.Analysed);
+            Assert.AreEqual(100, loose.PassRate);
+        }
+
         [TestMethod]
         public void MaxGammaCapsTheValuesWithoutChangingWhoPasses()
         {

@@ -20,8 +20,9 @@ namespace DSClibrary.Gamma
     /// increasing radius are laid round it, the evaluation dose is interpolated at every shell point,
     /// and the smallest dose difference on a shell gives the gamma at that radius. The search for a
     /// point stops once the radius alone, over the distance criterion, exceeds the best gamma so far,
-    /// since no farther shell can improve it. Points outside the evaluation grid are first bounded by
-    /// the nearest point of the grid's extent, so every analysed point gets a value.
+    /// since no farther shell can improve it. A point whose search reaches no evaluation point, at the
+    /// edge of a phantom or grid, is not analysed (NaN), as in pymedphys: <see cref="GammaResult.NotReached"/>
+    /// counts them (crcrewso, 2026-11-15, after a pymedphys sweep found DSC counting them as failed).
     /// </para>
     /// <para>
     /// Where this differs from pymedphys: one dose and one distance criterion per call; the search is
@@ -141,12 +142,12 @@ namespace DSClibrary.Gamma
             var gamma = new double[n];
             Array.Fill(gamma, double.PositiveInfinity);
 
-            // Bound every analysed point outside the grid by the grid's nearest point, so a grid
-            // narrower than a step, a plane, or a far-off grid still gives each point a value.
+            // An evaluation that is a single point has nothing to search, so each point is compared with it directly.
+            // Otherwise only the shells decide, as in pymedphys: a point they can't reach stays unanalysed.
+            if (freeAxes.Length == 0)
             Parallel.ForEach(analysed, new ParallelOptions { MaxDegreeOfParallelism = options.DegreeOfParallelism ?? Comparing.CpuTopology.PhysicalCores, CancellationToken = cancellationToken }, i =>
             {
                 double distance = DistanceOutsideGrid(i);
-                if (distance <= 0 && freeAxes.Length > 0) return;
                 double evaluationDose;
                 if (interpolator is null)
                 {
@@ -211,16 +212,18 @@ namespace DSClibrary.Gamma
             }
 
             var output = new double[n];
+            int notReached = 0;
             for (int i = 0; i < n; i++)
             {
                 if (!toCalc[i]) { output[i] = double.NaN; continue; }
                 double g = gamma[i];
+                if (double.IsPositiveInfinity(g)) { output[i] = double.NaN; notReached++; continue; }   // no evaluation point in reach
                 if (!double.IsFinite(g))
                     throw new InvalidOperationException($"Gamma was not found for analysed reference point {i}");
                 output[i] = g > options.MaxGamma ? options.MaxGamma : g;
             }
 
-            return new GammaResult(output, (int[])reference.Shape.Clone(), options, normalisation, lowerDoseCutoff, outsideGrid);
+            return new GammaResult(output, (int[])reference.Shape.Clone(), options, normalisation, lowerDoseCutoff, outsideGrid, notReached);
         }
 
         /// <summary>
