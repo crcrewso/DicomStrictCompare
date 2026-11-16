@@ -23,8 +23,21 @@ to turn each dose file's referenced beam number into a plan label and field name
 The tool then:
 
 1. Finds every DICOM file in each folder (sub-folders included) and sorts them into dose and plan files.
-2. Pairs each target dose with the source dose that has the same **patient ID, plan label and field
-   name**. Target doses with no match are listed in an error file rather than silently skipped.
+2. Pairs each target dose with the source dose that has the same key. You choose the key:
+   - **plan UID and beam name** (the default): the same plan, by its UID less Eclipse's save time, and the field
+     by name, so a renumbered beam still pairs;
+   - **plan label and beam name**: the same plan and field names under any patient;
+   - **patient, plan label and beam name**.
+
+   Studies saved with the older *plan UID and beam number* still open and pair as before. Doses with no match
+   are listed rather than silently skipped.
+
+   **When several doses share a key** on either side (two copies of a plan, or a recalculation kept beside the
+   original), none is picked. Every source x target pairing of that key is compared, and for each criterion only
+   the **worst** is kept: a pairing that fails to load or compare first, then the highest % failed, then the most
+   failed points. The row names the two files that gave it, and *Ambiguous* (CSV column `Candidates`) says how
+   many pairings it was chosen from. The doses are also listed as ambiguous. *Before 2026-11-16 such a key was
+   left out of the comparison entirely, so a folder with duplicates now gives more rows, and stricter ones.*
 3. For each pair, and for each set of criteria you have added, counts the voxels above a dose threshold
    and how many of them fail a dose-difference / distance-to-agreement (DTA) test.
 4. Writes the results to a CSV file, and optionally saves depth-dose (PDD) comparison plots as PNG.

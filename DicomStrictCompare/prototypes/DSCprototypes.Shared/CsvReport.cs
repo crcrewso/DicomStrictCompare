@@ -16,7 +16,7 @@ public static class CsvReport
         "SourceAlias", "TargetAlias", "Key", "SourceFile", "TargetFile",
         "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm", "AppliesTo", "MaximumUsed", "MaximumDose", "EdgeCheck",
         "TotalVoxels", "Compared", "Failed", "PercentFailed", "MaxGamma",
-        "SourceMU", "TargetMU", "ElapsedSeconds", "Failure",
+        "SourceMU", "TargetMU", "ElapsedSeconds", "Failure", "Candidates",
     };
 
     public static readonly string[] UnmatchedColumns = { "Side", "File", "Reason" };
@@ -44,7 +44,8 @@ public static class CsvReport
                 r.SourceMonitorUnits is { } s ? F(s) : "",
                 r.TargetMonitorUnits is { } t ? F(t) : "",
                 r.ElapsedSeconds.ToString("0.000", CultureInfo.InvariantCulture),
-                r.Failure ?? ""));
+                r.Failure ?? "",
+                r.Candidates.ToString(CultureInfo.InvariantCulture)));
         }
         return sb.ToString();
     }

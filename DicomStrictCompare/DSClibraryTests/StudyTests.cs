@@ -89,6 +89,17 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
+        public void EachRuleNeedsAKeyWithWhatItRewrites()
+        {
+            var label = new[] { new LabelRule("AAA", "x") };
+            // Label rules need a plan label; field rules a beam name.
+            _ = new PairingRules(DoseMatchStrategy.PlanLabelAndBeamName, label);
+            Assert.ThrowsExactly<ArgumentException>(() => new PairingRules(DoseMatchStrategy.PlanUidAndBeamName, label));
+            _ = new PairingRules(DoseMatchStrategy.PlanUidAndBeamName, fieldRules: label);
+            Assert.ThrowsExactly<ArgumentException>(() => new PairingRules(DoseMatchStrategy.PlanAndBeamUid, fieldRules: label));
+        }
+
+        [TestMethod]
         public void ABadPatternSaysWhichPattern()
         {
             var ex = Assert.ThrowsExactly<ArgumentException>(() => new LabelRule("(AAA", "x"));

@@ -89,9 +89,12 @@ public sealed record StudyRow(
     string TargetFile,
     string? Failure,
     ReferenceMaximum? Maximum = null,
-    string EdgeCheck = "")
+    string EdgeCheck = "",
+    int Candidates = 1)
 {
     public string Comparison => Pair.Comparison.Name;
+    /// <summary>"worst of N" when the key was ambiguous and this is the worst of its N pairings; empty otherwise.</summary>
+    public string WorstOf => Candidates > 1 ? $"worst of {Candidates}" : "";
     public string MaximumUsed => Maximum?.Note ?? "";
     public FieldFacts Facts => Pair.Facts;
 
@@ -230,7 +233,8 @@ public static class StudyRunner
                 Path.GetFileName(o.TargetPath),
                 o.Failure,
                 o.Maximum,
-                o.EdgeCheck);
+                o.EdgeCheck,
+                o.Candidates);
             var comparer = new BatchComparer(ComparisonRunner.LoadGrid, engine)
             {
                 PartialTargetReads = run.PartialTargetReads, Queue = run.Queue, Threads = run.ComparerOrDefault.Threads,

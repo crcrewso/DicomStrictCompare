@@ -135,20 +135,68 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
-        public void AKeyClaimedTwiceIsAmbiguousRatherThanSilentlyResolved()
+        public void AKeyClaimedTwicePairsEveryWayAndSaysSo()
         {
-            // A source set containing the same dose twice: picking one arbitrarily would compare a
-            // file the user did not choose and say nothing about it.
+            // crcrewso, 2026-11-16: "If it's ambiguous both comparisons should be made and the worst should be kept".
+            // Nothing is picked: every source x target pairing of the key is compared (the worst is kept downstream).
             var one = Named("P1Ref.X-100A");
             Assert.AreEqual(1, one.Length);
             var doubled = one.Concat(one).ToArray();
 
-            var result = DoseMatcher.Match(doubled, one, DoseMatchStrategy.PlanAndBeamUid);
+            var result = DoseMatcher.Match(doubled, doubled, DoseMatchStrategy.PlanAndBeamUid);
 
+            Assert.AreEqual(4, result.Pairs.Count, "2 sources x 2 targets");
+            Assert.IsTrue(result.Pairs.All(p => p.Candidates == 4));
+            Assert.AreEqual(1, result.PairedKeys);
+            Assert.AreEqual(2, result.AmbiguousKeys.Count, "one line per side");
+            StringAssert.Contains(result.AmbiguousKeys[0], "claimed by 2 doses");
+            Assert.AreEqual(0, result.UnmatchedSource.Count + result.UnmatchedTarget.Count);
+            StringAssert.Contains(result.ToString(), "worst kept");
+        }
+
+        [TestMethod]
+        public void AnAmbiguousKeyWithNoPartnerListsEveryDoseUnmatched()
+        {
+            var one = Named("P1Ref.X-100A");
+            var result = DoseMatcher.Match(one.Concat(one).ToArray(), Array.Empty<RTDoseWithPlan>(), DoseMatchStrategy.PlanAndBeamUid);
             Assert.AreEqual(0, result.Pairs.Count);
-            Assert.AreEqual(1, result.AmbiguousKeys.Count);
-            StringAssert.Contains(result.AmbiguousKeys[0], "more than one");
-            StringAssert.Contains(result.UnmatchedSource.Single().Reason, "ambiguous");
+            Assert.AreEqual(2, result.UnmatchedSource.Count, "both doses, not only the first");
+            Assert.IsTrue(result.UnmatchedSource.All(u => u.Reason.StartsWith("no target has")));
+        }
+
+        [TestMethod]
+        public void PlanUidAndBeamNameKeysOnTheNameNotTheNumber()
+        {
+            var dose = Named("P1Ref.X-100A").Single();
+            var key = DoseMatchKey.For(dose, DoseMatchStrategy.PlanUidAndBeamName)!;
+            Assert.AreEqual("X-100A-10.0-1", key.BeamName);
+            Assert.IsNull(key.BeamNumber);
+            Assert.IsNotNull(key.PlanSopInstanceUid);
+            Assert.IsNull(key.PatientId);
+            StringAssert.Contains(key.ToString(), "X-100A-10.0-1");
+        }
+
+        [TestMethod]
+        public void PlanLabelAndBeamNameLeavesThePatientOut()
+        {
+            var dose = Named("P1Ref.X-100A").Single();
+            var key = DoseMatchKey.For(dose, DoseMatchStrategy.PlanLabelAndBeamName)!;
+            Assert.AreEqual("P1Ref", key.PlanLabel);
+            Assert.AreEqual("X-100A-10.0-1", key.BeamName);
+            Assert.IsNull(key.PatientId);
+            Assert.AreEqual("P1Ref / X-100A-10.0-1", key.ToString());
+        }
+
+        [TestMethod]
+        public void EveryDosePairsWithItselfUnderEachNewMode()
+        {
+            var all = All();
+            foreach (var s in new[] { DoseMatchStrategy.PlanUidAndBeamName, DoseMatchStrategy.PlanLabelAndBeamName })
+            {
+                var result = DoseMatcher.Match(all, all, s);
+                Assert.AreEqual(all.Length, result.Pairs.Count, s.ToString());
+                Assert.IsTrue(result.Pairs.All(p => p.Source == p.Target && p.Candidates == 1), s.ToString());
+            }
         }
 
         [TestMethod]

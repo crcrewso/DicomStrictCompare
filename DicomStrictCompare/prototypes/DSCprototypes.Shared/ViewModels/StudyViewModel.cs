@@ -50,14 +50,15 @@ public sealed partial class SetComparisonViewModel : ObservableObject
 {
     [ObservableProperty] private string _sourceSet = "";
     [ObservableProperty] private string _targetSet = "";
-    [ObservableProperty] private bool _matchByUid;
+    /// <summary>How this comparison pairs (<see cref="MatchModes.Study"/>); patient, plan label and beam name by default.</summary>
+    [ObservableProperty] private MatchMode _match = MatchModes.Identifier;
     [ObservableProperty] private string _labelRules = "";
     [ObservableProperty] private string _fieldRules = "";
     [ObservableProperty] private string _overrides = "";
 
     public SetComparison ToComparison()
     {
-        var strategy = MatchByUid ? DoseMatchStrategy.PlanAndBeamUid : DoseMatchStrategy.Identifier;
+        var strategy = Match.Strategy;
         return new SetComparison(SourceSet, TargetSet, new PairingRules(strategy,
             ParseRules(LabelRules, "label"), ParseOverrides(Overrides), ParseRules(FieldRules, "field")));
     }
@@ -66,7 +67,7 @@ public sealed partial class SetComparisonViewModel : ObservableObject
     {
         SourceSet = c.SourceSet,
         TargetSet = c.TargetSet,
-        MatchByUid = c.Rules.Strategy == DoseMatchStrategy.PlanAndBeamUid,
+        Match = MatchModes.For(c.Rules.Strategy),
         LabelRules = string.Join("; ", c.Rules.LabelRules.Select(r => r.ToString())),
         FieldRules = string.Join("; ", c.Rules.FieldRules.Select(r => r.ToString())),
         Overrides = string.Join("; ", c.Rules.LabelOverrides.Select(o => $"{o.Key} = {o.Value}")),
@@ -76,7 +77,7 @@ public sealed partial class SetComparisonViewModel : ObservableObject
     [RelayCommand]
     private void UseAcrossAlgorithms()
     {
-        MatchByUid = false;
+        if (!MatchModes.HasPlanLabel(Match.Strategy)) Match = MatchModes.Identifier;
         LabelRules = "(AAA|AXB) -> {algorithm}";
     }
 

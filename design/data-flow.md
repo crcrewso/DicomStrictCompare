@@ -12,8 +12,8 @@ flowchart TD
     study["Study file: sets, comparisons, Run block"] --> read
     read["RTFolderReader.Read, per folder once<br/>recursive, dose headers only, plans whole<br/>dose to plan by SOPInstanceUID"] --> filter
     filter["DoseSet.PlanFilter<br/>keeps the doses whose plan label matches"] --> match
-    match["DoseMatcher.Match with PairingRules<br/>Identifier: patient / plan label / beam name<br/>PlanAndBeamUid: plan UID / beam number"] --> pairs
-    match --> unmatched["Unmatched and ambiguous doses<br/>reported, never guessed"]
+    match["DoseMatcher.Match with PairingRules<br/>PlanUidAndBeamName: plan UID / beam name (the window's default)<br/>PlanLabelAndBeamName: plan label / beam name<br/>Identifier: patient / plan label / beam name<br/>PlanAndBeamUid: plan UID / beam number (older studies)"] --> pairs
+    match --> unmatched["Unmatched doses reported, never guessed<br/>ambiguous keys: every source x target pairing becomes a pair"]
     pairs["Matched pairs"] --> facts["Per pair: FieldFacts, PlanCheck, DoseWarnings"]
     facts --> preview["ComparisonPreview<br/>(Preview ends here)"]
     machine["MachineSettings file: engine, threads, reading<br/>plus the study's Max and GPU float"] --> engine
@@ -47,8 +47,12 @@ flowchart TD
         edges["JawEdgeCheck, source and target"] --> dta["DTA criteria together:<br/>comparer.CompareAll (one GPU upload)"]
         dta --> gamma["Each gamma criterion: GammaShell.Compare<br/>points that can't reach the evaluation grid: not analysed, as pymedphys"]
     end
-    evaluate --> done["PairDone: the pair's outcomes, as it finishes (D30)<br/>runner turns them into rows; RowBatcher adds them to the grid every 250 ms"]
-    evaluate --> outcomes["ComparisonOutcome per criterion<br/>sorted by key, then criterion"]
+    evaluate --> worst{"Pairing of an ambiguous key?"}
+    worst -- "yes, held until its last pairing" --> keep["Worst per criterion kept: failure, then % failed,<br/>then failed points; Candidates = pairings"]
+    worst -- no --> done
+    keep --> done
+    done["PairDone: the pair's outcomes, as it finishes (D30)<br/>runner turns them into rows; RowBatcher adds them to the grid every 250 ms"]
+    done --> outcomes["ComparisonOutcome per criterion<br/>sorted by key, then criterion"]
     outcomes --> final["Grid replaced by the final rows in this order<br/>(what the CSV holds)"]
 ```
 

@@ -66,6 +66,11 @@ namespace DSClibrary.Comparing
 
         /// <summary>Which of <see cref="BatchComparer.CompareMany"/>'s criteria this row answers; 0 for a single-criterion batch.</summary>
         public int CriterionIndex { get; init; }
+        /// <summary>
+        /// How many pairs shared this key: 1, or the pairings of an ambiguous key, of which this is the worst at this
+        /// criterion (highest % failed, then most failed; a failure is worst of all).
+        /// </summary>
+        public int Candidates { get; init; } = 1;
 
         /// <summary>Monitor units of each side where the plans supplied them. Recorded, never applied.</summary>
         public double? SourceMonitorUnits { get; }
@@ -355,9 +360,22 @@ namespace DSClibrary.Comparing
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { }
                 catch (Exception ex) { Interlocked.CompareExchange(ref error, ex, null); abort.Cancel(); }
             }) { IsBackground = true, Name = name });
+            // An ambiguous key's pairings are held until the last is compared, then only the worst per criterion is kept.
+            var candidates = work.GroupBy(p => p.Key).Where(g => g.Count() > 1).ToDictionary(g => g.Key, g => g.Count());
+            var held = new Dictionary<DoseMatchKey, List<ComparisonOutcome[]>>();
             void Keep(IEnumerable<ComparisonOutcome> rows)
             {
                 var pair = rows.ToArray();
+                if (pair.Length > 0 && candidates.TryGetValue(pair[0].Key, out int n))
+                {
+                    lock (held)
+                    {
+                        if (!held.TryGetValue(pair[0].Key, out var group)) held[pair[0].Key] = group = new();
+                        group.Add(pair);
+                        if (group.Count < n) return;
+                        pair = WorstOf(group, n);
+                    }
+                }
                 foreach (var o in pair) outcomes.Add(o);
                 if (pair.Length > 0) PairDone?.Invoke(pair);
             }
@@ -419,6 +437,24 @@ namespace DSClibrary.Comparing
                 .ToArray();
             return new BatchComparisonResult(ordered, batch.Elapsed, parallelism, readers);
         }
+
+        /// <summary>
+        /// The worst of an ambiguous key's pairings at each criterion (crcrewso, 2026-11-16: "both comparisons should be
+        /// made and the worst should be kept"): a failure first, then the highest % failed, then the most failed points;
+        /// file paths break a remaining tie so the choice is the same every run.
+        /// </summary>
+        internal static ComparisonOutcome[] WorstOf(IEnumerable<ComparisonOutcome[]> pairings, int candidates) =>
+            pairings.SelectMany(p => p)
+                .GroupBy(o => o.CriterionIndex)
+                .Select(g => g
+                    .OrderByDescending(o => o.Failure is not null)
+                    .ThenByDescending(o => o.PercentFailed ?? double.NegativeInfinity)
+                    .ThenByDescending(o => o.Comparison?.TotalFailed ?? 0)
+                    .ThenBy(o => o.SourcePath, StringComparer.Ordinal)
+                    .ThenBy(o => o.TargetPath, StringComparer.Ordinal)
+                    .First() with { Candidates = candidates })
+                .OrderBy(o => o.CriterionIndex)
+                .ToArray();
 
         /// <summary>
         /// Reading ahead: <see cref="Readers"/> threads read pairs into a queue that holds up to <see cref="PairsHeld"/>

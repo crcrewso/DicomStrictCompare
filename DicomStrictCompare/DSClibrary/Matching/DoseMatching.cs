@@ -33,7 +33,19 @@ namespace DSClibrary.Matching
         /// <see cref="PlanUids.WithoutSaveTime"/> for the measurement (2026-11-09).
         /// </para>
         /// </summary>
-        PlanAndBeamUid = 2
+        PlanAndBeamUid = 2,
+
+        /// <summary>
+        /// The referenced plan's UID, less its save time, with the beam's <b>name</b> from that plan. The same plan as
+        /// <see cref="PlanAndBeamUid"/>, but a renumbered beam still pairs (crcrewso, 2026-11-16: "the match by plan and
+        /// beam number should become plan and beam name"). Needs the plan, for the name.
+        /// </summary>
+        PlanUidAndBeamName = 3,
+
+        /// <summary>
+        /// Plan label and beam name, without the patient: pairs the same plans kept under different test patients.
+        /// </summary>
+        PlanLabelAndBeamName = 4,
     }
 
     /// <summary>
@@ -110,6 +122,19 @@ namespace DSClibrary.Matching
                     && dose.Dose.ReferencedBeamNumber is { } number
                         ? new DoseMatchKey(strategy, planSopInstanceUid: PlanUids.WithoutSaveTime(uid), beamNumber: number)
                         : null,
+                DoseMatchStrategy.PlanUidAndBeamName =>
+                    dose.Dose.ReferencedRTPlanSOPInstanceUID is { Length: > 0 } planUid
+                    && dose.Beam?.BeamName is { Length: > 0 } name
+                        ? new DoseMatchKey(strategy, planSopInstanceUid: PlanUids.WithoutSaveTime(planUid),
+                            beamName: rewriteField is null ? name : rewriteField(name))
+                        : null,
+                DoseMatchStrategy.PlanLabelAndBeamName =>
+                    dose.Plan?.RTPlanLabel is { Length: > 0 } planLabel
+                    && dose.Beam?.BeamName is { Length: > 0 } beam
+                        ? new DoseMatchKey(strategy,
+                            planLabel: rewriteLabel is null ? planLabel : rewriteLabel(planLabel),
+                            beamName: rewriteField is null ? beam : rewriteField(beam))
+                        : null,
 
                 _ => throw new ArgumentOutOfRangeException(nameof(strategy))
             };
@@ -119,31 +144,41 @@ namespace DSClibrary.Matching
         public static string DescribeMissing(RTDoseWithPlan dose, DoseMatchStrategy strategy)
         {
             var missing = new List<string>();
-            if (strategy == DoseMatchStrategy.Identifier)
-            {
-                if (dose.Dose.PatientID is not { Length: > 0 }) missing.Add("PatientID");
-                if (dose.Plan is null) missing.Add("the plan was not found");
-                else if (dose.Plan.RTPlanLabel is not { Length: > 0 }) missing.Add("RTPlanLabel");
-                if (dose.Beam is null) missing.Add("the referenced beam was not in the plan");
-                else if (dose.Beam.BeamName is not { Length: > 0 }) missing.Add("BeamName");
-            }
+            bool patient = strategy == DoseMatchStrategy.Identifier;
+            bool label = strategy is DoseMatchStrategy.Identifier or DoseMatchStrategy.PlanLabelAndBeamName;
+            bool uid = strategy is DoseMatchStrategy.PlanAndBeamUid or DoseMatchStrategy.PlanUidAndBeamName;
+            bool name = strategy != DoseMatchStrategy.PlanAndBeamUid;
+            if (patient && dose.Dose.PatientID is not { Length: > 0 }) missing.Add("PatientID");
+            if (uid && dose.Dose.ReferencedRTPlanSOPInstanceUID is not { Length: > 0 }) missing.Add("ReferencedRTPlanSOPInstanceUID");
+            if (strategy == DoseMatchStrategy.PlanAndBeamUid && dose.Dose.ReferencedBeamNumber is null) missing.Add("ReferencedBeamNumber");
+            if ((label || name) && dose.Plan is null) missing.Add("the plan was not found");
             else
             {
-                if (dose.Dose.ReferencedRTPlanSOPInstanceUID is not { Length: > 0 })
-                    missing.Add("ReferencedRTPlanSOPInstanceUID");
-                if (dose.Dose.ReferencedBeamNumber is null) missing.Add("ReferencedBeamNumber");
+                if (label && dose.Plan!.RTPlanLabel is not { Length: > 0 }) missing.Add("RTPlanLabel");
+                if (name && dose.Beam is null) missing.Add("the referenced beam was not in the plan");
+                else if (name && dose.Beam!.BeamName is not { Length: > 0 }) missing.Add("BeamName");
             }
             return missing.Count == 0 ? "nothing" : string.Join(", ", missing);
         }
 
-        public override string ToString() => Strategy == DoseMatchStrategy.Identifier
-            ? $"{PatientId} / {PlanLabel} / {BeamName}"
-            : $"plan {PlanSopInstanceUid} beam {BeamNumber}";
+        public override string ToString() => Strategy switch
+        {
+            DoseMatchStrategy.Identifier => $"{PatientId} / {PlanLabel} / {BeamName}",
+            DoseMatchStrategy.PlanUidAndBeamName => $"plan {PlanSopInstanceUid} / {BeamName}",
+            DoseMatchStrategy.PlanLabelAndBeamName => $"{PlanLabel} / {BeamName}",
+            _ => $"plan {PlanSopInstanceUid} beam {BeamNumber}",
+        };
     }
 
     /// <summary>A source dose and the target dose matched to it.</summary>
     public sealed record MatchedDosePair(DoseMatchKey Key, RTDoseWithPlan Source, RTDoseWithPlan Target)
     {
+        /// <summary>
+        /// How many pairs share this key: 1, or every source x target pairing of an ambiguous key, all of which are
+        /// compared and the worst kept per criterion (crcrewso, 2026-11-16).
+        /// </summary>
+        public int Candidates { get; init; } = 1;
+
         public override string ToString() =>
             $"{Key}: {System.IO.Path.GetFileName(Source.Dose.SourcePath)} vs "
             + $"{System.IO.Path.GetFileName(Target.Dose.SourcePath)}";
@@ -164,10 +199,13 @@ namespace DSClibrary.Matching
         public IReadOnlyList<UnmatchedDose> UnmatchedTarget { get; }
 
         /// <summary>
-        /// Keys that more than one dose in a set claimed. Reported rather than resolved: picking one
-        /// arbitrarily would compare a file the user did not choose and say nothing about it.
+        /// Keys that more than one dose in a set claimed. None is picked: when the other set has the key, every
+        /// pairing is compared and the worst kept per criterion (<see cref="MatchedDosePair.Candidates"/>).
         /// </summary>
         public IReadOnlyList<string> AmbiguousKeys { get; }
+
+        /// <summary>Distinct keys paired; less than <see cref="Pairs"/>' count when a key is ambiguous.</summary>
+        public int PairedKeys => Pairs.Select(p => p.Key).Distinct().Count();
 
         internal DoseMatchResult(
             DoseMatchStrategy strategy,
@@ -184,8 +222,9 @@ namespace DSClibrary.Matching
         }
 
         public override string ToString() =>
-            $"{Strategy}: {Pairs.Count} pair(s), {UnmatchedSource.Count} source and "
-            + $"{UnmatchedTarget.Count} target unmatched, {AmbiguousKeys.Count} ambiguous";
+            $"{Strategy}: {Pairs.Count} pair(s)"
+            + (PairedKeys < Pairs.Count ? $" for {PairedKeys} key(s), every pairing of an ambiguous key compared and the worst kept" : "")
+            + $", {UnmatchedSource.Count} source and {UnmatchedTarget.Count} target unmatched, {AmbiguousKeys.Count} ambiguous";
     }
 
     /// <summary>
@@ -194,7 +233,7 @@ namespace DSClibrary.Matching
     /// This is the pairing the existing <c>DCSCore.DscDataHandler</c> performs, lifted so it can be
     /// tested without a Windows Forms project. Four things are different: the key is structured rather
     /// than a concatenated string, an unmatchable dose is reported rather than given a random
-    /// identifier, a key claimed twice is reported as ambiguous rather than silently resolved, and the
+    /// identifier, a key claimed twice is reported as ambiguous and every pairing compared (the worst kept), and the
     /// strategy is the caller's choice because identifier and UID matching fail in opposite
     /// situations.
     /// </para>
@@ -232,22 +271,27 @@ namespace DSClibrary.Matching
             var targetByKey = Index(target, strategy, targetLabel, field, unmatchedTarget, ambiguous, "target");
 
             var pairs = new List<MatchedDosePair>();
-            foreach (var (key, dose) in sourceByKey)
+            foreach (var (key, sources) in sourceByKey)
             {
-                if (targetByKey.TryGetValue(key, out var match))
-                    pairs.Add(new MatchedDosePair(key, dose, match));
+                if (targetByKey.TryGetValue(key, out var targets))
+                {
+                    // An ambiguous key pairs every way; the comparison keeps the worst per criterion.
+                    foreach (var s in sources)
+                        foreach (var t in targets)
+                            pairs.Add(new MatchedDosePair(key, s, t) { Candidates = sources.Count * targets.Count });
+                }
                 else
-                    unmatchedSource.Add(new UnmatchedDose(dose, $"no target has {key}"));
+                    foreach (var s in sources) unmatchedSource.Add(new UnmatchedDose(s, $"no target has {key}"));
             }
 
-            foreach (var (key, dose) in targetByKey)
+            foreach (var (key, targets) in targetByKey)
                 if (!sourceByKey.ContainsKey(key))
-                    unmatchedTarget.Add(new UnmatchedDose(dose, $"no source has {key}"));
+                    foreach (var t in targets) unmatchedTarget.Add(new UnmatchedDose(t, $"no source has {key}"));
 
             return new DoseMatchResult(strategy, pairs, unmatchedSource, unmatchedTarget, ambiguous);
         }
 
-        private static Dictionary<DoseMatchKey, RTDoseWithPlan> Index(
+        private static Dictionary<DoseMatchKey, List<RTDoseWithPlan>> Index(
             IEnumerable<RTDoseWithPlan> doses,
             DoseMatchStrategy strategy,
             Func<string, string>? rewriteLabel,
@@ -256,8 +300,7 @@ namespace DSClibrary.Matching
             List<string> ambiguous,
             string side)
         {
-            var byKey = new Dictionary<DoseMatchKey, RTDoseWithPlan>();
-            var seenTwice = new HashSet<DoseMatchKey>();
+            var byKey = new Dictionary<DoseMatchKey, List<RTDoseWithPlan>>();
 
             foreach (var dose in doses)
             {
@@ -269,22 +312,13 @@ namespace DSClibrary.Matching
                     continue;
                 }
 
-                if (byKey.ContainsKey(key))
-                {
-                    if (seenTwice.Add(key))
-                        ambiguous.Add($"{side}: {key} is claimed by more than one dose");
-                    continue;
-                }
-
-                byKey[key] = dose;
+                if (!byKey.TryGetValue(key, out var list)) byKey[key] = list = new List<RTDoseWithPlan>();
+                list.Add(dose);
             }
 
-            // A key claimed twice cannot be matched at all: remove it and say so on that side.
-            foreach (var key in seenTwice)
-            {
-                unmatchable.Add(new UnmatchedDose(byKey[key], $"ambiguous: more than one {side} dose has {key}"));
-                byKey.Remove(key);
-            }
+            foreach (var (key, list) in byKey)
+                if (list.Count > 1)
+                    ambiguous.Add($"{side}: {key} is claimed by {list.Count} doses ({string.Join(", ", list.Select(d => System.IO.Path.GetFileName(d.Dose.SourcePath)))})");
 
             return byKey;
         }

@@ -104,7 +104,20 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _targetFolder = "";
     [ObservableProperty] private string _sourceAlias = "Reference";
     [ObservableProperty] private string _targetAlias = "Target";
-    [ObservableProperty] private bool _matchByUid = true;
+    /// <summary>How doses pair: one of <see cref="MatchModes.Window"/>; plan UID and beam name by default.</summary>
+    [ObservableProperty] private DoseMatchStrategy _matchStrategy = DoseMatchStrategy.PlanUidAndBeamName;
+
+    // One per radio button: a radio sets the strategy when checked.
+    public bool MatchByPlanUidAndBeamName { get => MatchStrategy == DoseMatchStrategy.PlanUidAndBeamName; set { if (value) MatchStrategy = DoseMatchStrategy.PlanUidAndBeamName; } }
+    public bool MatchByPlanLabelAndBeamName { get => MatchStrategy == DoseMatchStrategy.PlanLabelAndBeamName; set { if (value) MatchStrategy = DoseMatchStrategy.PlanLabelAndBeamName; } }
+    public bool MatchByIdentifier { get => MatchStrategy == DoseMatchStrategy.Identifier; set { if (value) MatchStrategy = DoseMatchStrategy.Identifier; } }
+
+    partial void OnMatchStrategyChanged(DoseMatchStrategy value)
+    {
+        OnPropertyChanged(nameof(MatchByPlanUidAndBeamName));
+        OnPropertyChanged(nameof(MatchByPlanLabelAndBeamName));
+        OnPropertyChanged(nameof(MatchByIdentifier));
+    }
 
     /// <summary>
     /// The "Max" setting: Global Max, or CAX where the source plan's jaws are on axis (falling back to Global Max).
@@ -222,7 +235,7 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<ResultRow> Rows { get; } = new();
     public ObservableCollection<string> Unmatched { get; } = new();
 
-    public DoseMatchStrategy Strategy => MatchByUid ? DoseMatchStrategy.PlanAndBeamUid : DoseMatchStrategy.Identifier;
+    public DoseMatchStrategy Strategy => MatchStrategy;
 
     /// <summary>Pre-fills the window from the command line. Nothing runs here.</summary>
     public void Apply(LaunchOptions options)

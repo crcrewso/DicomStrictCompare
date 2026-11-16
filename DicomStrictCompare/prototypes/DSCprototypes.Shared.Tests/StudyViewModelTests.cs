@@ -43,9 +43,9 @@ public class StudyViewModelTests
     [TestMethod]
     public void TheAlgorithmButtonFillsInTheRule()
     {
-        var c = new SetComparisonViewModel { MatchByUid = true };
+        var c = new SetComparisonViewModel { Match = MatchModes.PlanUidAndBeamName };
         c.UseAcrossAlgorithmsCommand.Execute(null);
-        Assert.IsFalse(c.MatchByUid, "label rules need identifier matching");
+        Assert.AreEqual(MatchModes.Identifier, c.Match, "label rules need a key with the plan label");
         Assert.AreEqual("(AAA|AXB) -> {algorithm}", c.LabelRules);
     }
 

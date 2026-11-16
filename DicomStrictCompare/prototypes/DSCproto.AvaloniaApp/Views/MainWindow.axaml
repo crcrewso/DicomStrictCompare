@@ -30,8 +30,9 @@
 
       <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Orientation="Horizontal" Spacing="16">
         <TextBlock Text="Match doses by" VerticalAlignment="Center"/>
-        <RadioButton Content="plan UID and beam number" IsChecked="{Binding MatchByUid}" GroupName="match"/>
-        <RadioButton Content="patient, plan label and beam name" IsChecked="{Binding !MatchByUid}" GroupName="match"/>
+        <RadioButton Content="plan UID and beam name" IsChecked="{Binding MatchByPlanUidAndBeamName}" GroupName="match"/>
+        <RadioButton Content="plan label and beam name" IsChecked="{Binding MatchByPlanLabelAndBeamName}" GroupName="match"/>
+        <RadioButton Content="patient, plan label and beam name" IsChecked="{Binding MatchByIdentifier}" GroupName="match"/>
       </StackPanel>
     </Grid>
 
@@ -95,6 +96,7 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="2*"/>
               <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="*"/>
+              <DataGridTextColumn Header="Ambiguous" Binding="{Binding WorstOf}" Width="Auto"/>
               <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
               <DataGridTextColumn Header="Edge check" Binding="{Binding EdgeCheck}" Width="Auto"/>
               <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
@@ -244,7 +246,13 @@
                     <DataGrid.Columns>
                       <DataGridTextColumn Header="Source set" Binding="{Binding SourceSet}" Width="140"/>
                       <DataGridTextColumn Header="Target set" Binding="{Binding TargetSet}" Width="140"/>
-                      <DataGridCheckBoxColumn Header="By UID" Binding="{Binding MatchByUid}" Width="Auto"/>
+                      <DataGridTemplateColumn Header="Match by" Width="250">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="vm:SetComparisonViewModel">
+                            <ComboBox ItemsSource="{x:Static vm:MatchModes.Study}" SelectedItem="{Binding Match}" HorizontalAlignment="Stretch"/>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
                       <DataGridTextColumn Header="Plan label rules" Binding="{Binding LabelRules}" Width="2*"/>
                       <DataGridTextColumn Header="Field name rules" Binding="{Binding FieldRules}" Width="2*"/>
                       <DataGridTextColumn Header="Label overrides" Binding="{Binding Overrides}" Width="2*"/>
@@ -292,6 +300,7 @@
                     <DataGridTextColumn Header="Energy" Binding="{Binding Facts.Energy}" Width="Auto"/>
                     <DataGridTextColumn Header="Field size" Binding="{Binding Facts.FieldSize}" Width="Auto"/>
                     <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="Auto"/>
+                    <DataGridTextColumn Header="Ambiguous" Binding="{Binding WorstOf}" Width="Auto"/>
                     <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
                     <DataGridTextColumn Header="Edge check" Binding="{Binding EdgeCheck}" Width="Auto"/>
                     <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate, StringFormat=0.000}" Width="Auto"/>

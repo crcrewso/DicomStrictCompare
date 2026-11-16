@@ -45,7 +45,7 @@ public sealed class MainForm : Form
     private readonly RadioButtonList _strategy = new()
     {
         Orientation = Orientation.Horizontal,
-        Items = { "plan UID and beam number", "patient, plan label and beam name" },
+        Items = { MatchModes.Window[0].Label, MatchModes.Window[1].Label, MatchModes.Window[2].Label },
         SelectedIndex = 0,
     };
 
@@ -287,6 +287,7 @@ public sealed class MainForm : Form
         };
         _resultsGrid.Columns.Add(Col("Key", r => r.Key, 320));
         _resultsGrid.Columns.Add(Col("Criterion", r => r.Criterion.Label, 180));
+        _resultsGrid.Columns.Add(Col("Ambiguous", r => r.WorstOf, 90));
         _resultsGrid.Columns.Add(Col("Compared", r => r.Compared.ToString("N0")));
         _resultsGrid.Columns.Add(Col("Failed", r => r.Failed.ToString("N0")));
         _resultsGrid.Columns.Add(Col("% failed", r => r.PercentFailed is { } p ? p.ToString("0.000") : ""));
@@ -392,7 +393,7 @@ public sealed class MainForm : Form
         _graphs.SetSession(null);
         _cancelSource = new CancellationTokenSource();
 
-        var strategy = _strategy.SelectedIndex == 0 ? DoseMatchStrategy.PlanAndBeamUid : DoseMatchStrategy.Identifier;
+        var strategy = MatchModes.Window[Math.Max(0, _strategy.SelectedIndex)].Strategy;
         var run = CurrentSettings().ToRun(Enum.GetValues<MaximumKind>()[Math.Max(0, _maximum.SelectedIndex)],
             _gpuFloat.Checked == true ? GpuPrecision.Float : GpuPrecision.Double);
         var request = new ComparisonRequest(

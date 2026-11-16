@@ -165,6 +165,54 @@ namespace DSClibraryTests
             }
         }
 
+        [TestMethod]
+        public void AnAmbiguousKeyKeepsTheWorstPairingAtEachCriterion()
+        {
+            Assert.IsTrue(TestData.Found, "resources folder not found");
+            var folder = RTFolderReader.Read(TestData.ResourcesDirectory!, headersOnly: true);
+            RTDoseWithPlan Dose(string name) => folder.Doses.Single(d => Path.GetFileName(d.Dose.SourcePath) == $"RD.UnitTest.{name}.dcm");
+            var source = Dose("P1Ref.X-100A-10.0-1");
+            // One key, two targets: the source itself (fails nothing) and its 5 mm recalculation (fails some).
+            var key = DoseMatchKey.For(source, DoseMatchStrategy.PlanAndBeamUid)!;
+            var pairings = new[] { Dose("P1Ref.X-100A-10.0-1"), Dose("P1 5 mm.X-100A-10.0-5") }
+                .Select(t => new MatchedDosePair(key, source, t) { Candidates = 2 }).ToArray();
+            var criteria = Criteria.Take(3).Select(c => new Criterion(c.Dta, c.Global)).ToArray();
+
+            var reported = new List<IReadOnlyList<ComparisonOutcome>>();
+            var comparer = new BatchComparer(DoseGridReader.Read, new MultiThreadComparer()) { PairDone = d => { lock (reported) reported.Add(d); } };
+            var result = comparer.CompareMany(pairings, criteria, degreeOfParallelism: 2);
+            var plain = new BatchComparer(DoseGridReader.Read, new MultiThreadComparer());
+            var alone = pairings.Select(p => plain.CompareMany(new[] { p with { Candidates = 1 } }, criteria).Outcomes).ToArray();
+
+            Assert.AreEqual(criteria.Length, result.Outcomes.Count, "one row per criterion for the key, not one per pairing");
+            Assert.AreEqual(1, reported.Count, "reported once, when both pairings were done");
+            for (int c = 0; c < criteria.Length; c++)
+            {
+                var kept = result.Outcomes.Single(o => o.CriterionIndex == c);
+                var worst = alone.Select(a => a.Single(o => o.CriterionIndex == c)).MaxBy(o => o.PercentFailed)!;
+                Assert.AreEqual(2, kept.Candidates);
+                Assert.AreEqual(worst.TargetPath, kept.TargetPath, $"criterion {c}");
+                Assert.AreEqual(worst.Comparison!.TotalFailed, kept.Comparison!.TotalFailed, $"criterion {c}");
+            }
+            Assert.IsTrue(result.Outcomes.Any(o => o.Comparison!.TotalFailed > 0), "the 5 mm pairing fails somewhere, so the test can tell");
+        }
+
+        [TestMethod]
+        public void AFailedPairingIsTheWorst()
+        {
+            Assert.IsTrue(TestData.Found, "resources folder not found");
+            var folder = RTFolderReader.Read(TestData.ResourcesDirectory!, headersOnly: true);
+            var source = folder.Doses.First(d => Path.GetFileName(d.Dose.SourcePath).Contains("P1Ref.X-100A"));
+            var key = DoseMatchKey.For(source, DoseMatchStrategy.PlanAndBeamUid)!;
+            var pairings = new[] { new MatchedDosePair(key, source, source) { Candidates = 2 }, new MatchedDosePair(key, source, source) { Candidates = 2 } };
+            int calls = 0;
+            // The second load of the target throws, so one pairing fails outright.
+            var comparer = new BatchComparer(p => Interlocked.Increment(ref calls) == 4 ? throw new IOException("unreadable") : DoseGridReader.Read(p));
+            var result = comparer.CompareMany(pairings, new[] { new Criterion(Criteria[2].Dta, true) }, degreeOfParallelism: 1);
+            Assert.AreEqual(1, result.Outcomes.Count);
+            Assert.IsNotNull(result.Outcomes[0].Failure, "the failed pairing is kept, not hidden behind the one that worked");
+        }
+
         private static SingleComparison Alone(DoseComparer c, DoseMatrixOptimal s, DoseMatrixOptimal t, ComparisonRun r) =>
             r.Global ? c.CompareRelative(s, t, r.Dta, r.ReferenceMaximum, CancellationToken.None)
                      : c.CompareAbsolute(s, t, r.Dta, r.ReferenceMaximum, CancellationToken.None);

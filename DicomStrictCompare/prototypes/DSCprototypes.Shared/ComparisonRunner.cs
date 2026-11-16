@@ -75,7 +75,7 @@ public sealed record ComparisonRequest(
     string SourceAlias,
     string TargetAlias,
     IReadOnlyList<DtaSpec> Dtas,
-    DoseMatchStrategy Strategy = DoseMatchStrategy.PlanAndBeamUid,
+    DoseMatchStrategy Strategy = DoseMatchStrategy.PlanUidAndBeamName,
     int? DegreeOfParallelism = null,
     MaximumKind Maximum = MaximumKind.GlobalMax,
     ComparerSettings? Comparer = null,
@@ -99,9 +99,13 @@ public sealed record ResultRow(
     double? MaxGamma = null,
     string? MaximumUsed = null,
     double? MaximumDose = null,
-    string EdgeCheck = "")
+    string EdgeCheck = "",
+    int Candidates = 1)
 {
     public bool Succeeded => Failure is null;
+
+    /// <summary>"worst of N" when the key was ambiguous and this is the worst of its N pairings; empty otherwise.</summary>
+    public string WorstOf => Candidates > 1 ? $"worst of {Candidates}" : "";
 
     /// <summary>For a gamma row, the pass rate the way gamma users quote it; null for a DTA row.</summary>
     public double? GammaPassRate => Criterion.Gamma && Compared > 0 ? 100.0 * (Compared - Failed) / Compared : null;
@@ -122,7 +126,8 @@ public sealed record ResultRow(
         o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
         o.Maximum?.Note,
         o.Maximum?.Dose,
-        o.EdgeCheck);
+        o.EdgeCheck,
+        o.Candidates);
 }
 
 /// <summary>Everything a run produced, retained (backlog D15) rather than rendered and thrown away.</summary>

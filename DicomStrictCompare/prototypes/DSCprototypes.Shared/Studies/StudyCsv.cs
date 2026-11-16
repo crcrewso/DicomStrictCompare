@@ -22,7 +22,7 @@ public static class StudyCsv
         "Machine", "Energy", "FieldSize", "Collimation", "SSD", "Accessories",
         "TolerancePercent", "DistanceMm", "ThresholdPercent", "Scope", "Algorithm", "AppliesTo", "MaximumUsed", "MaximumDose", "EdgeCheck",
         "Compared", "Failed", "PercentFailed", "PassRate", "MaxGamma",
-        "PlanCheck", "Warnings", "SourceFile", "TargetFile", "Failure",
+        "PlanCheck", "Warnings", "SourceFile", "TargetFile", "Failure", "Candidates",
     };
 
     public static string ResultsText(StudySession session)
@@ -42,7 +42,8 @@ public static class StudyCsv
                 r.PercentFailed is { } p ? p.ToString("0.0000", CultureInfo.InvariantCulture) : "",
                 r.PassRate is { } pr ? pr.ToString("0.0000", CultureInfo.InvariantCulture) : "",
                 r.MaxGamma is { } g ? g.ToString("0.000", CultureInfo.InvariantCulture) : "",
-                r.PlanCheck, r.Warnings, r.SourceFile, r.TargetFile, r.Failure ?? ""));
+                r.PlanCheck, r.Warnings, r.SourceFile, r.TargetFile, r.Failure ?? "",
+                r.Candidates.ToString(CultureInfo.InvariantCulture)));
         }
         return sb.ToString();
     }

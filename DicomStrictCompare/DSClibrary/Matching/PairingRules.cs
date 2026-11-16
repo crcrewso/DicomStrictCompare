@@ -81,9 +81,12 @@ namespace DSClibrary.Matching
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
                 : new Dictionary<string, string>(labelOverrides, StringComparer.Ordinal);
 
-            if (strategy != DoseMatchStrategy.Identifier && RewritesLabels)
+            if ((LabelRules.Count > 0 || LabelOverrides.Count > 0)
+                && strategy is not (DoseMatchStrategy.Identifier or DoseMatchStrategy.PlanLabelAndBeamName))
                 throw new ArgumentException(
-                    "Label rules and overrides need Identifier matching: a UID key has no plan label to rewrite.");
+                    "Label rules and overrides need a key with the plan label: patient, plan label and beam name, or plan label and beam name.");
+            if (FieldRules.Count > 0 && strategy == DoseMatchStrategy.PlanAndBeamUid)
+                throw new ArgumentException("Field rules need a key with the beam name; plan UID and beam number has none.");
         }
 
         /// <summary>Exact keys, no rewriting: what <see cref="DoseMatcher.Match(IEnumerable{RTDoseWithPlan}, IEnumerable{RTDoseWithPlan}, DoseMatchStrategy)"/> does.</summary>
