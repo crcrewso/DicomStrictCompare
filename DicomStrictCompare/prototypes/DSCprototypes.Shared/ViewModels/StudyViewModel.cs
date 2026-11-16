@@ -286,20 +286,26 @@ public sealed partial class StudyViewModel : ObservableObject
         Session = null;
         _cancel = new CancellationTokenSource();
         var progress = new Progress<string>(line => { Log += line + Environment.NewLine; Status = line; });
+        // Rows as pairs finish (D30); Show replaces them with the final ordered set.
+        if (compare) Rows.Clear();
+        var live = new RowBatcher<StudyRow>(Rows) { Flushed = n => Status = $"Comparing: {n} result row(s) so far" };
         try
         {
             var session = compare
-                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _runSettings())
+                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _runSettings(), live.Progress)
                 : await StudyRunner.PreviewAsync(study, progress, _cancel.Token);
+            live.Stop();
             Show(session);
             Status = session.Summary;
         }
         catch (OperationCanceledException)
         {
-            Status = "Cancelled.";
+            live.Stop();
+            Status = compare ? $"Cancelled. The {Rows.Count} row(s) shown are the pairs finished before it stopped; nothing was exported." : "Cancelled.";
         }
         catch (Exception ex)
         {
+            live.Stop();
             Status = $"Failed: {ex.GetType().Name}: {ex.Message}";
         }
         finally

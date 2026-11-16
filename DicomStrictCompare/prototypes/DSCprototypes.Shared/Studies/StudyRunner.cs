@@ -147,24 +147,28 @@ public static class StudyRunner
     public static StudySession Preview(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default) =>
         Execute(study, Array.Empty<DtaSpec>(), null, progress, cancellation, compare: false, StudyRunSettings.Default);
 
+    /// <param name="rowsSoFar">Each pair's rows as soon as it is compared, in completion order (D30); the session's
+    /// rows are the final, ordered set.</param>
     public static StudySession Run(Study study, IReadOnlyList<DtaSpec> criteria, int? degreeOfParallelism = null,
-        IProgress<string>? progress = null, CancellationToken cancellation = default, StudyRunSettings? run = null)
+        IProgress<string>? progress = null, CancellationToken cancellation = default, StudyRunSettings? run = null,
+        IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null)
     {
         ArgumentNullException.ThrowIfNull(criteria);
         if (criteria.Count == 0) throw new ArgumentException("At least one criterion is required.", nameof(criteria));
         run ??= study.Run;
-        return Execute(study, criteria, degreeOfParallelism ?? run.PairsAtOnce, progress, cancellation, compare: true, run);
+        return Execute(study, criteria, degreeOfParallelism ?? run.PairsAtOnce, progress, cancellation, compare: true, run, rowsSoFar);
     }
 
     public static Task<StudySession> RunAsync(Study study, IReadOnlyList<DtaSpec> criteria, IProgress<string>? progress = null,
-        CancellationToken cancellation = default, StudyRunSettings? run = null) =>
-        Task.Run(() => Run(study, criteria, null, progress, cancellation, run), cancellation);
+        CancellationToken cancellation = default, StudyRunSettings? run = null, IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null) =>
+        Task.Run(() => Run(study, criteria, null, progress, cancellation, run, rowsSoFar), cancellation);
 
     public static Task<StudySession> PreviewAsync(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default) =>
         Task.Run(() => Preview(study, progress, cancellation), cancellation);
 
     private static StudySession Execute(Study study, IReadOnlyList<DtaSpec> criteria, int? parallelism,
-        IProgress<string>? progress, CancellationToken cancellation, bool compare, StudyRunSettings run)
+        IProgress<string>? progress, CancellationToken cancellation, bool compare, StudyRunSettings run,
+        IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null)
     {
         ArgumentNullException.ThrowIfNull(study);
         var problems = study.Problems();
@@ -215,30 +219,33 @@ public static class StudyRunner
             var engine = DoseComparers.Create(run.ComparerOrDefault);
             using var release = engine as IDisposable;
             progress?.Report($"Engine: {engine.Description}");
+            // The comparison being run, for PairDone: CompareMany is synchronous, so it changes only between batches.
+            Dictionary<(string, string), StudyPair> byFiles = new();
+            StudyRow ToRow(ComparisonOutcome o) => new(byFiles[(o.SourcePath, o.TargetPath)], criteria[o.CriterionIndex],
+                o.Comparison?.TotalCompared ?? 0,
+                o.Comparison?.TotalFailed ?? 0,
+                o.PercentFailed,
+                o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
+                Path.GetFileName(o.SourcePath),
+                Path.GetFileName(o.TargetPath),
+                o.Failure,
+                o.Maximum,
+                o.EdgeCheck);
             var comparer = new BatchComparer(ComparisonRunner.LoadGrid, engine)
-                { PartialTargetReads = run.PartialTargetReads, Queue = run.Queue, Threads = run.ComparerOrDefault.Threads };
+            {
+                PartialTargetReads = run.PartialTargetReads, Queue = run.Queue, Threads = run.ComparerOrDefault.Threads,
+                PairDone = rowsSoFar is null ? null : done => rowsSoFar.Report(done.Select(ToRow).ToArray()),
+            };
             foreach (var preview in previews)
             {
-                var byFiles = preview.Pairs.ToDictionary(p => (p.Pair.Source.Dose.SourcePath, p.Pair.Target.Dose.SourcePath));
+                byFiles = preview.Pairs.ToDictionary(p => (p.Pair.Source.Dose.SourcePath, p.Pair.Target.Dose.SourcePath));
                 // Each pair is loaded once for every criterion (and uploaded once, on a GPU).
                 cancellation.ThrowIfCancellationRequested();
                 progress?.Report($"{preview.Comparison.Name}: comparing {preview.Match.Pairs.Count} pair(s) at {criteria.Count} criteria");
                 var batch = comparer.CompareMany(preview.Match.Pairs, criteria.Select(c => c.ToCriterion()).ToArray(), parallelism, cancellation, maximum);
                 // Rows criterion by criterion, as before, each in key order.
                 foreach (var o in batch.Outcomes.OrderBy(o => o.CriterionIndex))
-                {
-                    var pair = byFiles[(o.SourcePath, o.TargetPath)];
-                    rows.Add(new StudyRow(pair, criteria[o.CriterionIndex],
-                        o.Comparison?.TotalCompared ?? 0,
-                        o.Comparison?.TotalFailed ?? 0,
-                        o.PercentFailed,
-                        o.Gamma is { Analysed: > 0 } g ? g.MaxGammaFound : null,
-                        Path.GetFileName(o.SourcePath),
-                        Path.GetFileName(o.TargetPath),
-                        o.Failure,
-                        o.Maximum,
-                        o.EdgeCheck));
-                }
+                    rows.Add(ToRow(o));
                 progress?.Report(batch.ToString());
             }
         }

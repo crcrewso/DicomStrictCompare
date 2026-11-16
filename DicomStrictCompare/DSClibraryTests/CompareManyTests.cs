@@ -140,6 +140,31 @@ namespace DSClibraryTests
             Assert.IsFalse(criteria[1].AppliesToBeam(null));
         }
 
+        [TestMethod]
+        public void PairDoneReportsEachPairOnceWithAllItsRows()
+        {
+            Assert.IsTrue(TestData.Found, "resources folder not found");
+            var pairs = Pairs();
+            var criteria = Criteria.Take(3).Select(c => new Criterion(c.Dta, c.Global)).ToArray();
+            // Both ways of reading: each worker reads its own pair, and the read queue.
+            foreach (var queue in new BatchComparer.ReadQueue?[] { null, new(2, 1) })
+            {
+                var reports = new List<IReadOnlyList<ComparisonOutcome>>();
+                var comparer = new BatchComparer(DoseGridReader.Read, new MultiThreadComparer())
+                    { Queue = queue, PairDone = done => { lock (reports) reports.Add(done); } };
+                var result = comparer.CompareMany(pairs, criteria, degreeOfParallelism: 2);
+
+                Assert.AreEqual(pairs.Length, reports.Count, $"one report per pair, queue {queue}");
+                foreach (var r in reports)
+                {
+                    Assert.AreEqual(criteria.Length, r.Count, "a report holds every criterion's row for its pair");
+                    Assert.AreEqual(1, r.Select(o => (o.SourcePath, o.TargetPath)).Distinct().Count(), "and only that pair's");
+                }
+                // The same outcome objects the result returns, each reported once; the result keeps its own order.
+                CollectionAssert.AreEquivalent(result.Outcomes.ToArray(), reports.SelectMany(r => r).ToArray());
+            }
+        }
+
         private static SingleComparison Alone(DoseComparer c, DoseMatrixOptimal s, DoseMatrixOptimal t, ComparisonRun r) =>
             r.Global ? c.CompareRelative(s, t, r.Dta, r.ReferenceMaximum, CancellationToken.None)
                      : c.CompareAbsolute(s, t, r.Dta, r.ReferenceMaximum, CancellationToken.None);

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using DSClibrary.Comparing;
 using DSClibrary.Matching;
 using DSCprototypes.Shared;
+using DSCprototypes.Shared.ViewModels;
 using Eto.Drawing;
 using Eto.Forms;
 
@@ -407,9 +408,15 @@ public sealed class MainForm : Form
             _status.Text = line;
         }));
 
+        // Rows as pairs finish (D30), replaced by the final ordered set when the run ends.
+        var live = new RowBatcher<ResultRow>(_rows, post: a => Application.Instance.AsyncInvoke(a))
+            { Flushed = n => _status.Text = $"Comparing: {n} result row(s) so far" };
+
         try
         {
-            var session = await ComparisonRunner.RunAsync(request, progress, _cancelSource.Token);
+            var session = await ComparisonRunner.RunAsync(request, progress, _cancelSource.Token, live.Progress);
+            live.Stop();
+            _rows.Clear();
             foreach (var row in session.Rows) _rows.Add(row);
             foreach (var u in session.Unmatched) _unmatched.Items.Add(u.ToString());
             foreach (var a in session.Match.AmbiguousKeys) _unmatched.Items.Add(a);
@@ -419,10 +426,12 @@ public sealed class MainForm : Form
         }
         catch (OperationCanceledException)
         {
-            _status.Text = "Cancelled.";
+            live.Stop();
+            _status.Text = $"Cancelled. The {_rows.Count} row(s) shown are the pairs finished before it stopped; nothing was exported.";
         }
         catch (Exception ex)
         {
+            live.Stop();
             _status.Text = $"Failed: {ex.GetType().Name}: {ex.Message}";
         }
         finally

@@ -305,10 +305,14 @@ public sealed partial class MainViewModel : ObservableObject
 
         // IProgress<T> marshals back to the thread that created it, so the runner can report from its worker.
         var progress = new Progress<string>(line => { Log += line + Environment.NewLine; Status = line; });
+        // Rows as pairs finish (D30), replaced by the final ordered set when the run ends.
+        var live = new RowBatcher<ResultRow>(Rows) { Flushed = n => Status = $"Comparing: {n} result row(s) so far" };
 
         try
         {
-            var session = await ComparisonRunner.RunAsync(request, progress, _cancel.Token);
+            var session = await ComparisonRunner.RunAsync(request, progress, _cancel.Token, live.Progress);
+            live.Stop();
+            Rows.Clear();
             foreach (var row in session.Rows) Rows.Add(row);
             foreach (var u in session.Unmatched) Unmatched.Add(u.ToString());
             foreach (var a in session.Match.AmbiguousKeys) Unmatched.Add(a);
@@ -318,10 +322,12 @@ public sealed partial class MainViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            Status = "Cancelled.";
+            live.Stop();
+            Status = $"Cancelled. The {Rows.Count} row(s) shown are the pairs finished before it stopped; nothing was exported.";
         }
         catch (Exception ex)
         {
+            live.Stop();
             Status = $"Failed: {ex.GetType().Name}: {ex.Message}";
         }
         finally

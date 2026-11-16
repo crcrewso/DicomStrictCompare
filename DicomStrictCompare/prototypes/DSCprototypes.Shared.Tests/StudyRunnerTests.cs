@@ -69,6 +69,22 @@ public class StudyRunnerTests
 
     private static StudySession Session() => _session ??= StudyRunner.Run(MakeStudy(), new[] { Criterion });
 
+    [TestMethod]
+    public void EveryRowIsReportedAsItsPairFinishesAcrossComparisons()
+    {
+        var live = new List<StudyRow>();
+        var session = StudyRunner.Run(MakeStudy(), new[] { Criterion },
+            rowsSoFar: new Collect(live));
+        Assert.IsTrue(session.Rows.Count > 0);
+        Assert.AreEqual(2, session.Rows.Select(r => r.Pair.Comparison).Distinct().Count(), "both comparisons ran");
+        CollectionAssert.AreEquivalent(session.Rows.ToArray(), live.ToArray(), "the same rows, built the same way, each once");
+    }
+
+    private sealed class Collect(List<StudyRow> sink) : IProgress<IReadOnlyList<StudyRow>>
+    {
+        public void Report(IReadOnlyList<StudyRow> value) { lock (sink) sink.AddRange(value); }
+    }
+
     [ClassCleanup]
     public static void Cleanup()
     {

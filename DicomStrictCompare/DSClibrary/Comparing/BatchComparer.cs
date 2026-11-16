@@ -355,7 +355,12 @@ namespace DSClibrary.Comparing
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { }
                 catch (Exception ex) { Interlocked.CompareExchange(ref error, ex, null); abort.Cancel(); }
             }) { IsBackground = true, Name = name });
-            void Keep(IEnumerable<ComparisonOutcome> rows) { foreach (var o in rows) outcomes.Add(o); }
+            void Keep(IEnumerable<ComparisonOutcome> rows)
+            {
+                var pair = rows.ToArray();
+                foreach (var o in pair) outcomes.Add(o);
+                if (pair.Length > 0) PairDone?.Invoke(pair);
+            }
 
             int next = -1;
             int? readers = null;
@@ -429,6 +434,12 @@ namespace DSClibrary.Comparing
         /// gets. Null for <see cref="CpuTopology.PhysicalCores"/>; front ends pass <see cref="ComparerSettings.Threads"/>.
         /// </summary>
         public int? Threads { get; init; }
+
+        /// <summary>
+        /// Called with each pair's outcomes as soon as it is compared, so a front end can show rows during a run (D30).
+        /// It runs on a worker thread, in completion order; the result's own order is unchanged. Keep it quick.
+        /// </summary>
+        public Action<IReadOnlyList<ComparisonOutcome>>? PairDone { get; init; }
 
         /// <summary>The <see cref="Dta"/> that describes a gamma comparison's parameters in the library's older terms.</summary>
         public static Dta DtaFor(GammaOptions options) => new(

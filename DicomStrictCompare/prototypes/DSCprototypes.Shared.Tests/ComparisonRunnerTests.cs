@@ -12,7 +12,7 @@ namespace DSCprototypes.Shared.Tests;
 [TestClass]
 public class ComparisonRunnerTests
 {
-    private static string Resources()
+    internal static string Resources()
     {
         // Walk up from the test assembly to the repository's resources/ folder.
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

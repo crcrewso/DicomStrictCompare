@@ -161,10 +161,13 @@ public static class ComparisonRunner
     public static DoseMatrixOptimal LoadWithEvilDicom(string path) =>
         new(new EvilDICOM.RT.RTDose(EvilDICOM.Core.DICOMObject.Read(path)));
 
+    /// <param name="rowsSoFar">Each pair's rows as soon as it is compared, in completion order (D30); the session's
+    /// rows are the final, ordered set.</param>
     public static ComparisonSession Run(
         ComparisonRequest request,
         IProgress<string>? progress = null,
-        CancellationToken cancellation = default)
+        CancellationToken cancellation = default,
+        IProgress<IReadOnlyList<ResultRow>>? rowsSoFar = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.Dtas.Count == 0) throw new ArgumentException("At least one criterion is required.", nameof(request));
@@ -193,7 +196,10 @@ public static class ComparisonRunner
         using var release = engine as IDisposable;
         progress?.Report($"Engine: {engine.Description}");
         var comparer = new BatchComparer(LoadGrid, engine)
-            { PartialTargetReads = request.PartialTargetReads, Queue = request.Queue, Threads = request.Comparer?.Threads };
+        {
+            PartialTargetReads = request.PartialTargetReads, Queue = request.Queue, Threads = request.Comparer?.Threads,
+            PairDone = rowsSoFar is null ? null : done => rowsSoFar.Report(done.Select(o => ResultRow.From(o, request.Dtas[o.CriterionIndex])).ToArray()),
+        };
         if (request.PartialTargetReads || request.Queue is not null)
             progress?.Report($"Reading: {(request.PartialTargetReads ? "targets only where used" : "whole targets")}"
                 + (request.Queue is { } q ? $", {q.Readers} reader(s), {q.PairsHeld} pair(s) held" : ""));
@@ -228,6 +234,7 @@ public static class ComparisonRunner
     public static Task<ComparisonSession> RunAsync(
         ComparisonRequest request,
         IProgress<string>? progress = null,
-        CancellationToken cancellation = default) =>
-        Task.Run(() => Run(request, progress, cancellation), cancellation);
+        CancellationToken cancellation = default,
+        IProgress<IReadOnlyList<ResultRow>>? rowsSoFar = null) =>
+        Task.Run(() => Run(request, progress, cancellation, rowsSoFar), cancellation);
 }

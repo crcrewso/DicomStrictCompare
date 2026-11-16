@@ -47,7 +47,9 @@ flowchart TD
         edges["JawEdgeCheck, source and target"] --> dta["DTA criteria together:<br/>comparer.CompareAll (one GPU upload)"]
         dta --> gamma["Each gamma criterion: GammaShell.Compare<br/>points that can't reach the evaluation grid: not analysed, as pymedphys"]
     end
+    evaluate --> done["PairDone: the pair's outcomes, as it finishes (D30)<br/>runner turns them into rows; RowBatcher adds them to the grid every 250 ms"]
     evaluate --> outcomes["ComparisonOutcome per criterion<br/>sorted by key, then criterion"]
+    outcomes --> final["Grid replaced by the final rows in this order<br/>(what the CSV holds)"]
 ```
 
 ## 3. One DTA comparison
