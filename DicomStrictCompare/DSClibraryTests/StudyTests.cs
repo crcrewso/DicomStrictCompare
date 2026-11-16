@@ -350,6 +350,31 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
+        public void AHeaderKeepsOnlyItsOwnBytes()
+        {
+            foreach (string path in TestData.DoseFiles.Take(4))
+            {
+                using var stream = File.OpenRead(path);
+                var header = DicomFileReader.ReadHeader(stream, path, out long pixelDataAt);
+                Assert.IsTrue(pixelDataAt > 0, path);
+                var backing = new HashSet<int>();
+                void Walk(DicomDataset d)
+                {
+                    foreach (var tag in d.Tags)
+                    {
+                        var e = d.Element(tag)!;
+                        if (System.Runtime.InteropServices.MemoryMarshal.TryGetArray(e.Value, out var seg) && seg.Array is { } a)
+                            backing.Add(a.Length);
+                        foreach (var item in e.Items ?? []) Walk(item);
+                    }
+                }
+                Walk(header.Dataset);
+                // One buffer, exactly the header: not the 64 kB (or larger) prefix it was found in.
+                CollectionAssert.AreEqual(new[] { (int)pixelDataAt }, backing.ToArray(), Path.GetFileName(path));
+            }
+        }
+
+        [TestMethod]
         public void AFolderReadHeadersOnlyPairsTheSameAsAFullRead()
         {
             var full = RTFolderReader.Read(TestData.ResourcesDirectory!);

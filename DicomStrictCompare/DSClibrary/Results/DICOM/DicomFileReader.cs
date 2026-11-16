@@ -116,9 +116,15 @@ namespace DSClibrary.Results.DICOM
                 var prefix = new byte[n];
                 stream.Position = 0;
                 stream.ReadExactly(prefix);
-                var file = Read(prefix, sourcePath, headerOnly: true, stopAtPixelData: true, out int at);
+                Read(prefix, sourcePath, headerOnly: true, stopAtPixelData: true, out int at);
                 // An element cut off by the prefix end leaves the pixel data unreached, so a hit is complete.
-                if (at >= 0) { pixelDataAt = at; return file; }
+                // Elements slice the buffer they were parsed from, so parse again from a copy of the header
+                // alone: otherwise every kept header holds its whole prefix, 64 kB for a header of a few kB.
+                if (at >= 0)
+                {
+                    pixelDataAt = at;
+                    return Read(prefix.AsSpan(0, at).ToArray(), sourcePath, headerOnly: true, stopAtPixelData: true, out _);
+                }
                 if (n == length) { pixelDataAt = -1; return Read(prefix, sourcePath); }
                 size = (int)Math.Min((long)size * 4, int.MaxValue);
             }
