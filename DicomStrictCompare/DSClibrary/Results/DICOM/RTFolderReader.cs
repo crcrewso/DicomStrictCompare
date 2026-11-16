@@ -140,7 +140,7 @@ namespace DSClibrary.Results.DICOM
                 {
                     file = headersOnly ? DicomFileReader.ReadHeaderFile(path) : DicomFileReader.ReadFile(path);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is not OutOfMemoryException)
                 {
                     unreadable.Add((path, $"{ex.GetType().Name}: {ex.Message}"));
                     continue;

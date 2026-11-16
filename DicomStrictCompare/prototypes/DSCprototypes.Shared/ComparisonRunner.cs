@@ -176,12 +176,12 @@ public static class ComparisonRunner
         // usually one folder per plan or per patient, and the matching is by UID, so where a file
         // sits does not matter to it.
         progress?.Report($"Reading source folder {request.SourceFolder} and its subfolders");
-        var source = RTFolderReader.Read(request.SourceFolder, recursive: true);
+        var source = RTFolderReader.Read(request.SourceFolder, recursive: true, headersOnly: true);
         progress?.Report(source.ToString());
         cancellation.ThrowIfCancellationRequested();
 
         progress?.Report($"Reading target folder {request.TargetFolder} and its subfolders");
-        var target = RTFolderReader.Read(request.TargetFolder, recursive: true);
+        var target = RTFolderReader.Read(request.TargetFolder, recursive: true, headersOnly: true);
         progress?.Report(target.ToString());
         cancellation.ThrowIfCancellationRequested();
 
