@@ -12,7 +12,7 @@ flowchart TD
     study["Study file: sets, comparisons, Run block"] --> read
     read["RTFolderReader.Read, per folder once<br/>recursive, dose headers only, plans whole<br/>dose to plan by SOPInstanceUID"] --> filter
     filter["DoseSet.PlanFilter<br/>keeps the doses whose plan label matches"] --> match
-    match["DoseMatcher.Match with PairingRules<br/>PlanUidAndBeamName: plan UID / beam name (the window's default)<br/>PlanLabelAndBeamName: plan label / beam name<br/>Identifier: patient / plan label / beam name<br/>PlanAndBeamUid: plan UID / beam number (older studies)"] --> pairs
+    match["DoseMatcher.Match with PairingRules<br/>PlanUidAndBeamName: plan UID / beam name (the window's default)<br/>PlanLabelAndBeamName: plan label / beam name<br/>Identifier: patient / plan label / beam name<br/>PlanAndBeamUid: plan UID / beam number (older studies)<br/>+ the dose's algorithm: AlgorithmTokens on plan label and beam name,<br/>else the folder's or set's; not with {algorithm} rules"] --> pairs
     match --> unmatched["Unmatched doses reported, never guessed<br/>ambiguous keys: every source x target pairing becomes a pair"]
     pairs["Matched pairs"] --> facts["Per pair: FieldFacts, PlanCheck, DoseWarnings"]
     facts --> preview["ComparisonPreview<br/>(Preview ends here)"]

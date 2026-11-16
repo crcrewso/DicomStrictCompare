@@ -15,20 +15,26 @@
   <Grid RowDefinitions="Auto,*,Auto" Margin="12">
 
     <!-- Inputs: two folders, two aliases, the matching strategy -->
-    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,180" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,180,Auto,140" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
       <TextBlock Grid.Row="0" Grid.Column="0" Text="Source (reference)" VerticalAlignment="Center"/>
       <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SourceFolder}" PlaceholderText="Folder of RT Dose and RT Plan files"/>
       <Button Grid.Row="0" Grid.Column="2" Content="Browse" Command="{Binding BrowseSourceCommand}"/>
       <TextBlock Grid.Row="0" Grid.Column="3" Text="Alias" VerticalAlignment="Center"/>
       <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding SourceAlias}"/>
+      <TextBlock Grid.Row="0" Grid.Column="5" Text="Algorithm" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="0" Grid.Column="6" Text="{Binding SourceAlgorithm}" PlaceholderText="if names lack it"
+               ToolTip.Tip="For doses whose plan label and beam name name no algorithm (Settings, Algorithm names). AAA pairs only with AAA; unknown only with unknown."/>
 
       <TextBlock Grid.Row="1" Grid.Column="0" Text="Target" VerticalAlignment="Center"/>
       <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding TargetFolder}" PlaceholderText="Folder of RT Dose and RT Plan files"/>
       <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseTargetCommand}"/>
       <TextBlock Grid.Row="1" Grid.Column="3" Text="Alias" VerticalAlignment="Center"/>
       <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding TargetAlias}"/>
+      <TextBlock Grid.Row="1" Grid.Column="5" Text="Algorithm" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="1" Grid.Column="6" Text="{Binding TargetAlgorithm}" PlaceholderText="if names lack it"
+               ToolTip.Tip="For doses whose plan label and beam name name no algorithm (Settings, Algorithm names). AAA pairs only with AAA; unknown only with unknown."/>
 
-      <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4" Orientation="Horizontal" Spacing="16">
+      <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="6" Orientation="Horizontal" Spacing="16">
         <TextBlock Text="Match doses by" VerticalAlignment="Center"/>
         <RadioButton Content="plan UID and beam name" IsChecked="{Binding MatchByPlanUidAndBeamName}" GroupName="match"/>
         <RadioButton Content="plan label and beam name" IsChecked="{Binding MatchByPlanLabelAndBeamName}" GroupName="match"/>
@@ -385,6 +391,13 @@
               <TextBlock Grid.Row="5" Text="Held" VerticalAlignment="Center"/>
               <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
                        ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
+            </Grid>
+            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="Pairing"/>
+            <TextBlock TextWrapping="Wrap" Text="Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none."/>
+            <Grid ColumnDefinitions="160,*" ColumnSpacing="0">
+              <TextBlock Text="Algorithm names" VerticalAlignment="Center"/>
+              <TextBox Grid.Column="1" Text="{Binding AlgorithmNames}"
+                       ToolTip.Tip="Algorithm = token, token; ... Tokens are matched anywhere in a name, ignoring case."/>
             </Grid>
             <TextBlock Text="{Binding SettingsPath, StringFormat='Kept in {0}'}" TextWrapping="Wrap" Opacity="0.7"/>
           </StackPanel>

@@ -121,6 +121,7 @@ public sealed partial class StudyViewModel : ObservableObject
     private readonly Func<IReadOnlyList<DtaSpec>> _criteria;
     private readonly Func<string, DoseMatrixOptimal> _loader;
     private readonly Func<StudyRunSettings> _runSettings;
+    private readonly Func<AlgorithmTokens> _algorithms;
     private readonly Action<StudyRunSettings> _applyRunSettings;
     private CancellationTokenSource? _cancel;
     private IReadOnlyList<LoadedDose>? _loaded;
@@ -128,8 +129,9 @@ public sealed partial class StudyViewModel : ObservableObject
 
     public StudyViewModel(Func<string, string?, Task<string?>> pickFolder, Func<IReadOnlyList<DtaSpec>> criteria,
         Func<string, DoseMatrixOptimal>? loader = null, Func<StudyRunSettings>? runSettings = null,
-        Action<StudyRunSettings>? applyRunSettings = null)
+        Action<StudyRunSettings>? applyRunSettings = null, Func<AlgorithmTokens>? algorithms = null)
     {
+        _algorithms = algorithms ?? (() => AlgorithmTokens.Default);
         _pickFolder = pickFolder;
         _criteria = criteria;
         _runSettings = runSettings ?? (() => StudyRunSettings.Default);
@@ -293,8 +295,8 @@ public sealed partial class StudyViewModel : ObservableObject
         try
         {
             var session = compare
-                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _runSettings(), live.Progress)
-                : await StudyRunner.PreviewAsync(study, progress, _cancel.Token);
+                ? await StudyRunner.RunAsync(study, criteria, progress, _cancel.Token, _runSettings(), live.Progress, _algorithms())
+                : await StudyRunner.PreviewAsync(study, progress, _cancel.Token, _algorithms());
             live.Stop();
             Show(session);
             Status = session.Summary;

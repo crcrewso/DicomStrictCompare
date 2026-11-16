@@ -35,6 +35,9 @@ public sealed record MachineSettings
     /// <summary>Part of a GPU's name, or null for the first GPU.</summary>
     public string? Device { get; init; }
 
+    /// <summary>How a dose's algorithm is read from its names (<see cref="AlgorithmTokens"/>); null for the default list.</summary>
+    public string? AlgorithmTokens { get; init; }
+
     public static MachineSettings Defaults { get; } = new();
 
     /// <summary>%APPDATA%\DicomStrictCompare\settings.json on Windows, ~/.config/DicomStrictCompare/settings.json on Linux.</summary>

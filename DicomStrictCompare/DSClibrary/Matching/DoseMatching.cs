@@ -67,6 +67,11 @@ namespace DSClibrary.Matching
         /// <summary>The referenced plan's UID as compared: with its save time removed, see <see cref="PlanUids"/>.</summary>
         public string? PlanSopInstanceUid { get; }
         public int? BeamNumber { get; }
+        /// <summary>
+        /// The dose's algorithm when matching keeps algorithms apart (<see cref="PairingRules.KeysAlgorithm"/>); null
+        /// when unknown, which pairs only with unknown.
+        /// </summary>
+        public string? Algorithm { get; internal init; }
 
         private DoseMatchKey(
             DoseMatchStrategy strategy,
@@ -167,7 +172,7 @@ namespace DSClibrary.Matching
             DoseMatchStrategy.PlanUidAndBeamName => $"plan {PlanSopInstanceUid} / {BeamName}",
             DoseMatchStrategy.PlanLabelAndBeamName => $"{PlanLabel} / {BeamName}",
             _ => $"plan {PlanSopInstanceUid} beam {BeamNumber}",
-        };
+        } + (Algorithm is null ? "" : $" [{Algorithm}]");
     }
 
     /// <summary>A source dose and the target dose matched to it.</summary>
@@ -250,10 +255,14 @@ namespace DSClibrary.Matching
         /// Matches with label rules and overrides applied before keying (F2). With no rules this is
         /// exactly the strategy's own match.
         /// </summary>
+        /// <param name="sourceAlgorithm">The source folder's or set's algorithm, for doses whose names name none.</param>
+        /// <param name="targetAlgorithm">The same for the target.</param>
         public static DoseMatchResult Match(
             IEnumerable<RTDoseWithPlan> source,
             IEnumerable<RTDoseWithPlan> target,
-            PairingRules rules)
+            PairingRules rules,
+            string? sourceAlgorithm = null,
+            string? targetAlgorithm = null)
         {
             if (source is null) throw new ArgumentNullException(nameof(source));
             if (target is null) throw new ArgumentNullException(nameof(target));
@@ -267,8 +276,11 @@ namespace DSClibrary.Matching
             Func<string, string>? sourceLabel = rules.RewritesLabels ? rules.SourceKeyLabel : null;
             Func<string, string>? targetLabel = rules.RewritesLabels ? rules.TargetKeyLabel : null;
             Func<string, string>? field = rules.FieldRules.Count > 0 ? rules.KeyFieldName : null;
-            var sourceByKey = Index(source, strategy, sourceLabel, field, unmatchedSource, ambiguous, "source");
-            var targetByKey = Index(target, strategy, targetLabel, field, unmatchedTarget, ambiguous, "target");
+            // Algorithms apart unless the rules pair across them ({algorithm}): unknown pairs only with unknown.
+            Func<RTDoseWithPlan, string?>? sourceAlg = rules.KeysAlgorithm ? d => rules.Algorithms!.Of(d, sourceAlgorithm) : null;
+            Func<RTDoseWithPlan, string?>? targetAlg = rules.KeysAlgorithm ? d => rules.Algorithms!.Of(d, targetAlgorithm) : null;
+            var sourceByKey = Index(source, strategy, sourceLabel, field, sourceAlg, unmatchedSource, ambiguous, "source");
+            var targetByKey = Index(target, strategy, targetLabel, field, targetAlg, unmatchedTarget, ambiguous, "target");
 
             var pairs = new List<MatchedDosePair>();
             foreach (var (key, sources) in sourceByKey)
@@ -296,6 +308,7 @@ namespace DSClibrary.Matching
             DoseMatchStrategy strategy,
             Func<string, string>? rewriteLabel,
             Func<string, string>? rewriteField,
+            Func<RTDoseWithPlan, string?>? algorithm,
             List<UnmatchedDose> unmatchable,
             List<string> ambiguous,
             string side)
@@ -305,6 +318,7 @@ namespace DSClibrary.Matching
             foreach (var dose in doses)
             {
                 DoseMatchKey? key = DoseMatchKey.For(dose, strategy, rewriteLabel, rewriteField);
+                if (key is not null && algorithm is not null) key = key with { Algorithm = algorithm(dose) };
                 if (key is null)
                 {
                     unmatchable.Add(new UnmatchedDose(dose,

@@ -80,7 +80,10 @@ public sealed record ComparisonRequest(
     MaximumKind Maximum = MaximumKind.GlobalMax,
     ComparerSettings? Comparer = null,
     bool PartialTargetReads = false,
-    BatchComparer.ReadQueue? Queue = null);
+    BatchComparer.ReadQueue? Queue = null,
+    string? SourceAlgorithm = null,
+    string? TargetAlgorithm = null,
+    AlgorithmTokens? Algorithms = null);
 
 /// <summary>A result as a grid row: one matched pair under one criterion, flattened for display and CSV.</summary>
 public sealed record ResultRow(
@@ -193,7 +196,9 @@ public static class ComparisonRunner
         progress?.Report(target.ToString());
         cancellation.ThrowIfCancellationRequested();
 
-        var match = DoseMatcher.Match(source.Doses, target.Doses, request.Strategy);
+        // AAA pairs with AAA: each dose's algorithm from its names, else its folder's (crcrewso, 2026-11-16).
+        var rules = new PairingRules(request.Strategy) { Algorithms = request.Algorithms ?? AlgorithmTokens.Default };
+        var match = DoseMatcher.Match(source.Doses, target.Doses, rules, request.SourceAlgorithm, request.TargetAlgorithm);
         progress?.Report(match.ToString());
 
         // The engine from settings (HandWritten unless chosen); a GPU one is released when the run ends.

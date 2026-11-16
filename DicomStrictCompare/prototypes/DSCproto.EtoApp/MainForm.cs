@@ -42,6 +42,11 @@ public sealed class MainForm : Form
     private readonly TextBox _targetFolder = new() { PlaceholderText = "Folder of RT Dose and RT Plan files" };
     private readonly TextBox _sourceAlias = new() { Text = "Reference", Width = 160 };
     private readonly TextBox _targetAlias = new() { Text = "Target", Width = 160 };
+    // Each folder's algorithm, for doses whose plan label and beam name name none (crcrewso, 2026-11-16).
+    private readonly TextBox _sourceAlgorithm = new() { PlaceholderText = "if names lack it", Width = 140 };
+    private readonly TextBox _targetAlgorithm = new() { PlaceholderText = "if names lack it", Width = 140 };
+    private readonly TextBox _algorithmNames = new() { Text = AlgorithmTokens.Default.ToString(), Width = 420,
+        ToolTip = "Algorithm = token, token; ... Tokens are matched anywhere in a name, ignoring case." };
     private readonly RadioButtonList _strategy = new()
     {
         Orientation = Orientation.Horizontal,
@@ -103,7 +108,7 @@ public sealed class MainForm : Form
         // the folder rows, the splitter, and the action bar. (Measured 2026-11-08: without that, the
         // splitter landed in the status line's first column and the tabs never reached the right edge.)
         layout.BeginVertical();
-        void FolderRow(string caption, TextBox folder, string dialogTitle, TextBox alias)
+        void FolderRow(string caption, TextBox folder, string dialogTitle, TextBox alias, TextBox algorithm)
         {
             layout.BeginHorizontal();
             layout.Add(new Label { Text = caption, Width = 130, VerticalAlignment = VerticalAlignment.Center });
@@ -111,10 +116,12 @@ public sealed class MainForm : Form
             layout.Add(BrowseButton(folder, dialogTitle, ReferenceEquals(folder, _sourceFolder) ? _targetFolder : _sourceFolder));
             layout.Add(new Label { Text = "Alias", VerticalAlignment = VerticalAlignment.Center });
             layout.Add(alias);
+            layout.Add(new Label { Text = "Algorithm", VerticalAlignment = VerticalAlignment.Center });
+            layout.Add(algorithm);
             layout.EndHorizontal();
         }
-        FolderRow("Source (reference)", _sourceFolder, "Source (reference) folder", _sourceAlias);
-        FolderRow("Target", _targetFolder, "Target folder", _targetAlias);
+        FolderRow("Source (reference)", _sourceFolder, "Source (reference) folder", _sourceAlias, _sourceAlgorithm);
+        FolderRow("Target", _targetFolder, "Target folder", _targetAlias, _targetAlgorithm);
         layout.BeginHorizontal();
         layout.Add(new Label { Text = "Match doses by", Width = 130, VerticalAlignment = VerticalAlignment.Center });
         layout.Add(_strategy, xscale: true);
@@ -322,6 +329,7 @@ public sealed class MainForm : Form
         _partialTargetReads.Checked = settings.PartialTargetReads;
         _readers.Value = settings.Readers;
         _pairsHeld.Value = settings.PairsHeld;
+        _algorithmNames.Text = settings.AlgorithmTokens ?? AlgorithmTokens.Default.ToString();
         _loadingSettings = false;
         if (problem is not null) _status.Text = problem;
 
@@ -331,6 +339,14 @@ public sealed class MainForm : Form
         _partialTargetReads.CheckedChanged += (_, _) => SaveSettings();
         _readers.ValueChanged += (_, _) => SaveSettings();
         _pairsHeld.ValueChanged += (_, _) => SaveSettings();
+        _algorithmNames.TextChanged += (_, _) => SaveSettings();
+    }
+
+    /// <summary>The Algorithm names setting, or the default list when it doesn't parse (the status line says why).</summary>
+    private AlgorithmTokens ParsedAlgorithmNames()
+    {
+        try { return AlgorithmTokens.Parse(_algorithmNames.Text); }
+        catch (FormatException ex) { _status.Text = $"Algorithm names not understood, using the default list: {ex.Message}"; return AlgorithmTokens.Default; }
     }
 
     private MachineSettings CurrentSettings()
@@ -344,6 +360,7 @@ public sealed class MainForm : Form
             PartialTargetReads = _partialTargetReads.Checked == true,
             Readers = (int)_readers.Value,
             PairsHeld = Math.Max(1, (int)_pairsHeld.Value),
+            AlgorithmTokens = _algorithmNames.Text == AlgorithmTokens.Default.ToString() ? null : _algorithmNames.Text,
         };
     }
 
@@ -367,6 +384,9 @@ public sealed class MainForm : Form
         var layout = new DynamicLayout { Padding = new Padding(12), DefaultSpacing = new Size(8, 10) };
         layout.AddRow(new Label { Text = "Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study.", Wrap = WrapMode.Word });
         layout.AddRow(table);
+        layout.AddRow(new Label { Text = "Pairing", Font = SystemFonts.Bold() });
+        layout.AddRow(new Label { Text = "Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none.", Wrap = WrapMode.Word });
+        layout.AddRow(new TableLayout(new TableRow(L("Algorithm names"), _algorithmNames, null)) { Spacing = new Size(12, 8) });
         layout.AddRow(new Label { Text = "Kept in " + MachineSettings.DefaultPath, Wrap = WrapMode.Word });
         layout.Add(null, yscale: true);
         return new TabPage(layout) { Text = "Settings" };
@@ -400,7 +420,10 @@ public sealed class MainForm : Form
             _sourceFolder.Text, _targetFolder.Text, _sourceAlias.Text, _targetAlias.Text,
             _criteria.Select(c => c.ToSpec()).ToList(), strategy,
             DegreeOfParallelism: run.PairsAtOnce, Maximum: run.Maximum, Comparer: run.ComparerOrDefault,
-            PartialTargetReads: run.PartialTargetReads, Queue: run.Queue);
+            PartialTargetReads: run.PartialTargetReads, Queue: run.Queue,
+            SourceAlgorithm: string.IsNullOrWhiteSpace(_sourceAlgorithm.Text) ? null : _sourceAlgorithm.Text,
+            TargetAlgorithm: string.IsNullOrWhiteSpace(_targetAlgorithm.Text) ? null : _targetAlgorithm.Text,
+            Algorithms: ParsedAlgorithmNames());
 
         // Application.Instance.Invoke is Eto's way back to the UI thread from the runner's worker.
         var progress = new Progress<string>(line => Application.Instance.Invoke(() =>

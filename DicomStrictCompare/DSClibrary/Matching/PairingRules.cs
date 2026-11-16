@@ -102,6 +102,22 @@ namespace DSClibrary.Matching
 
         public bool RewritesLabels => LabelRules.Count > 0 || LabelOverrides.Count > 0 || FieldRules.Count > 0;
 
+        /// <summary>
+        /// How a dose's algorithm is read from its names; <see cref="AlgorithmTokens.Default"/> unless a front end sets
+        /// the user's list. Null keys no algorithm.
+        /// </summary>
+        public AlgorithmTokens? Algorithms { get; init; } = AlgorithmTokens.Default;
+
+        /// <summary>True when a rule rewrites to <c>{algorithm}</c>: the rules exist to pair across algorithms.</summary>
+        public bool PairsAcrossAlgorithms =>
+            LabelRules.Concat(FieldRules).Any(r => r.Replacement.Contains("{algorithm}", StringComparison.Ordinal));
+
+        /// <summary>
+        /// Whether the key carries the dose's algorithm, so AAA pairs only with AAA (crcrewso, 2026-11-16). A general
+        /// setting to allow cross-algorithm pairing is backlogged; today only rules with <c>{algorithm}</c> do.
+        /// </summary>
+        public bool KeysAlgorithm => Algorithms is not null && !PairsAcrossAlgorithms;
+
         /// <summary>The field name a dose is keyed by, on either side.</summary>
         public string KeyFieldName(string beamName)
         {

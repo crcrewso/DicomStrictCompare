@@ -32,6 +32,13 @@ The tool then:
    Studies saved with the older *plan UID and beam number* still open and pair as before. Doses with no match
    are listed rather than silently skipped.
 
+   **Every key also carries the dose's algorithm,** so AAA pairs only with AAA. Eclipse's exports don't record the
+   algorithm, so it's read from the plan label and beam name: *Settings, Algorithm names*, by default
+   `AAA = AAA; AXB = AXB, Acuros; eMC = eMC`, each token matched anywhere in a name, ignoring case. When the names
+   name none, the folder's *Algorithm* box (a study's dose-set *Algorithm*) is used. A dose with no algorithm, or
+   names that give two, pairs only with others that have none, as every dose did before 2026-11-16. Study rules
+   that rewrite to `{algorithm}` exist to pair across algorithms and leave it out of the key.
+
    **When several doses share a key** on either side (two copies of a plan, or a recalculation kept beside the
    original), none is picked. Every source x target pairing of that key is compared, and for each criterion only
    the **worst** is kept: a pairing that fails to load or compare first, then the highest % failed, then the most

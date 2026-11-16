@@ -60,7 +60,7 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
         Graph = new GraphViewModel(ComparisonRunner.LoadGrid, pickFolder);
         Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList(),
-            runSettings: () => RunSettings, applyRunSettings: Apply);
+            runSettings: () => RunSettings, applyRunSettings: Apply, algorithms: () => ParsedAlgorithmTokens);
     }
 
     /// <summary>The Study tab: several dose sets and the comparisons between them (design/comparison-studies.md).</summary>
@@ -104,6 +104,10 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _targetFolder = "";
     [ObservableProperty] private string _sourceAlias = "Reference";
     [ObservableProperty] private string _targetAlias = "Target";
+
+    /// <summary>Each folder's algorithm, for doses whose plan label and beam name name none (crcrewso, 2026-11-16).</summary>
+    [ObservableProperty] private string _sourceAlgorithm = "";
+    [ObservableProperty] private string _targetAlgorithm = "";
     /// <summary>How doses pair: one of <see cref="MatchModes.Window"/>; plan UID and beam name by default.</summary>
     [ObservableProperty] private DoseMatchStrategy _matchStrategy = DoseMatchStrategy.PlanUidAndBeamName;
 
@@ -159,6 +163,19 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>Loaded pairs the queue holds, when Readers is above 0.</summary>
     [ObservableProperty] private int _pairsHeld = MachineSettings.Defaults.PairsHeld;
 
+    /// <summary>How a dose's algorithm is read from its names: <c>Algorithm = token, token; ...</c> (Settings tab).</summary>
+    [ObservableProperty] private string _algorithmNames = DSClibrary.Matching.AlgorithmTokens.Default.ToString();
+
+    /// <summary>The list as parsed, or the default when the text doesn't parse (the Status line says why).</summary>
+    public DSClibrary.Matching.AlgorithmTokens ParsedAlgorithmTokens
+    {
+        get
+        {
+            try { return DSClibrary.Matching.AlgorithmTokens.Parse(AlgorithmNames); }
+            catch (FormatException ex) { Status = $"Algorithm names not understood, using the default list: {ex.Message}"; return DSClibrary.Matching.AlgorithmTokens.Default; }
+        }
+    }
+
     /// <summary>Where the machine settings are kept, or null for not kept (tests).</summary>
     public string? SettingsPath { get; }
     private bool _loadingSettings;
@@ -172,6 +189,7 @@ public sealed partial class MainViewModel : ObservableObject
         PartialTargetReads = PartialTargetReads,
         Readers = Math.Max(0, Readers),
         PairsHeld = Math.Max(1, PairsHeld),
+        AlgorithmTokens = AlgorithmNames == DSClibrary.Matching.AlgorithmTokens.Default.ToString() ? null : AlgorithmNames,
     };
 
     private void LoadSettings(MachineSettings s)
@@ -185,6 +203,7 @@ public sealed partial class MainViewModel : ObservableObject
             PartialTargetReads = s.PartialTargetReads;
             Readers = s.Readers;
             PairsHeld = s.PairsHeld;
+            AlgorithmNames = s.AlgorithmTokens ?? DSClibrary.Matching.AlgorithmTokens.Default.ToString();
         }
         finally { _loadingSettings = false; }
     }
@@ -197,6 +216,7 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     partial void OnEngineChanged(ComparerKind value) => SaveSettings();
+    partial void OnAlgorithmNamesChanged(string value) => SaveSettings();
     partial void OnThreadsChanged(ThreadChoice value) => SaveSettings();
     partial void OnPairsAtOnceChanged(int value) => SaveSettings();
     partial void OnPartialTargetReadsChanged(bool value) => SaveSettings();
@@ -314,7 +334,10 @@ public sealed partial class MainViewModel : ObservableObject
             SourceFolder, TargetFolder, SourceAlias, TargetAlias,
             Criteria.Select(c => c.ToSpec()).ToList(), Strategy,
             DegreeOfParallelism: PairsAtOnce > 0 ? PairsAtOnce : null, Maximum: Maximum, Comparer: ComparerSettings,
-            PartialTargetReads: PartialTargetReads, Queue: RunSettings.Queue);
+            PartialTargetReads: PartialTargetReads, Queue: RunSettings.Queue,
+            SourceAlgorithm: string.IsNullOrWhiteSpace(SourceAlgorithm) ? null : SourceAlgorithm,
+            TargetAlgorithm: string.IsNullOrWhiteSpace(TargetAlgorithm) ? null : TargetAlgorithm,
+            Algorithms: ParsedAlgorithmTokens);
 
         // IProgress<T> marshals back to the thread that created it, so the runner can report from its worker.
         var progress = new Progress<string>(line => { Log += line + Environment.NewLine; Status = line; });

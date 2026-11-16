@@ -147,31 +147,35 @@ public sealed class StudySession
 public static class StudyRunner
 {
     /// <summary>Reads and pairs only: the preview a person checks before committing to a long run.</summary>
-    public static StudySession Preview(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default) =>
-        Execute(study, Array.Empty<DtaSpec>(), null, progress, cancellation, compare: false, StudyRunSettings.Default);
+    /// <param name="algorithms">How doses' algorithms are read from their names; <see cref="AlgorithmTokens.Default"/> when null.</param>
+    public static StudySession Preview(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default,
+        AlgorithmTokens? algorithms = null) =>
+        Execute(study, Array.Empty<DtaSpec>(), null, progress, cancellation, compare: false, StudyRunSettings.Default, algorithms: algorithms);
 
     /// <param name="rowsSoFar">Each pair's rows as soon as it is compared, in completion order (D30); the session's
     /// rows are the final, ordered set.</param>
     public static StudySession Run(Study study, IReadOnlyList<DtaSpec> criteria, int? degreeOfParallelism = null,
         IProgress<string>? progress = null, CancellationToken cancellation = default, StudyRunSettings? run = null,
-        IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null)
+        IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null, AlgorithmTokens? algorithms = null)
     {
         ArgumentNullException.ThrowIfNull(criteria);
         if (criteria.Count == 0) throw new ArgumentException("At least one criterion is required.", nameof(criteria));
         run ??= study.Run;
-        return Execute(study, criteria, degreeOfParallelism ?? run.PairsAtOnce, progress, cancellation, compare: true, run, rowsSoFar);
+        return Execute(study, criteria, degreeOfParallelism ?? run.PairsAtOnce, progress, cancellation, compare: true, run, rowsSoFar, algorithms);
     }
 
     public static Task<StudySession> RunAsync(Study study, IReadOnlyList<DtaSpec> criteria, IProgress<string>? progress = null,
-        CancellationToken cancellation = default, StudyRunSettings? run = null, IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null) =>
-        Task.Run(() => Run(study, criteria, null, progress, cancellation, run, rowsSoFar), cancellation);
+        CancellationToken cancellation = default, StudyRunSettings? run = null, IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null,
+        AlgorithmTokens? algorithms = null) =>
+        Task.Run(() => Run(study, criteria, null, progress, cancellation, run, rowsSoFar, algorithms), cancellation);
 
-    public static Task<StudySession> PreviewAsync(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default) =>
-        Task.Run(() => Preview(study, progress, cancellation), cancellation);
+    public static Task<StudySession> PreviewAsync(Study study, IProgress<string>? progress = null, CancellationToken cancellation = default,
+        AlgorithmTokens? algorithms = null) =>
+        Task.Run(() => Preview(study, progress, cancellation, algorithms), cancellation);
 
     private static StudySession Execute(Study study, IReadOnlyList<DtaSpec> criteria, int? parallelism,
         IProgress<string>? progress, CancellationToken cancellation, bool compare, StudyRunSettings run,
-        IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null)
+        IProgress<IReadOnlyList<StudyRow>>? rowsSoFar = null, AlgorithmTokens? algorithms = null)
     {
         ArgumentNullException.ThrowIfNull(study);
         var problems = study.Problems();
@@ -207,7 +211,9 @@ public static class StudyRunner
             cancellation.ThrowIfCancellationRequested();
             var sourceSet = study.Set(c.SourceSet);
             var targetSet = study.Set(c.TargetSet);
-            var match = DoseMatcher.Match(doses[c.SourceSet], doses[c.TargetSet], c.Rules);
+            // Each set's own Algorithm is the fallback for doses whose names name none.
+            var rules = algorithms is null ? c.Rules : c.Rules with { Algorithms = algorithms };
+            var match = DoseMatcher.Match(doses[c.SourceSet], doses[c.TargetSet], rules, sourceSet.Algorithm, targetSet.Algorithm);
             var pairs = match.Pairs.Select(p => new StudyPair(
                 c, p, FieldFacts.Of(p), PlanCheck.Compare(p), DoseWarnings.For(sourceSet, targetSet, p.Source, p.Target))).ToArray();
             var preview = new ComparisonPreview(c, match, PairingPreview.NearMisses(match, c.Rules), pairs, DoseWarnings.ForSets(sourceSet, targetSet));
