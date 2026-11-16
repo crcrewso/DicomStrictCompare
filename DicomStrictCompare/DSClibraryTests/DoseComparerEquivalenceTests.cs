@@ -169,6 +169,13 @@ namespace DSClibraryTests
             Assert.AreEqual(Run(Reference, source, source, dta, true).TotalCount, Run(new SingleThreadComparer(), source, source, dta, true).TotalCount);
         }
 
+        [TestMethod]
+        public void IlgpuSaysWhyItCantStartWithoutDynamicCode()
+        {
+            Assert.IsNull(DSClibrary.Comparing.Gpu.IlgpuComparer.DynamicCodeProblem(true));
+            StringAssert.Contains(DSClibrary.Comparing.Gpu.IlgpuComparer.DynamicCodeProblem(false), "dynamic code is off");
+        }
+
         // A small smooth field (a blob or two plus noise), with the features the box must survive chosen per case.
         private static (DoseMatrixOptimal, DoseMatrixOptimal, Dta, bool, string) RandomCase(Random r, int n)
         {

@@ -42,8 +42,15 @@ namespace DSClibrary.Comparing.Gpu
             catch (Exception ex) { throw new ComparerUnavailableException($"ILGPU is unavailable: {ex.Message}", ex); }
         }
 
+        /// <summary>Why ILGPU can't start in a process without dynamic code, or null when it has it.</summary>
+        internal static string? DynamicCodeProblem(bool dynamicCodeSupported) => dynamicCodeSupported ? null :
+            "ILGPU compiles its kernels while running, and this process doesn't allow that (dynamic code is off, as in "
+            + "a Native AOT build or a file-based 'dotnet run x.cs' script). Use the OpenCL engine, or run with dynamic code on.";
+
         public IlgpuComparer(GpuPrecision precision = GpuPrecision.Double, string? device = null)
         {
+            if (DynamicCodeProblem(System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported) is { } problem)
+                throw new ComparerUnavailableException(problem);
             Precision = precision;
             _context = Context.Create(b => b.OpenCL());
             var chosen = _context.Devices.FirstOrDefault(d => d.AcceleratorType == AcceleratorType.OpenCL
