@@ -6,6 +6,9 @@
   <Project Path="../tools/DSCresample/DSCresample.csproj">
     <Platform Project="x64" />
   </Project>
+  <Project Path="../tools/DSCprofiles/DSCprofiles.csproj">
+    <Platform Project="x64" />
+  </Project>
   <Project Path="DSCgpu/DSCgpu.csproj" />
   <Project Path="DSCproto.AvaloniaApp/DSCproto.AvaloniaApp.csproj" />
   <Project Path="DSCproto.EtoApp/DSCproto.EtoApp.csproj" />

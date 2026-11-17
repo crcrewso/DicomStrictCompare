@@ -178,7 +178,7 @@ namespace DSClibrary.Studies
         }
 
         /// <summary>The first y on the CAX column (nearest voxels to the isocentre's x and z) with dose above 1 % of the column's maximum.</summary>
-        private static double? SurfaceFromDose(DoseMatrixOptimal g, Position3 iso)
+        internal static double? SurfaceFromDose(DoseMatrixOptimal g, Position3 iso)
         {
             int ix = (int)Math.Round((iso.X - g.X0) / g.XRes), iz = (int)Math.Round((iso.Z - g.Z0) / g.ZRes);
             if (ix < 0 || iz < 0 || ix >= g.DimensionX || iz >= g.DimensionZ) return null;

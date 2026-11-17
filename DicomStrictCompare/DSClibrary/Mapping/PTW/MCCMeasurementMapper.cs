@@ -124,7 +124,8 @@ namespace DSClibrary.Mapping.PTW
         }
 
         /// <summary>
-        /// PTW writes X for photons and E for electrons. Anything else is left unknown rather than
+        /// PTW writes X for photons and E for electrons; the Equinox commissioning scans (2026-07) write EL for
+        /// electrons (measured 2026-11-17). Anything else is left unknown rather than
         /// guessed, which makes the beam key incomplete and sends the profile to
         /// <see cref="MeasurementSet.Unresolved"/> where a caller can see it.
         /// </summary>
@@ -134,6 +135,7 @@ namespace DSClibrary.Mapping.PTW
                 "X" => Modality.Photon,
                 "P" => Modality.Photon,
                 "E" => Modality.Electron,
+                "EL" => Modality.Electron,
                 _ => Modality.Unknown
             };
 

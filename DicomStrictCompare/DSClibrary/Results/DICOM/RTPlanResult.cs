@@ -145,6 +145,13 @@ namespace DSClibrary.Results.DICOM
             string.Equals(PatientPosition, "HFS", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>One WedgeSequence item: WedgeID (300A,00D4), WedgeType (300A,00D3), WedgeAngle (300A,00D5) in degrees and
+    /// WedgeOrientation (300A,00D8) in degrees, as the plan states them.</summary>
+    public sealed record RTPlanWedge(string? Id, string? Type, double? AngleDegrees, double? OrientationDegrees)
+    {
+        public bool IsDynamic => string.Equals(Type, "DYNAMIC", StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>
     /// One item of an RT Plan's BeamSequence, in DICOM's own names and units.
     /// <para>
@@ -234,6 +241,20 @@ namespace DSClibrary.Results.DICOM
                 .Select(w => w.GetString(DicomTags.WedgeID))
                 .Where(id => !string.IsNullOrEmpty(id))
                 .Select(id => id!)
+                .ToArray();
+
+        /// <summary>
+        /// Each WedgeSequence item's ID, type, angle and orientation. Measured on QAtpsPTW's OtherFields
+        /// (2026-11-17): Eclipse writes an EDW as type DYNAMIC with orientation 0 for IN and 180 for OUT, and the
+        /// angle in degrees. Empty when there are none.
+        /// </summary>
+        public IReadOnlyList<RTPlanWedge> Wedges =>
+            _beam.GetSequence(DicomTags.WedgeSequence)
+                .Select(w => new RTPlanWedge(
+                    w.GetString(DicomTags.WedgeID),
+                    w.GetString(DicomTags.WedgeType),
+                    w.GetDecimal(DicomTags.WedgeAngle),
+                    w.GetDecimal(DicomTags.WedgeOrientation)))
                 .ToArray();
 
         /// <summary>NumberOfBlocks (300A,00F0): an electron cutout is a block. Null when absent.</summary>

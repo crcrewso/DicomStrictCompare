@@ -138,6 +138,10 @@ namespace DSClibrary.Results.DICOM
         public static readonly DicomTag NumberOfWedges = new(0x300A, 0x00D0);
         public static readonly DicomTag WedgeSequence = new(0x300A, 0x00D1);
         public static readonly DicomTag WedgeID = new(0x300A, 0x00D4);
+        // A wedge's type, angle and orientation: profile comparison pairs an EDW scan with its beam by these.
+        public static readonly DicomTag WedgeType = new(0x300A, 0x00D3);
+        public static readonly DicomTag WedgeAngle = new(0x300A, 0x00D5);
+        public static readonly DicomTag WedgeOrientation = new(0x300A, 0x00D8);
         public static readonly DicomTag NumberOfBlocks = new(0x300A, 0x00F0);
         public static readonly DicomTag BlockSequence = new(0x300A, 0x00F4);
         public static readonly DicomTag BlockData = new(0x300A, 0x0106);
