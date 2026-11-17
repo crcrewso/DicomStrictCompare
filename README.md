@@ -197,7 +197,21 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
   - `<stem>-results.csv`: one row per scan and dose;
   - `<stem>-unpaired.csv`: each scan with no dose, with the reason;
   - `<stem>-curves.csv`, with `--curves`;
-  - `<stem>-settings.txt`.
+  - `<stem>-settings.txt`;
+  - with `--plots`, an image of every compared pair in `<stem>-plots/`, or with `--plots-failing` only pairs with a
+    failed point. Each is named after its results row (`0012 ...png`), which its `plot` column also gives.
+    `--plot-format svg` and `--plot-size 1600x1200` change the format and size (PNG, 1200 x 900 by default).
+- **Plots.** The figure (`DSCplots/ProfilePlot`) has two parts:
+  - **above,** the measured and calculated curves as compared, normalised, with the cutoff line and a box of both
+    sides' metrics;
+  - **below,** each tested point: gamma with its pass line at 1, or for the strict test the dose difference with the
+    tolerance band. Points are marked pass or fail; a strict point outside the band can still pass on distance.
+- **In the windows.** The Graphs tab's *dose versus scans* mode (Avalonia and Eto) pairs and compares by the same
+  rules and draws the same figure for the chosen scan and dose.
+  - The criterion is 1 %/1 mm gamma with the measurement as reference by default; the test and the reference can
+    be changed.
+  - *Save plot* writes the figure shown as PNG or SVG.
+  - *Save plots of listed scans* writes one for every scan the filters list, against every dose it pairs with.
 
 ## Assumptions and limitations
 
@@ -271,6 +285,7 @@ DicomStrictCompare/
   DSCcoreTest/      MSTest tests for the old app (with test DICOM data), no longer built
   DSClibraryTests/  MSTest tests for the library (with test DICOM data and a PTW water tank scan)
   tools/            command-line tools: DSCresample (resampling), DSCprofiles (water-tank scans against doses)
+  DSCplots/         figures of the library's results (ScottPlot 5), shared by the windows and the tools
 design/             Design notes, and the data-flow diagrams (data-flow.md)
 docs/               Generated DocFX API documentation (HTML)
 ```

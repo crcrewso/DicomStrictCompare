@@ -71,42 +71,101 @@ public class ScanCatalogTests
         Assert.IsNotNull(vm.SelectedScan);
         Assert.AreEqual(0, vm.DoseCandidates.Count);
         Assert.IsNull(vm.Curve);
-        Assert.IsTrue(vm.Status.Contains("No source dose matches 6 MV 30 x 30 cm"), vm.Status);
-        Assert.IsTrue(vm.ScanSummary.StartsWith("11 photon open-field scan(s) in 1 file(s)"), vm.ScanSummary);
+        Assert.IsNull(vm.ScanResult);
+        Assert.IsFalse(vm.CanSavePlot);
+        Assert.IsTrue(vm.Status.Contains("No source dose matches 6 MV 30 x 30 cm: "), vm.Status);
+        Assert.IsTrue(vm.Status.Contains("energy"), "the reason names the first difference: " + vm.Status);
+        Assert.IsTrue(vm.ScanSummary.StartsWith("11 photon scan(s) in 1 file(s)"), vm.ScanSummary);
     }
 
+    /// <summary>
+    /// A pretend crossplane scan at 100 mm depth whose points are the dose's own values along that line, in arbitrary
+    /// units: the library pairs it with that dose, the comparison passes every point with the curves equal, and the
+    /// figure saves as PNG and SVG.
+    /// </summary>
     [TestMethod]
-    public void AScanTakenFromTheDoseItselfOverlaysItExactly()
+    public void AScanTakenFromTheDoseItselfPassesEverywhereAndItsPlotSaves()
     {
         string folder = Resources();
         var contents = RTFolderReader.Read(folder);
         var dose = contents.Doses.First(d => d.Beam?.BeamName == "X-100A-10.0-1");
-        var loaded = BeamLines.LoadDose(dose, ComparisonRunner.LoadWithEvilDicom);
-        Assert.IsTrue(loaded.IsocentreFromPlan);
+        var grid = ComparisonRunner.LoadWithEvilDicom(dose.Dose.SourcePath);
+        var plan = ScanDoseMatching.FromPlan(dose.Beam!).Setup!;
+        var (frame, refusal) = PhantomFrame.For(dose.Beam, dose.Plan?.SetupFor(dose.Beam!), grid, null);
+        Assert.IsNotNull(frame, refusal);
 
-        // A pretend crossplane scan at 100 mm depth, whose points are the dose's own values there.
-        var xs = Enumerable.Range(-60, 121).Select(i => (double)i).ToArray();
-        var line = DSClibrary.Resampling.GridLines.Along(loaded.Grid, DSClibrary.Resampling.GridAxis.X, loaded.IsoY + 100, loaded.IsoZ, xs.Select(x => loaded.IsoX + x).ToArray());
-        var beam = new BeamKey(Modality.Photon, 10, false, Distance.FromMillimetres(100), Distance.FromMillimetres(100), Distance.FromMillimetres(1000));
-        var profile = new Profile(beam, new ScanKey(CurveType.Crossplane, Distance.FromMillimetres(100)),
-            xs.Select((x, i) => new ProfilePoint(Distance.FromMillimetres(x), line[i] * 1234.5, null)));   // arbitrary units
-        var scan = new ScanDescriptor(profile, "pretend.mcc", 1, "10 MV", "10 x 10 cm", false, 10, false, 100, 100, CurveKind.Crossplane, 100);
+        var beam = new BeamKey(Modality.Photon, 10, false, Distance.FromMillimetres(plan.CrossplaneMm), Distance.FromMillimetres(plan.InplaneMm),
+            plan.SsdMm is { } ssd ? Distance.FromMillimetres(ssd) : null);
+        var key = new ScanKey(CurveType.Crossplane, Distance.FromMillimetres(100));
+        var positions = Enumerable.Range(-60, 121).Select(i => new ProfilePoint(Distance.FromMillimetres(i), 1, null));
+        var line = DoseLineSampler.Sample(grid, frame!, new Profile(beam, key, positions), dose.Dose.SourcePath).Calculated;
+        var profile = new Profile(beam, key, line.Points.Select(p => new ProfilePoint(p.Position, p.Value * 12.345, null)));   // arbitrary units
+        var scan = new ScanDescriptor(profile, "pretend.mcc", 1, "10 MV", "10 x 10 cm", false, 10, false, plan.CrossplaneMm, plan.InplaneMm, CurveKind.Crossplane, 100);
 
-        // The matcher finds the 10 MV 10 x 10 beams, open fields first.
         var candidates = ScanCatalog.MatchingDoses(scan, contents.Doses);
-        Assert.IsTrue(candidates.Count >= 1, "a 10 MV 10 x 10 dose exists in resources/");
-        Assert.IsTrue(candidates.All(c => c.Dose.Beam!.NominalBeamEnergy == 10));
-        Assert.IsTrue(candidates.Any(c => ReferenceEquals(c.Dose, dose)));
-        Assert.IsFalse(candidates.Any(c => c.Dose.Beam!.IsFluenceModeFff == true), "FFF beams are a different filter");
+        Assert.IsTrue(candidates.Any(c => ReferenceEquals(c.Dose, dose)), "the scan pairs with the dose it came from");
+        Assert.IsTrue(candidates.All(c => c.Dose.Beam!.NominalBeamEnergy == 10 && c.Dose.Beam.IsFluenceModeFff != true));
 
-        var curve = BeamLines.ScanOverDose(scan, loaded);
-        var (positions, calculated, measured) = curve.Overlap();
-        Assert.AreEqual(121, positions.Length);
-        for (int i = 0; i < positions.Length; i++)
-            Assert.AreEqual(calculated[i], measured[i], 1e-9, $"at {positions[i]} mm");
-        Assert.AreEqual(100.0, measured[Array.IndexOf(positions, 0.0)], 1e-9, "normalised to the central axis");
-        Assert.IsTrue(curve.ValueLabel.Contains("central axis"));
-        Assert.IsTrue(measured.Max() < 110 && measured.Min() >= 0);
+        var outcome = ScanComparison.Run(scan, candidates.First(c => ReferenceEquals(c.Dose, dose)), grid, new(1, 1));
+        Assert.IsNotNull(outcome.Result, outcome.Status);
+        var r = outcome.Result!;
+        Assert.AreEqual(100.0, r.PassRate, 1e-9, outcome.Status);
+        Assert.AreEqual(NormalizationType.CentralAxis, r.Normalization);
+        for (int i = 0; i < r.Measured.Points.Count; i++)
+            Assert.AreEqual(r.Calculated.Points[i].Value, r.Measured.Points[i].Value, 1e-9);
+        Assert.IsTrue(outcome.Status.StartsWith("Gamma 1%/1 mm, measured reference: 100.00% of "), outcome.Status);
+        Assert.IsTrue(outcome.Labels!.Title.EndsWith(": crossplane at 100 mm"), outcome.Labels.Title);
+
+        string dir = Path.Combine(Path.GetTempPath(), "dsc-plot-test-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            foreach (string format in ScanComparison.PlotFormats)
+            {
+                string path = Path.Combine(dir, ScanComparison.FileName(scan, candidates[0], format));
+                Directory.CreateDirectory(dir);
+                DSCplots.ProfilePlot.Save(r, outcome.Labels, path, 800, 600);
+                Assert.IsTrue(new FileInfo(path).Length > 1000, $"{format}: {path}");
+            }
+            Assert.IsTrue(File.ReadAllText(Directory.GetFiles(dir, "*.svg").Single()).Contains("<svg"));
+            Assert.ThrowsExactly<ArgumentException>(() => DSCplots.ProfilePlot.Save(r, outcome.Labels, Path.Combine(dir, "x.jpg")));
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>The strict test's figure draws the dose difference, and a criterion the library refuses comes back as a status.</summary>
+    [TestMethod]
+    public void TheStrictTestAndAnInvalidCriterionAreReported()
+    {
+        string folder = Resources();
+        var contents = RTFolderReader.Read(folder);
+        var dose = contents.Doses.First(d => d.Beam?.BeamName == "X-100A-10.0-1");
+        var grid = ComparisonRunner.LoadWithEvilDicom(dose.Dose.SourcePath);
+        var plan = ScanDoseMatching.FromPlan(dose.Beam!).Setup!;
+        var beam = new BeamKey(Modality.Photon, 10, false, Distance.FromMillimetres(plan.CrossplaneMm), Distance.FromMillimetres(plan.InplaneMm),
+            plan.SsdMm is { } ssd ? Distance.FromMillimetres(ssd) : null);
+        var (frame, _) = PhantomFrame.For(dose.Beam, dose.Plan?.SetupFor(dose.Beam!), grid, null);
+        var key = new ScanKey(CurveType.Pdd, null);
+        var depths = Enumerable.Range(0, 150).Select(i => new ProfilePoint(Distance.FromMillimetres(i), 1, null));
+        var line = DoseLineSampler.Sample(grid, frame!, new Profile(beam, key, depths), dose.Dose.SourcePath).Calculated;
+        // 2 % hotter beyond 50 mm: the strict 1 % test fails there and passes above.
+        var profile = new Profile(beam, key, line.Points.Select(p => new ProfilePoint(p.Position, p.Value * (p.Position.Millimetres > 50 ? 1.02 : 1), null)));
+        var scan = new ScanDescriptor(profile, "pretend.mcc", 2, "10 MV", "10 x 10 cm", false, 10, false, plan.CrossplaneMm, plan.InplaneMm, CurveKind.DepthDose, null);
+        var candidate = new DoseCandidate(dose, "");
+
+        var strict = ScanComparison.Run(scan, candidate, grid, new(1, 0, ProfileTest.Strict));
+        Assert.IsNotNull(strict.Result, strict.Status);
+        Assert.IsTrue(strict.Result!.PassRate is > 0 and < 100, strict.Status);
+        Assert.IsTrue(strict.Status.StartsWith("Dose difference 1%, measured reference: "), strict.Status);
+        var multiplot = new ScottPlot.Multiplot();
+        DSCplots.ProfilePlot.Fill(multiplot, strict.Result, strict.Labels!);
+        Assert.AreEqual(2, ScottPlot.IMultiplotExtensions.Count(multiplot), "curves above, points below");
+
+        var invalid = ScanComparison.Run(scan, candidate, grid, new(1, 0, ProfileTest.Gamma));
+        Assert.IsNull(invalid.Result);
+        Assert.IsTrue(invalid.Status.StartsWith("Invalid criterion: "), invalid.Status);
     }
 
     [TestMethod]

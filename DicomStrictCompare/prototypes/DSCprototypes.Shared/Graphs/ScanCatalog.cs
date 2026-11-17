@@ -48,7 +48,13 @@ public sealed record DoseCandidate(RTDoseWithPlan Dose, string Note)
 /// and crossplane the X left-right axis, depths cluster at dmax, 50, 100, 200 and 300 mm, 981 scans
 /// are in arbitrary units and the rest in GY without a calibration flag - so curves are overlaid
 /// normalised, which is also crcrewso's rule (2026-11-08: "for the most part profiles are treated as
-/// relative"). The 142 wedge scans carry a WEDGE header and a blank FILTER and are left out for now.
+/// relative"). The 142 wedge scans carry a WEDGE header and a blank FILTER.
+/// </para>
+/// <para>
+/// Since 2026-11-17 a scan is paired with doses by the library's rule, <see cref="ScanDoseMatching"/>, which also reads
+/// the field's centre and an EDW's angle and direction, so wedge scans are listed too (their field-size label carries
+/// the wedge) and an asymmetric field pairs only with its own dose. A wedge scan whose wedge can't be read is still
+/// left out, and counted.
 /// </para>
 /// </summary>
 public static class ScanCatalog
@@ -79,7 +85,9 @@ public static class ScanCatalog
                 catch (Exception ex) { errors.Add($"{Path.GetFileName(file)} scan {scan.ScanNumber}: {ex.Message}"); continue; }
 
                 if (profile.Beam.Modality == Modality.Electron) { electrons++; continue; }
-                if (scan.Text("WEDGE").Length > 0 || (profile.Beam.WedgeAngleDegrees ?? 0) != 0) { wedges++; continue; }
+                var setup = ScanDoseMatching.FromScan(profile).Setup;
+                bool wedged = scan.Text("WEDGE").Length > 0 || (profile.Beam.WedgeAngleDegrees ?? 0) != 0;
+                if (wedged && setup?.WedgeAngleDegrees is not > 0) { wedges++; continue; }
                 CurveKind? kind = profile.Scan.CurveType switch
                 {
                     CurveType.Pdd => CurveKind.DepthDose,
@@ -95,7 +103,7 @@ public static class ScanCatalog
                 double inplane = profile.Beam.FieldInplane.Value.Millimetres;
                 scans.Add(new ScanDescriptor(
                     profile, file, scan.ScanNumber,
-                    EnergyLabel(profile.Beam), FieldSizeLabel(cross, inplane),
+                    EnergyLabel(profile.Beam), setup is null ? FieldSizeLabel(cross, inplane) : FieldLabel(setup),
                     false, profile.Beam.Energy.Value, profile.Beam.IsFff == true, cross, inplane,
                     kind.Value, profile.Scan.Depth?.Millimetres));
             }
@@ -103,7 +111,7 @@ public static class ScanCatalog
 
         var ordered = scans
             .OrderBy(s => s.EnergyValue).ThenBy(s => s.IsFff)
-            .ThenBy(s => s.FieldCrossplaneMm * s.FieldInplaneMm).ThenBy(s => s.FieldCrossplaneMm)
+            .ThenBy(s => s.FieldCrossplaneMm * s.FieldInplaneMm).ThenBy(s => s.FieldCrossplaneMm).ThenBy(s => s.FieldSize, StringComparer.Ordinal)
             .ThenBy(s => s.Kind).ThenBy(s => s.DepthMm ?? -1).ThenBy(s => s.File, StringComparer.Ordinal).ThenBy(s => s.ScanNumber)
             .ToArray();
         return new LoadResult(ordered, files, electrons, wedges, other, errors);
@@ -117,47 +125,46 @@ public static class ScanCatalog
     public static string FieldSizeLabel(double crossMm, double inplaneMm) =>
         (crossMm / 10).ToString("0.#", CultureInfo.InvariantCulture) + " x " + (inplaneMm / 10).ToString("0.#", CultureInfo.InvariantCulture) + " cm";
 
+    /// <summary>"10 x 10 cm", with the centre when the field is off the axis and the wedge when there is one:
+    /// "10 x 10 cm centred (0, 50) mm", "20 x 20 cm, wedge 25 OUT".</summary>
+    public static string FieldLabel(BeamSetup setup)
+    {
+        var ci = CultureInfo.InvariantCulture;
+        string label = FieldSizeLabel(setup.CrossplaneMm, setup.InplaneMm);
+        if (Math.Abs(setup.CentreCrossplaneMm) > 0.05 || Math.Abs(setup.CentreInplaneMm) > 0.05)
+            label += $" centred ({setup.CentreCrossplaneMm.ToString("0.#", ci)}, {setup.CentreInplaneMm.ToString("0.#", ci)}) mm";
+        if (setup.WedgeAngleDegrees is > 0 and var w)
+            label += $", wedge {w.ToString("0.#", ci)} {setup.WedgeDirection}".TrimEnd();
+        return label;
+    }
+
     public static IReadOnlyList<string> Energies(IEnumerable<ScanDescriptor> scans) =>
         scans.OrderBy(s => s.IsElectron).ThenBy(s => s.EnergyValue).ThenBy(s => s.IsFff).Select(s => s.Energy).Distinct().ToArray();
 
     public static IReadOnlyList<string> FieldSizes(IEnumerable<ScanDescriptor> scans) =>
-        scans.OrderBy(s => s.FieldCrossplaneMm * s.FieldInplaneMm).ThenBy(s => s.FieldCrossplaneMm).Select(s => s.FieldSize).Distinct().ToArray();
+        scans.OrderBy(s => s.FieldCrossplaneMm * s.FieldInplaneMm).ThenBy(s => s.FieldCrossplaneMm).ThenBy(s => s.FieldSize, StringComparer.Ordinal)
+             .Select(s => s.FieldSize).Distinct().ToArray();
 
     public static IReadOnlyList<ScanDescriptor> Filter(IEnumerable<ScanDescriptor> scans, string? energy, string? fieldSize) =>
         scans.Where(s => (energy is null || energy == AnyEnergy || s.Energy == energy)
                       && (fieldSize is null || fieldSize == AnyFieldSize || s.FieldSize == fieldSize)).ToArray();
 
     /// <summary>
-    /// The doses whose plan beam is the scan's beam: same modality, energy to 0.01, same filter (a
-    /// plan that does not say is taken as flattened), and the same field size to half a millimetre,
-    /// crossplane against the X jaws and inplane against the Y jaws. SSD is not compared: the scans
-    /// all say 1000 mm and the plans never say (see <c>RTDoseVolumeMapper.DefaultSsd</c>). Open
-    /// fields at gantry zero come first; an MLC-shaped or rotated beam is offered after them with a
-    /// note, not hidden, because the jaw size alone cannot tell an open field from a shaped one.
+    /// The doses whose plan beam is the scan's beam, by the library's rule (<see cref="ScanDoseMatching"/>: modality,
+    /// energy, filter, field size and centre in tank axes, wedge angle and direction, SSD when the plan states one;
+    /// MLC-shaped and arc beams never pair), with any note about the pairing. In dose path order.
     /// </summary>
-    public static IReadOnlyList<DoseCandidate> MatchingDoses(ScanDescriptor scan, IEnumerable<RTDoseWithPlan> doses)
-    {
-        var found = new List<(DoseCandidate Candidate, int Rank)>();
-        foreach (var dose in doses)
-        {
-            var beam = dose.Beam;
-            if (beam is null) continue;
-            if (!string.Equals(beam.RadiationType, "PHOTON", StringComparison.OrdinalIgnoreCase)) continue;
-            if (beam.NominalBeamEnergy is not { } energy || Math.Abs(energy - scan.EnergyValue) > 0.011) continue;
-            bool planFff = beam.IsFluenceModeFff == true;
-            if (planFff != scan.IsFff) continue;
-            var (cross, inplane) = beam.FieldSizeAtIsocentre;
-            if (cross is null || inplane is null) continue;
-            if (Math.Abs(cross.Value - scan.FieldCrossplaneMm) > 0.5 || Math.Abs(inplane.Value - scan.FieldInplaneMm) > 0.5) continue;
+    public static IReadOnlyList<DoseCandidate> MatchingDoses(ScanDescriptor scan, IEnumerable<RTDoseWithPlan> doses) =>
+        Match(scan, doses).Candidates;
 
-            bool mlc = beam.LeafJawPositions.Keys.Any(k => k.StartsWith("MLC", StringComparison.OrdinalIgnoreCase));
-            bool gantryZero = Math.Abs(beam.GantryAngle ?? 0) < 0.1 && Math.Abs(beam.BeamLimitingDeviceAngle ?? 0) < 0.1;
-            var notes = new List<string>();
-            if (mlc) notes.Add("MLC in the plan: the jaw size may not be the field");
-            if (!gantryZero) notes.Add($"gantry {beam.GantryAngle:0.#}, collimator {beam.BeamLimitingDeviceAngle:0.#}: the geometry reading assumes 0/0");
-            int rank = (mlc ? 1 : 0) + (gantryZero ? 0 : 2);
-            found.Add((new DoseCandidate(dose, string.Join("; ", notes)), rank));
-        }
-        return found.OrderBy(f => f.Rank).ThenBy(f => f.Candidate.Dose.Dose.SourcePath, StringComparer.Ordinal).Select(f => f.Candidate).ToArray();
+    /// <summary>The same, with the reason when nothing pairs: the closest dose's first difference, or why the scan can't be described.</summary>
+    public static (IReadOnlyList<DoseCandidate> Candidates, string? Reason) Match(ScanDescriptor scan, IEnumerable<RTDoseWithPlan> doses)
+    {
+        ArgumentNullException.ThrowIfNull(scan);
+        var (candidates, reason) = ScanDoseMatching.Match(scan.Profile, doses);
+        return (candidates
+            .Select(c => new DoseCandidate(c.Dose, string.Join("; ", c.Notes)))
+            .OrderBy(c => c.Dose.Dose.SourcePath, StringComparer.Ordinal)
+            .ToArray(), reason);
     }
 }

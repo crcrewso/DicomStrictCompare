@@ -7,16 +7,17 @@ namespace DSCprofiles;
 /// <summary>
 /// Writes a batch as CSV: <c>&lt;stem&gt;-results.csv</c>, one row per scan and dose; <c>&lt;stem&gt;-unpaired.csv</c>, the
 /// scans no dose paired with and the files that couldn't be read; <c>&lt;stem&gt;-settings.txt</c>, what was run; and with
-/// curves, <c>&lt;stem&gt;-curves.csv</c>, every compared curve point by point, for plotting.
+/// curves, <c>&lt;stem&gt;-curves.csv</c>, every compared curve point by point, for plotting. A row's image, when plots were
+/// asked for, is named in its <c>plot</c> column.
 /// </summary>
 internal static class ProfileReport
 {
     private static readonly CultureInfo Ci = CultureInfo.InvariantCulture;
 
     public static void Write(string folder, string stem, string scans, string doses, ProfileComparisonOptions options,
-        string? plans, string? exclude, ProfileBatchResult result, bool curves)
+        string? plans, string? exclude, ProfileBatchResult result, bool curves, IReadOnlyDictionary<int, string> plots)
     {
-        WriteResults(Path.Combine(folder, stem + "-results.csv"), scans, result);
+        WriteResults(Path.Combine(folder, stem + "-results.csv"), scans, result, plots);
         WriteUnpaired(Path.Combine(folder, stem + "-unpaired.csv"), scans, result);
         if (curves) WriteCurves(Path.Combine(folder, stem + "-curves.csv"), scans, result);
         File.WriteAllLines(Path.Combine(folder, stem + "-settings.txt"), new[]
@@ -28,6 +29,7 @@ internal static class ProfileReport
             $"plan label filter: {plans ?? "(none)"}; scan folders excluded: {exclude ?? "(none)"}",
             $"{result.Scans} scans in {result.ScanFiles} files; {result.Doses} doses; {result.Rows.Count} pairs; {result.Unmatched.Count} scans unpaired",
             $"{result.Threads} thread(s), {result.Elapsed.TotalSeconds.ToString("0.0", Ci)} s",
+            $"plots: {(plots.Count == 0 ? "none" : $"{plots.Count} in {stem}-plots")}",
         });
     }
 
@@ -40,10 +42,10 @@ internal static class ProfileReport
         "field_size_measured_mm", "field_size_calculated_mm", "cax_offset_measured_mm", "cax_offset_calculated_mm",
         "flatness_variance_measured", "flatness_variance_calculated", "symmetry_point_measured", "symmetry_point_calculated",
         "dmax_measured_mm", "dmax_calculated_mm", "d100_measured", "d100_calculated", "d200_measured", "d200_calculated",
-        "r50_measured_mm", "r50_calculated_mm", "notes", "failure"
+        "r50_measured_mm", "r50_calculated_mm", "notes", "failure", "plot"
     };
 
-    private static void WriteResults(string path, string scans, ProfileBatchResult result)
+    private static void WriteResults(string path, string scans, ProfileBatchResult result, IReadOnlyDictionary<int, string> plots)
     {
         var sb = new StringBuilder();
         sb.AppendLine(string.Join(",", ResultColumns));
@@ -95,7 +97,8 @@ internal static class ProfileReport
                 N(x?.MeasuredDepthDose?.D200Percent, "0.00"), N(x?.CalculatedDepthDose?.D200Percent, "0.00"),
                 N(x?.MeasuredDepthDose?.R50Mm, "0.0"), N(x?.CalculatedDepthDose?.R50Mm, "0.0"),
                 x is null ? "" : string.Join("; ", x.Notes),
-                r.Failure
+                r.Failure,
+                plots.TryGetValue(row, out string? plot) ? plot : ""
             };
             sb.AppendLine(string.Join(",", fields.Select(Csv)));
         }

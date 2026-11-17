@@ -1,5 +1,7 @@
 using DSClibrary;
+using DSClibrary.Profiles;
 using DSClibrary.Results.DICOM;
+using DSCplots;
 using DSCprototypes.Shared;
 using DSCprototypes.Shared.Graphs;
 using DSCprototypes.Shared.ViewModels;
@@ -13,8 +15,9 @@ namespace DSCproto.EtoApp;
 /// The Graphs tab, Eto style: controls are fields, state lives in the panel, and the shared catalogue
 /// and beam-line helpers do the thinking. Two modes (crcrewso, 2026-11-09): dose versus dose over the
 /// run's matched pairs - depth dose, or a crossplane or inplane profile at dmax, 5, 10 or 20 cm or all
-/// four on one plot - and dose versus water-tank scans, matched by energy, filter and field size.
-/// Grids load on a worker and the last one is kept.
+/// four on one plot - and dose versus water-tank scans, paired by field and compared through the
+/// library (2026-11-17: <see cref="ScanComparison"/>, the figure from <see cref="ProfilePlot"/>, the same
+/// as DSCprofiles writes). Grids load on a worker and the last one is kept.
 /// </summary>
 public sealed class GraphPage : Panel
 {
@@ -45,8 +48,21 @@ public sealed class GraphPage : Panel
     private readonly DropDown _scanFieldSize = new() { Width = 150, Enabled = false };
     private readonly DropDown _scan = new() { Width = 460, Enabled = false };
     private readonly DropDown _dose = new() { Width = 620, Enabled = false };
+    // the comparison: 1 %/1 mm by default (crcrewso, 2026-11-15: "1 % or tighter for analysis and validation")
+    private readonly NumericStepper _dosePercent = new() { Value = 1, MinValue = 0.001, DecimalPlaces = 1, MaximumDecimalPlaces = 3, Increment = 0.5, Width = 70 };
+    private readonly NumericStepper _distanceMm = new() { Value = 1, MinValue = 0, DecimalPlaces = 1, MaximumDecimalPlaces = 3, Increment = 0.5, Width = 70, ToolTip = "0 with the strict test: dose difference only" };
+    private readonly DropDown _test = new() { Width = 100 };
+    private readonly DropDown _reference = new() { Width = 120 };
+    private readonly DropDown _format = new() { Width = 70 };
+    private readonly Button _savePlot = new() { Text = "Save plot", Enabled = false };
+    private readonly Button _saveListed = new() { Text = "Save plots of listed scans", Enabled = false, ToolTip = "Every scan the filters list, against every dose it pairs with, at this criterion" };
 
     private readonly ScottPlot.Eto.EtoPlot _plot = new();
+    private readonly ScottPlot.Eto.EtoPlot _scanPlot = new();
+    private readonly Panel _plotHost = new();
+    private ProfileComparisonResult? _scanResult;
+    private ProfilePlotLabels? _scanLabels;
+    private string? _plotFolder;
     private readonly Label _status = new() { Text = "Run a comparison, then choose a beam.", Wrap = WrapMode.Word };
     private readonly Label _note = new() { Text = BeamLines.ConventionNote, Wrap = WrapMode.Word, TextColor = Colors.Gray, Font = SystemFonts.Default(9) };
 
@@ -81,14 +97,29 @@ public sealed class GraphPage : Panel
         _beam.ItemTextBinding = Binding.Property((BeamDescriptor b) => b.Label);
         _scan.ItemTextBinding = Binding.Property((ScanDescriptor s) => s.Label);
         _dose.ItemTextBinding = Binding.Property((DoseCandidate d) => d.Label);
+        _test.DataStore = ScanComparison.Tests.Cast<object>().ToArray();
+        _test.SelectedIndex = 0;
+        _reference.DataStore = ScanComparison.References.Cast<object>().ToArray();
+        _reference.SelectedIndex = 0;
+        _format.DataStore = ScanComparison.PlotFormats;
+        _format.SelectedIndex = 0;
+        _plotHost.Content = _plot;
 
         _mode.SelectedIndexChanged += (_, _) =>
         {
             bool scans = IsScanMode;
             _dosePanel.Visible = !scans;
             _scanPanel.Visible = scans;
+            _plotHost.Content = scans ? _scanPlot : _plot;
+            _note.Text = scans ? GraphViewModel.ScanConventionNote : BeamLines.ConventionNote;
             if (scans) RedrawScan(); else Redraw();
         };
+        _dosePercent.ValueChanged += (_, _) => RedrawScan();
+        _distanceMm.ValueChanged += (_, _) => RedrawScan();
+        _test.SelectedIndexChanged += (_, _) => RedrawScan();
+        _reference.SelectedIndexChanged += (_, _) => RedrawScan();
+        _savePlot.Click += (_, _) => SavePlot();
+        _saveListed.Click += async (_, _) => await SaveListedAsync();
         _energy.SelectedIndexChanged += (_, _) => Refilter();
         _fieldSize.SelectedIndexChanged += (_, _) => Refilter();
         _beam.SelectedIndexChanged += (_, _) => { if (!_refilling) _ = LoadPairAsync(_beam.SelectedValue as BeamDescriptor); };
@@ -127,6 +158,10 @@ public sealed class GraphPage : Panel
         scanLayout.BeginVertical();
         scanLayout.AddRow(Caption("Matched dose"), _dose, null);
         scanLayout.EndVertical();
+        scanLayout.BeginVertical();
+        scanLayout.AddRow(Caption("Dose %"), _dosePercent, Caption("Distance mm"), _distanceMm, Caption("Test"), _test,
+            Caption("Reference"), _reference, Caption("Format"), _format, _savePlot, _saveListed, null);
+        scanLayout.EndVertical();
         _scanPanel.Content = scanLayout;
 
         var layout = new DynamicLayout { DefaultSpacing = new Size(8, 6), Padding = new Padding(0, 6, 0, 0) };
@@ -138,7 +173,7 @@ public sealed class GraphPage : Panel
         layout.Add(_scanPanel);
         layout.EndVertical();
         layout.BeginVertical(yscale: true);
-        layout.Add(_plot, xscale: true, yscale: true);
+        layout.Add(_plotHost, xscale: true, yscale: true);
         layout.EndVertical();
         layout.BeginVertical();
         layout.Add(_status);
@@ -147,6 +182,7 @@ public sealed class GraphPage : Panel
         Content = layout;
 
         Draw(null);
+        DrawScan();
         SetSession(null);
     }
 
@@ -291,7 +327,7 @@ public sealed class GraphPage : Panel
             var (result, doses) = await Task.Run(() =>
             {
                 var scans = ScanCatalog.Load(folder);
-                var ds = needDoses ? RTFolderReader.Read(source, recursive: true).Doses : null;
+                var ds = needDoses ? RTFolderReader.Read(source, recursive: true, headersOnly: true).Doses : null;   // the chosen grid loads on its own
                 return (scans, ds);
             });
             if (sequence != _loadSequence) return;
@@ -304,13 +340,13 @@ public sealed class GraphPage : Panel
             _scanEnergy.SelectedIndex = 0;
             _scanFieldSize.SelectedIndex = 0;
             _refilling = false;
-            _scanEnergy.Enabled = _scanFieldSize.Enabled = _scan.Enabled = _dose.Enabled = _allScans.Count > 0;
+            _scanEnergy.Enabled = _scanFieldSize.Enabled = _scan.Enabled = _dose.Enabled = _saveListed.Enabled = _allScans.Count > 0;
 
             var hidden = new List<string>();
             if (result.HiddenElectrons > 0) hidden.Add($"{result.HiddenElectrons} electron");
             if (result.HiddenWedges > 0) hidden.Add($"{result.HiddenWedges} wedge");
             if (result.HiddenOther > 0) hidden.Add($"{result.HiddenOther} other");
-            _status.Text = $"{_allScans.Count} photon open-field scan(s) in {result.Files} file(s)"
+            _status.Text = $"{_allScans.Count} photon scan(s) in {result.Files} file(s)"
                          + (hidden.Count > 0 ? $"; not shown: {string.Join(", ", hidden)}" : "")
                          + (result.Errors.Count > 0 ? $"; {result.Errors.Count} file(s) failed to parse" : "")
                          + $"; matched against {_sourceDoses.Count} source dose(s)" + (doses is not null ? " read from the source folder" : "");
@@ -344,7 +380,7 @@ public sealed class GraphPage : Panel
     {
         var scan = _scan.SelectedValue as ScanDescriptor;
         var previousDose = (_dose.SelectedValue as DoseCandidate)?.Dose;
-        var candidates = scan is null ? Array.Empty<DoseCandidate>() : ScanCatalog.MatchingDoses(scan, _sourceDoses);
+        var (candidates, reason) = scan is null ? (Array.Empty<DoseCandidate>(), null) : ScanCatalog.Match(scan, _sourceDoses);
         _refilling = true;
         _dose.DataStore = candidates;
         int index = candidates.ToList().FindIndex(c => ReferenceEquals(c.Dose, previousDose));
@@ -353,11 +389,11 @@ public sealed class GraphPage : Panel
 
         if (candidates.Count == 0)
         {
-            if (IsScanMode) Draw(null);
+            ShowScanResult(null, null);
             if (scan is not null)
                 _status.Text = _sourceDoses.Count == 0
                     ? "No source doses to match against: set the source folder (and run, or load the scans again)."
-                    : $"No source dose matches {scan.Energy} {scan.FieldSize} (same energy, filter and field size).";
+                    : $"No source dose matches {scan.Energy} {scan.FieldSize}: {reason ?? "no dose pairs with it"}.";
             return;
         }
         _ = LoadDoseAsync(_dose.SelectedValue as DoseCandidate);
@@ -385,7 +421,7 @@ public sealed class GraphPage : Panel
             if (sequence == _loadSequence)
             {
                 _loadedDose = null;
-                Draw(null);
+                ShowScanResult(null, null);
                 _status.Text = $"Could not load the dose: {ex.GetType().Name}: {ex.Message}";
             }
         }
@@ -395,13 +431,88 @@ public sealed class GraphPage : Panel
         }
     }
 
+    private ProfileComparisonOptions ScanOptions => new(
+        (double)_dosePercent.Value, (double)_distanceMm.Value,
+        _test.SelectedValue is ProfileTest t ? t : ProfileTest.Gamma,
+        _reference.SelectedValue is ProfileReference r ? r : ProfileReference.Measured);
+
     private void RedrawScan()
     {
         if (!IsScanMode) return;
         var scan = _scan.SelectedValue as ScanDescriptor;
         var candidate = _dose.SelectedValue as DoseCandidate;
-        if (scan is null || candidate is null || _loadedDose is null || !ReferenceEquals(_loadedDose.Dose, candidate.Dose)) { Draw(null); return; }
-        Draw(new[] { BeamLines.ScanOverDose(scan, _loadedDose) });
+        if (scan is null || candidate is null || _loadedDose is null || !ReferenceEquals(_loadedDose.Dose, candidate.Dose)) { ShowScanResult(null, null); return; }
+        var outcome = ScanComparison.Run(scan, candidate, _loadedDose.Grid, ScanOptions);
+        ShowScanResult(outcome.Result, outcome.Labels);
+        _status.Text = outcome.Status;
+    }
+
+    private void ShowScanResult(ProfileComparisonResult? result, ProfilePlotLabels? labels)
+    {
+        _scanResult = result;
+        _scanLabels = labels;
+        _savePlot.Enabled = result is not null;
+        DrawScan();
+    }
+
+    /// <summary>The comparison's figure, drawn by the code that also saves it, curves above and tested points below.</summary>
+    private void DrawScan()
+    {
+        if (_scanResult is { } result && _scanLabels is { } labels) ProfilePlot.Fill(_scanPlot.Multiplot, result, labels);
+        else ProfilePlot.Empty(_scanPlot.Multiplot, "No comparison: load scans and choose one with a matched dose");
+        _scanPlot.Refresh();
+    }
+
+    private string Format => _format.SelectedValue as string ?? "png";
+
+    private void SavePlot()
+    {
+        if (_scanResult is not { } result || _scanLabels is not { } labels
+            || _scan.SelectedValue is not ScanDescriptor scan || _dose.SelectedValue is not DoseCandidate candidate) return;
+        var folder = _pickFolder("Folder for the plot", _plotFolder ?? MainViewModel.ParentOf(_scanFolder.Text));
+        if (folder is null) return;
+        _plotFolder = folder;
+        string path = Path.Combine(folder, ScanComparison.FileName(scan, candidate, Format));
+        try
+        {
+            ProfilePlot.Save(result, labels, path);
+            _status.Text = $"Saved {path}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            _status.Text = $"The plot couldn't be saved: {ex.Message}";
+        }
+    }
+
+    /// <summary>A plot of every listed scan against every dose it pairs with; DSCprofiles --plots does the same from the command line.</summary>
+    private async Task SaveListedAsync()
+    {
+        var scans = (_scan.DataStore ?? Array.Empty<object>()).OfType<ScanDescriptor>().ToArray();
+        if (scans.Length == 0) return;
+        var folder = _pickFolder("Folder for the plots", _plotFolder ?? MainViewModel.ParentOf(_scanFolder.Text));
+        if (folder is null) return;
+        _plotFolder = folder;
+        var doses = _sourceDoses;
+        var options = ScanOptions;
+        string format = Format;
+        _busy.Visible = true;
+        _saveListed.Enabled = false;
+        _status.Text = $"Saving plots of {scans.Length} scan(s) into {folder}";
+        try
+        {
+            var progress = new Progress<string>(m => _status.Text = m);
+            var (written, failed) = await Task.Run(() => ScanComparison.SaveAll(scans, doses, _loader, options, folder, format, progress));
+            _status.Text = $"Saved {written} plot(s) into {folder}" + (failed.Count > 0 ? $"; {failed.Count} not drawn, the first: {failed[0]}" : "");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            _status.Text = $"The plots couldn't be saved: {ex.Message}";
+        }
+        finally
+        {
+            _busy.Visible = false;
+            _saveListed.Enabled = true;
+        }
     }
 
     // ---- drawing ----

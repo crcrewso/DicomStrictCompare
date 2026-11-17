@@ -46,6 +46,7 @@ public partial class MainWindow : Window
         _graph = (DataContext as MainViewModel)?.Graph;
         if (_graph is not null) _graph.PropertyChanged += OnGraphChanged;
         Draw(_graph?.Curves);
+        DrawScan();
 
         if (_study is not null) _study.PropertyChanged -= OnStudyChanged;
         _study = (DataContext as MainViewModel)?.Study;
@@ -158,6 +159,20 @@ public partial class MainWindow : Window
     {
         // A mode change with nothing to draw raises no Curves change, so redraw on it as well for the empty-plot title.
         if (e.PropertyName is nameof(GraphViewModel.Curves) or nameof(GraphViewModel.IsScanMode)) Draw(_graph?.Curves);
+        if (e.PropertyName is nameof(GraphViewModel.ScanResult) or nameof(GraphViewModel.IsScanMode)) DrawScan();
+    }
+
+    /// <summary>
+    /// Scan mode: the comparison's figure, drawn by the same code that saves it (DSCplots.ProfilePlot), into this
+    /// control's multiplot, curves above and each tested point below.
+    /// </summary>
+    private void DrawScan()
+    {
+        if (_graph?.ScanResult is { } result && _graph.ScanLabels is { } labels)
+            DSCplots.ProfilePlot.Fill(ScanPlot.Multiplot, result, labels);
+        else
+            DSCplots.ProfilePlot.Empty(ScanPlot.Multiplot, "No comparison: load scans and choose one with a matched dose");
+        ScanPlot.Refresh();
     }
 
     /// <summary>

@@ -122,5 +122,12 @@ flowchart TD
     gamma --> extra
     strict --> extra["Constancy over the central 80 % of the reference field;<br/>FauxPID metrics or depth-dose metrics, both sides"]
     extra --> csv["DSCprofiles: results, unpaired, curves and settings files"]
+    extra --> figure["DSCplots.ProfilePlot: curves above, gamma or dose difference per point below"]
+    figure --> files["DSCprofiles --plots / --plots-failing:<br/>one PNG or SVG per pair, named in the results' plot column"]
+    figure --> gui["Graphs tab, dose versus scans (Avalonia, Eto):<br/>one pair on screen (ScanComparison.Run); Save plot, Save plots of listed scans"]
 ```
+
+The Graphs tab runs the same steps for the chosen scan and dose: `ScanCatalog.Match` (the same `ScanDoseMatching`),
+the grid loaded on its own, then `ScanComparison.Run`, which is `PhantomFrame.For` and `ProfileComparison.Compare`.
+What it shows and what it saves are one figure, drawn by `ProfilePlot`.
 Core selection: [core-selection.md](core-selection.md).

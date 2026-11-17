@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Plots of DSClibrary's results, drawn once and used everywhere: the front ends hand their plot control's
+    multiplot to it, and the command-line tools save the same figure to a file. Kept out of DSClibrary so the
+    engine stays free of a drawing library. ScottPlot 5.1.59 is the version the prototypes already use.
+    crane, 2026-11-17 (prototype).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ScottPlot" Version="5.1.59" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DSClibrary\DSClibrary.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -126,7 +126,10 @@
              and field size, a depth dose or a profile at a depth chosen with the slider. The view model
              owns the choice and the curve; this view only hands the curve to ScottPlot (code-behind). -->
         <TabItem Header="Graphs">
-          <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0"
+          <!-- Scrolls rather than squeezing the plot: below about 860 px the scan figure's lower plot has no room
+               (measured 2026-11-17 at the window's default size); a taller window still stretches the plot. -->
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0" MinHeight="860"
                 DataContext="{Binding Graph}" x:DataType="vm:GraphViewModel">
 
             <!-- Mode: dose versus dose (the run's matched pairs) or dose versus water-tank scans -->
@@ -195,12 +198,32 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
               </StackPanel>
+              <!-- The comparison (2026-11-17): the criterion, the test and which side is the reference; then saving the
+                   figure, or one per listed scan, as PNG or SVG. -->
+              <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
+                <TextBlock Text="Dose %" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding ScanDosePercent}" Width="60"/>
+                <TextBlock Text="Distance mm" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding ScanDistanceMm}" Width="60" ToolTip.Tip="0 with the strict test: dose difference only"/>
+                <TextBlock Text="Test" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Tests}" SelectedItem="{Binding ScanTest}" MinWidth="100"/>
+                <TextBlock Text="Reference" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding References}" SelectedItem="{Binding ScanReference}" MinWidth="120"/>
+                <TextBlock Text="Format" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <ComboBox ItemsSource="{Binding PlotFormats}" SelectedItem="{Binding PlotFormat}" MinWidth="80"/>
+                <Button Content="Save plot" Command="{Binding SavePlotCommand}" IsEnabled="{Binding CanSavePlot}"/>
+                <Button Content="Save plots of listed scans" Command="{Binding SaveListedPlotsCommand}" IsEnabled="{Binding HasScans}"
+                        ToolTip.Tip="Every scan the filters list, against every dose it pairs with, at this criterion"/>
+              </WrapPanel>
             </StackPanel>
 
-            <sp:AvaPlot Grid.Row="3" x:Name="GraphPlot"/>
+            <sp:AvaPlot Grid.Row="3" x:Name="GraphPlot" IsVisible="{Binding IsDoseMode}"/>
+            <!-- Scan mode: the profile comparison's figure, curves above and each tested point below (DSCplots.ProfilePlot). -->
+            <sp:AvaPlot Grid.Row="3" x:Name="ScanPlot" IsVisible="{Binding IsScanMode}"/>
             <TextBlock Grid.Row="4" Text="{Binding Status}" TextWrapping="Wrap"/>
             <TextBlock Grid.Row="5" Text="{Binding ConventionNote}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
           </Grid>
+          </ScrollViewer>
         </TabItem>
         <TabItem Header="Detector geometry">
           <TextBlock Margin="12" TextWrapping="Wrap"

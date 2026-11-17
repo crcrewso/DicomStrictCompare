@@ -159,74 +159,8 @@ public static class BeamLines
         return ys[best] - lp.IsoY;
     }
 
-    /// <summary>
-    /// A measured scan over the calculated dose, both normalised: a depth dose to its own maximum
-    /// and a profile to its own central-axis value, because the scans are in arbitrary units
-    /// (measured: 981 of 1,153) and crcrewso's rule is that profiles are treated as relative. The dose
-    /// is sampled at the scan's own positions through the same geometry reading as the dose-to-dose
-    /// curves; positions outside the grid are NaN and dropped by <see cref="ProfileCurve.Overlap"/>.
-    /// </summary>
-    public static ProfileCurve ScanOverDose(ScanDescriptor scan, LoadedDose dose)
-    {
-        ArgumentNullException.ThrowIfNull(scan);
-        ArgumentNullException.ThrowIfNull(dose);
-
-        var positions = scan.Profile.Points.Select(p => p.Position.Millimetres).ToArray();
-        var measured = scan.Profile.Points.Select(p => p.Value).ToArray();
-        double[] calculated;
-        string axisLabel;
-        if (scan.Kind == CurveKind.DepthDose)
-        {
-            // Scan positions are depths from the water surface; the dose's surface is the isocentre plane.
-            calculated = GridLines.Along(dose.Grid, GridAxis.Y, dose.IsoX, dose.IsoZ, positions.Select(d => dose.IsoY + d).ToArray());
-            axisLabel = "Depth (mm): scan from the water surface, dose from the isocentre plane";
-        }
-        else
-        {
-            double y = dose.IsoY + (scan.DepthMm ?? 0);
-            calculated = scan.Kind == CurveKind.Crossplane
-                ? GridLines.Along(dose.Grid, GridAxis.X, y, dose.IsoZ, positions.Select(x => dose.IsoX + x).ToArray())
-                : GridLines.Along(dose.Grid, GridAxis.Z, dose.IsoX, y, positions.Select(z => dose.IsoZ + z).ToArray());
-            axisLabel = scan.Kind == CurveKind.Crossplane ? "Crossplane x from the axis (mm)" : "Inplane z from the axis (mm)";
-        }
-
-        var (m, c) = scan.Kind == CurveKind.DepthDose
-            ? (NormaliseToMax(measured), NormaliseToMax(calculated))
-            : (NormaliseToAxis(positions, measured), NormaliseToAxis(positions, calculated));
-
-        string depth = scan.DepthMm is { } d2 ? $" at {d2.ToString("0.#", CultureInfo.InvariantCulture)} mm depth" : "";
-        return new ProfileCurve(
-            $"{scan.Energy} {scan.FieldSize}: {scan.CurveLabel.Split(' ')[0].ToLowerInvariant()}{depth}, scan over dose",
-            axisLabel,
-            scan.Kind == CurveKind.DepthDose ? "Relative dose (% of maximum)" : "Relative dose (% of central axis)",
-            positions, c, m,
-            dose.Dose.Beam?.BeamName is { Length: > 0 } n ? $"{n} ({Path.GetFileName(dose.Dose.Dose.SourcePath)})" : Path.GetFileName(dose.Dose.Dose.SourcePath),
-            $"{Path.GetFileName(scan.File)} scan {scan.ScanNumber}");
-    }
-
-    private static double[] NormaliseToMax(double[] values)
-    {
-        double max = values.Where(v => !double.IsNaN(v)).DefaultIfEmpty(double.NaN).Max();
-        return values.Select(v => max > 0 ? 100.0 * v / max : double.NaN).ToArray();
-    }
-
-    /// <summary>Scale so the value at position 0 (linearly interpolated) is 100.</summary>
-    private static double[] NormaliseToAxis(double[] positions, double[] values)
-    {
-        double axis = double.NaN;
-        for (int i = 1; i < positions.Length; i++)
-        {
-            if (positions[i - 1] <= 0 && positions[i] >= 0 && !double.IsNaN(values[i - 1]) && !double.IsNaN(values[i]))
-            {
-                double span = positions[i] - positions[i - 1];
-                double t = span > 0 ? (0 - positions[i - 1]) / span : 0;
-                axis = values[i - 1] + t * (values[i] - values[i - 1]);
-                break;
-            }
-        }
-        if (double.IsNaN(axis) || axis == 0) return NormaliseToMax(values);   // no point on the axis: fall back to the maximum
-        return values.Select(v => 100.0 * v / axis).ToArray();
-    }
+    // A scan over a dose is no longer drawn here: since 2026-11-17 the Graphs tab compares it through the library
+    // (ScanComparison, ProfileComparison), which places the water surface from the plan instead of at the isocentre plane.
 
     /// <summary>
     /// The sampling positions along an axis: the coarser grid's nodes, within the overlap of both.

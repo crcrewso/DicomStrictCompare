@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\DSClibrary\DSClibrary.csproj" />
+    <!-- The profile figure, so the windows show and save the same one as DSCprofiles. It draws only when asked. -->
+    <ProjectReference Include="..\..\DSCplots\DSCplots.csproj" />
   </ItemGroup>
 
 </Project>

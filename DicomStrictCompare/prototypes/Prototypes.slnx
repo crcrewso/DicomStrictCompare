@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="../DSClibrary/DSClibrary.csproj" />
+  <Project Path="../DSCplots/DSCplots.csproj" />
   <Project Path="../DSClibraryTests/DSClibraryTests.csproj">
     <Platform Project="x64" />
   </Project>
