@@ -154,7 +154,6 @@ public sealed class MainForm : Form
             "Placeholder: detector geometry correction for PTW scans. IDetectorCorrection exists in DSClibrary; no physical kernel is implemented yet (backlog D4), so there is nothing honest to switch on here."));
         tabs.Pages.Add(Placeholder("Archive",
             "Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - crcrewso, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."));
-        tabs.Pages.Add(SettingsPage());
 
         var splitter = new Splitter
         {
@@ -184,6 +183,8 @@ public sealed class MainForm : Form
 
         _workflows.Pages.Add(new TabPage(layout) { Text = "Doses vs doses" });
         _workflows.Pages.Add(new TabPage(_scans) { Text = "Doses vs scans" });
+        // This machine's settings serve every tab that compares doses, so they have a top tab of their own (2026-11-17).
+        _workflows.Pages.Add(SettingsPage());
         Content = _workflows;
 
         // Command-line pre-fill and scripted run, the same path a click takes.

@@ -32,7 +32,7 @@
   <!-- One tab per kind of comparison (crcrewso, 2026-11-17), each with its own inputs, run and results: dose against
        dose, with two dose folders and the 3D criteria; a study, with its dose sets and the same criteria list; and
        doses against water-tank scans, with a doses folder, a scans folder and a 1D criterion. -->
-  <!-- The Settings tab (engine, threads, reading) stays inside Doses vs doses; Study runs use it too. -->
+  <!-- Last, Settings: this machine's engine, threads and reading, for every tab that compares doses. -->
   <TabControl x:Name="Workflows" Margin="6,6,6,0">
   <TabItem Header="Doses vs doses" x:Name="DosesTab">
   <Grid RowDefinitions="Auto,*,Auto" Margin="6,12,6,12">
@@ -144,40 +144,6 @@
                      Text="Placeholder: PNG export of each comparison for the record (an archiving output, not a display mechanism - crcrewso, 2026-11-08). Rendered from the retained ComparisonOutcome, independent of this window."/>
         </TabItem>
 
-        <!-- This machine's settings (MachineSettings, saved as they change). None changes a count. -->
-        <TabItem Header="Settings">
-          <StackPanel Margin="0,12,0,0" Spacing="10" MaxWidth="720" HorizontalAlignment="Left">
-            <TextBlock TextWrapping="Wrap" Text="Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study."/>
-            <Grid ColumnDefinitions="160,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
-              <TextBlock Grid.Row="0" Text="Engine" VerticalAlignment="Center"/>
-              <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding Engine}" MinWidth="160"
-                        ToolTip.Tip="HandWritten is the original and the reference. The others apply the same rules faster and are tested to give the same counts."/>
-              <TextBlock Grid.Row="1" Text="Threads" VerticalAlignment="Center"/>
-              <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding ThreadChoices}" SelectedItem="{Binding Threads}" MinWidth="160"
-                        ToolTip.Tip="CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count is one per full-speed core, leaving out SMT siblings and low-power E-cores."/>
-              <TextBlock Grid.Row="2" Text="Pairs at once" VerticalAlignment="Center"/>
-              <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PairsAtOnce}" Width="60" HorizontalAlignment="Left"
-                       ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the thread count (2 for the multi-thread and GPU engines)."/>
-              <TextBlock Grid.Row="3" Text="Target box only" VerticalAlignment="Center"/>
-              <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding PartialTargetReads}"
-                        ToolTip.Tip="Read each target only where the criteria and the edge check use it. A pair with a gamma criterion reads its target whole. The counts are the same either way."/>
-              <TextBlock Grid.Row="4" Text="Readers" VerticalAlignment="Center"/>
-              <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Readers}" Width="60" HorizontalAlignment="Left"
-                       ToolTip.Tip="Files read at once, ahead of the comparison; fewer if memory is short. 0 has each worker read its own pair."/>
-              <TextBlock Grid.Row="5" Text="Held" VerticalAlignment="Center"/>
-              <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
-                       ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
-            </Grid>
-            <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="Pairing"/>
-            <TextBlock TextWrapping="Wrap" Text="Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none."/>
-            <Grid ColumnDefinitions="160,*" ColumnSpacing="0">
-              <TextBlock Text="Algorithm names" VerticalAlignment="Center"/>
-              <TextBox Grid.Column="1" Text="{Binding AlgorithmNames}"
-                       ToolTip.Tip="Algorithm = token, token; ... Tokens are matched anywhere in a name, ignoring case."/>
-            </Grid>
-            <TextBlock Text="{Binding SettingsPath, StringFormat='Kept in {0}'}" TextWrapping="Wrap" Opacity="0.7"/>
-          </StackPanel>
-        </TabItem>
       </TabControl>
     </Grid>
 
@@ -464,6 +430,42 @@
         <Run Text="{Binding ConventionNote}"/>
       </TextBlock>
     </Grid>
+  </TabItem>
+
+  <!-- Its own tab since 2026-11-17 (crcrewso: "move it"): these settings serve every tab that compares doses. -->
+  <!-- This machine's settings (MachineSettings, saved as they change). None changes a count. -->
+  <TabItem Header="Settings">
+    <StackPanel Margin="6,12,6,12" Spacing="10" MaxWidth="720" HorizontalAlignment="Left">
+      <TextBlock TextWrapping="Wrap" Text="Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study."/>
+      <Grid ColumnDefinitions="160,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+        <TextBlock Grid.Row="0" Text="Engine" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding Engine}" MinWidth="160"
+                  ToolTip.Tip="HandWritten is the original and the reference. The others apply the same rules faster and are tested to give the same counts."/>
+        <TextBlock Grid.Row="1" Text="Threads" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding ThreadChoices}" SelectedItem="{Binding Threads}" MinWidth="160"
+                  ToolTip.Tip="CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count is one per full-speed core, leaving out SMT siblings and low-power E-cores."/>
+        <TextBlock Grid.Row="2" Text="Pairs at once" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PairsAtOnce}" Width="60" HorizontalAlignment="Left"
+                 ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the thread count (2 for the multi-thread and GPU engines)."/>
+        <TextBlock Grid.Row="3" Text="Target box only" VerticalAlignment="Center"/>
+        <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding PartialTargetReads}"
+                  ToolTip.Tip="Read each target only where the criteria and the edge check use it. A pair with a gamma criterion reads its target whole. The counts are the same either way."/>
+        <TextBlock Grid.Row="4" Text="Readers" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Readers}" Width="60" HorizontalAlignment="Left"
+                 ToolTip.Tip="Files read at once, ahead of the comparison; fewer if memory is short. 0 has each worker read its own pair."/>
+        <TextBlock Grid.Row="5" Text="Held" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
+                 ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
+      </Grid>
+      <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="Pairing"/>
+      <TextBlock TextWrapping="Wrap" Text="Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none."/>
+      <Grid ColumnDefinitions="160,*" ColumnSpacing="0">
+        <TextBlock Text="Algorithm names" VerticalAlignment="Center"/>
+        <TextBox Grid.Column="1" Text="{Binding AlgorithmNames}"
+                 ToolTip.Tip="Algorithm = token, token; ... Tokens are matched anywhere in a name, ignoring case."/>
+      </Grid>
+      <TextBlock Text="{Binding SettingsPath, StringFormat='Kept in {0}'}" TextWrapping="Wrap" Opacity="0.7"/>
+    </StackPanel>
   </TabItem>
   </TabControl>
 </Window>

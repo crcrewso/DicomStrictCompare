@@ -116,7 +116,7 @@ every logical processor, in steps of 1 to 4, then 2 to 12, then 4, and defaults 
   worker read its own pair.
 
 **Settings.** Engine, Threads, pairs at once and the reading options belong to the machine, not to a study: the
-apps' **Settings** tab (inside Doses vs doses; Study runs use it too) keeps them in `settings.json` under the user's application data folder
+apps' **Settings** tab (a top tab of its own) keeps them in `settings.json` under the user's application data folder
 (`%APPDATA%\DicomStrictCompare` on Windows, `~/.config/DicomStrictCompare` on Linux). A study keeps Max and GPU
 float, which can change results. Study files are a debug and validation tool for now; their format may change.
 
@@ -209,7 +209,8 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
 - **In the windows.** The windows have a tab at the top for each kind of comparison, each with its own inputs and
   results: **Doses vs doses**, the comparison above; **Study** (Avalonia only), several dose sets at once; and
   **Doses vs scans**, which runs this same batch. Doses vs doses and Study show the same criteria list, Max and GPU
-  float beside them, so a change in one tab is a change in both. The Settings tab, inside Doses vs doses, serves both.
+  float beside them, so a change in one tab is a change in both. A last top tab, **Settings**, holds this machine's
+  engine, threads and reading options, which serve every tab that compares doses.
   - The Doses vs scans tab has its own *Doses* and *Scans* folders, plan-label filter and folders to skip. Until a
     doses folder is chosen there, it takes the Doses vs doses source folder.
   - Its criterion is 1 %/1 mm gamma with the measurement as reference by default. The test, the reference, local
