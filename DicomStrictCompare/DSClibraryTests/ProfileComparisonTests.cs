@@ -107,7 +107,7 @@ namespace DSClibraryTests
         {
             var grid = Grid((x, y, z) => x * x);
             var scan = Scan(CurveType.Crossplane, 50, new[] { (0.0, 1.0) });
-            var (positions, values) = DoseLineSampler.AtNodes(grid, Frame, scan, -11, 11);
+            var (positions, values) = DoseLineSampler.AtNodes(grid, Frame, scan.Scan, -11, 11);
             CollectionAssert.AreEqual(Range(-10, 10, 2).ToArray(), positions);
             for (int i = 0; i < positions.Length; i++) Assert.AreEqual(positions[i] * positions[i], values[i], 1e-9);
         }
@@ -340,14 +340,18 @@ namespace DSClibraryTests
         }
 
         [TestMethod]
-        public void TheCommittedThirtyCentimetreScanDoesNotPairWithATenCentimetreDose()
+        public void TheCommittedScanDoesNotPairWithAnotherBeamAndSaysWhy()
         {
+            // The committed scan is 6 MV 30 x 30 cm; P1Ref's beam is another energy and 10 x 10 cm. The reason names the
+            // first criterion the closest dose failed, in the matching order: energy before field size.
             var dose = P1Ref();
+            Assert.AreNotEqual(6.0, dose.Beam!.NominalBeamEnergy!.Value, 0.01, "the test needs P1Ref to be another energy");
             var result = MCCParser.ParseFile(TestData.PTWScan);
             var scan = new MCCMeasurementMapper().MapScan(result.Scans[0], result);
             var (candidates, reason) = ScanDoseMatching.Match(scan, new[] { dose });
             Assert.AreEqual(0, candidates.Count);
-            StringAssert.Contains(reason, "field size");
+            StringAssert.Contains(reason, "6 MV 30 x 30 cm", $"reason: {reason}");
+            StringAssert.Contains(reason, "differ in energy", $"reason: {reason}");
         }
     }
 }

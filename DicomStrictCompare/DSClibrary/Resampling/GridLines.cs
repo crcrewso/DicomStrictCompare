@@ -11,9 +11,10 @@ namespace DSClibrary.Resampling
     /// <para>
     /// This is geometry-free on purpose. It answers "what are the values along x at this y and z"
     /// and nothing more; which line is a depth dose and which is a crossplane profile depends on the
-    /// patient position, the gantry angle and where the surface is, and that convention is still
-    /// being settled (see <see cref="Profiles.DoseVolume"/>). A front end that wants to draw a curve
-    /// states its own reading of the geometry and asks this for the numbers.
+    /// patient position, the gantry angle and where the surface is. That convention is
+    /// <see cref="Profiles.PhantomFrame"/> with <see cref="Profiles.DoseLineSampler"/> (a prototype,
+    /// 2026-11-17). A front end that wants to draw a curve can use those, or state its own reading of the
+    /// geometry and ask this for the numbers.
     /// </para>
     /// </summary>
     public static class GridLines

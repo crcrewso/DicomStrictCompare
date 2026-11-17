@@ -158,6 +158,47 @@ point whose search can't reach any evaluation point is not analysed, as in pymed
 
 Click the introduction text in the app for the same definitions.
 
+### Water-tank scans against a calculated dose (prototype)
+
+`tools/DSCprofiles` compares PTW water-tank scans (`.mcc`) with RT Doses, so commissioning measurements can be
+checked against the planning system's beam model:
+
+```bash
+dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDir> <outputDir> --dose 2 --distance 2
+```
+
+- **Pairing.** Each scan is paired with every dose whose plan beam is the same field. They must agree on:
+  - modality, energy and FFF;
+  - the field's size and centre along the tank's two axes, within 0.5 mm. The plan's jaws are turned by its
+    collimator; for electrons, the applicator is used (A10X6 is 10 cm along X by 6 cm along Y);
+  - the wedge angle and IN/OUT;
+  - the SSD, where the plan states one.
+
+  Names aren't used, and a field calculated twice (two grid spacings, AAA and AXB) gives two rows, each labelled.
+- **Geometry.** Only head-first supine at gantry and couch 0. The beam axis is the isocentre's x and z, and the beam
+  runs along +y.
+  - The water surface is the plan's surface entry point, else its SSD, else the scan's SSD, placed from the source at
+    isocentre y minus SAD.
+  - The dose's own surface is always checked against it.
+  - Crossplane runs along +x and inplane along +z. The Equinox asymmetric-jaw scans confirm both signs.
+- **Normalisation.** A depth dose goes to its maximum. A profile goes to its central axis, or to its maximum when either
+  side's central-axis value is under 80 % of its maximum (an off-axis field).
+- **Tests:**
+  - **Gamma** (`GammaShell`, the pymedphys port, in one dimension);
+  - **or the strict rule** of the dose comparison above, along the scan. A distance of 0 makes it a dose difference.
+  - The measurement is the reference by default (`--reference calculated` swaps them). The cutoff is a percentage of
+    the reference maximum.
+- **Also reported:**
+  - **constancy:** the mean relative difference over the central 80 % of the reference field;
+  - **FauxPID's profile metrics** (field size, CAX offset, flatness, symmetry) for both sides;
+  - **depth-dose metrics** (dmax, D100, D200, R50) for both sides;
+  - **an optional depth-dose shift search** (`--depth-shift 3,0.1`), off by default.
+- **Output:**
+  - `<stem>-results.csv`: one row per scan and dose;
+  - `<stem>-unpaired.csv`: each scan with no dose, with the reason;
+  - `<stem>-curves.csv`, with `--curves`;
+  - `<stem>-settings.txt`.
+
 ## Assumptions and limitations
 
 - Dose files are calculated **head first supine** and as **absolute dose**. Relative dose distributions
@@ -229,6 +270,7 @@ DicomStrictCompare/
   DSClibrary/       Comparison maths: dose matrix, DTA criteria, comparison results, profile tools
   DSCcoreTest/      MSTest tests for the old app (with test DICOM data), no longer built
   DSClibraryTests/  MSTest tests for the library (with test DICOM data and a PTW water tank scan)
+  tools/            command-line tools: DSCresample (resampling), DSCprofiles (water-tank scans against doses)
 design/             Design notes, and the data-flow diagrams (data-flow.md)
 docs/               Generated DocFX API documentation (HTML)
 ```

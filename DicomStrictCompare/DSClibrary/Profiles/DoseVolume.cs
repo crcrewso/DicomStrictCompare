@@ -8,10 +8,9 @@ namespace DSClibrary.Profiles
     /// measurements it will be compared against.
     /// <para>
     /// A volume is not a set of profiles and cannot enumerate them: it yields one for any line asked
-    /// of it. That sampling - returning a <see cref="Profile"/> so measured and calculated are the
-    /// same type and one code path compares them - is the next piece of work and is deliberately not
-    /// here yet. It needs the phantom geometry convention settled first, and a wrong geometry would
-    /// produce confident nonsense.
+    /// of it. That sampling, which returns a <see cref="Profile"/> so measured and calculated are the
+    /// same type and one code path compares them, is <see cref="DoseLineSampler"/>. The phantom geometry
+    /// it rests on is in <see cref="PhantomFrame"/> (a prototype convention, 2026-11-17).
     /// </para>
     /// </summary>
     public sealed class DoseVolume

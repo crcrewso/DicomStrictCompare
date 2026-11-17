@@ -98,4 +98,29 @@ flowchart LR
 ```
 
 Float on the GPU engines is a user's choice and may differ from the reference on a few points in millions.
+
+## 5. Water-tank scans against doses (prototype)
+
+`ProfileBatch.Run` (DSClibrary/Profiles), driven by `tools/DSCprofiles`. Branch `crane/prototype-profile-comparison`,
+2026-11-17.
+
+```mermaid
+flowchart TD
+    scans["Scans folder: every *.mcc, recursive<br/>MCCParser, MCCMeasurementMapper: a Profile per scan"] --> pair
+    doses["Doses folder: RTFolderReader, headers only<br/>optional plan-label filter"] --> pair
+    pair["ScanDoseMatching.Match<br/>field on the tank axes (jaws turned by the collimator, or the applicator),<br/>energy, FFF, EDW angle and IN/OUT, SSD if the plan has one"] --> unpaired["Unpaired scans, with the closest miss"]
+    pair --> group["Pairs grouped by dose; doses at once:<br/>physical cores, capped by half the free memory"]
+    group --> load["DoseGridReader.Read, once per dose"]
+    load --> frame["PhantomFrame.For: axis = isocentre x, z;<br/>surface = entry point, else plan SSD, else scan SSD, else the dose;<br/>the dose's surface checked against it"]
+    frame --> sample["DoseLineSampler: the dose at the scan's positions<br/>(trilinear, as the engine); outside the grid dropped and counted"]
+    sample --> shift{"Depth dose and<br/>a shift search?"}
+    shift -- yes --> best["Read the dose at depth + s, best fit beyond dmax"] --> norm
+    shift -- no --> norm["Normalise both: depth dose to max;<br/>profile to CAX, or max when CAX &lt; 80 % of max"]
+    norm --> test{"Test"}
+    test -- gamma --> gamma["GammaShell in 1D: reference points;<br/>evaluated side on an even grid (dose nodes, or the scan interpolated)"]
+    test -- strict --> strict["HandWrittenComparer's rule along the line:<br/>dose difference, else the reference's range at +-distance"]
+    gamma --> extra
+    strict --> extra["Constancy over the central 80 % of the reference field;<br/>FauxPID metrics or depth-dose metrics, both sides"]
+    extra --> csv["DSCprofiles: results, unpaired, curves and settings files"]
+```
 Core selection: [core-selection.md](core-selection.md).
