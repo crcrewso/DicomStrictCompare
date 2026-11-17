@@ -1,23 +1,22 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DSCprototypes.Shared.ViewModels"
+             xmlns:shared="using:DSCprototypes.Shared"
              xmlns:views="using:DSCproto.AvaloniaApp.Views"
              x:Class="DSCproto.AvaloniaApp.Views.CriteriaPanel"
              x:DataType="vm:MainViewModel">
 
   <!-- The criteria list, Max and GPU float: one list, shown beside both Doses vs doses and Study, which compare at it
-       (crane, 2026-11-17, when Study became a tab of its own). Editing it in either tab changes it in both. -->
+       (crane, 2026-11-17, when Study became a tab of its own). Editing it in either tab changes it in both. Hover text
+       comes from HelpText, which the Eto window shares. -->
   <DockPanel>
     <TextBlock DockPanel.Dock="Top" Text="{Binding $parent[views:CriteriaPanel].Title}" FontWeight="SemiBold" Margin="0,0,0,6" TextWrapping="Wrap"/>
-    <!-- "Max": what the threshold and global tolerance are fractions of. CAX falls back to Global Max unless
-         the source plan's jaws are on axis; each result row says which was used. -->
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
-      <TextBlock Text="Max" VerticalAlignment="Center"/>
+      <TextBlock Text="Max" VerticalAlignment="Center" ToolTip.Tip="{x:Static shared:HelpText.Maximum}"/>
       <ComboBox ItemsSource="{Binding MaximumChoices}" SelectedItem="{Binding Maximum}" MinWidth="130"
-                ToolTip.Tip="GlobalMax: the source grid's maximum. CaxMax: the 3 x 3 average at the CAX maximum (arcs: about the isocentre), used only when the source plan's jaws are on axis, otherwise Global Max."/>
+                ToolTip.Tip="{x:Static shared:HelpText.Maximum}"/>
       <!-- Kept with a study, like Max, because it can change counts. Engine, threads and reading are on the Settings tab. -->
-      <CheckBox Content="GPU float" IsChecked="{Binding GpuFloat}"
-                ToolTip.Tip="GPU engines only. Many GPUs run double far slower than float, for example NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in millions; double matches it exactly."/>
+      <CheckBox Content="GPU float" IsChecked="{Binding GpuFloat}" ToolTip.Tip="{x:Static shared:HelpText.GpuFloat}"/>
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
       <Button Content="Add" Command="{Binding AddCriterionCommand}"/>
@@ -26,17 +25,27 @@
     <DataGrid ItemsSource="{Binding Criteria}" SelectedItem="{Binding SelectedCriterion}"
               AutoGenerateColumns="False" CanUserReorderColumns="False" GridLinesVisibility="Horizontal">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Tol %" Binding="{Binding TolerancePercent}" Width="*" MinWidth="70"/>
-        <DataGridTextColumn Header="DTA mm" Binding="{Binding DistanceMm}" Width="*" MinWidth="90"/>
-        <DataGridTextColumn Header="Thr %" Binding="{Binding ThresholdPercent}" Width="*" MinWidth="70"/>
-        <DataGridCheckBoxColumn Header="Global" Binding="{Binding Global}" Width="Auto"/>
-        <DataGridCheckBoxColumn Header="Gamma" Binding="{Binding Gamma}" Width="Auto"/>
-        <DataGridTemplateColumn Header="Applies to" Width="Auto">
+        <DataGridTextColumn Binding="{Binding TolerancePercent}" Width="*" MinWidth="70">
+          <DataGridTextColumn.Header><TextBlock Text="Tol %" ToolTip.Tip="{x:Static shared:HelpText.Tolerance}"/></DataGridTextColumn.Header>
+        </DataGridTextColumn>
+        <DataGridTextColumn Binding="{Binding DistanceMm}" Width="*" MinWidth="90">
+          <DataGridTextColumn.Header><TextBlock Text="DTA mm" ToolTip.Tip="{x:Static shared:HelpText.Distance}"/></DataGridTextColumn.Header>
+        </DataGridTextColumn>
+        <DataGridTextColumn Binding="{Binding ThresholdPercent}" Width="*" MinWidth="70">
+          <DataGridTextColumn.Header><TextBlock Text="Thr %" ToolTip.Tip="{x:Static shared:HelpText.Threshold}"/></DataGridTextColumn.Header>
+        </DataGridTextColumn>
+        <DataGridCheckBoxColumn Binding="{Binding Global}" Width="Auto">
+          <DataGridCheckBoxColumn.Header><TextBlock Text="Global" ToolTip.Tip="{x:Static shared:HelpText.Global}"/></DataGridCheckBoxColumn.Header>
+        </DataGridCheckBoxColumn>
+        <DataGridCheckBoxColumn Binding="{Binding Gamma}" Width="Auto">
+          <DataGridCheckBoxColumn.Header><TextBlock Text="Gamma" ToolTip.Tip="{x:Static shared:HelpText.Gamma}"/></DataGridCheckBoxColumn.Header>
+        </DataGridCheckBoxColumn>
+        <DataGridTemplateColumn Width="Auto">
+          <DataGridTemplateColumn.Header><TextBlock Text="Applies to" ToolTip.Tip="{x:Static shared:HelpText.AppliesTo}"/></DataGridTemplateColumn.Header>
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:CriterionViewModel">
               <ComboBox ItemsSource="{x:Static vm:CriterionViewModel.AppliesToChoices}" SelectedItem="{Binding AppliesTo}"
-                        HorizontalAlignment="Stretch"
-                        ToolTip.Tip="Which beams this criterion compares, by the source plan's RadiationType. A pair with no source plan is compared only by Both."/>
+                        HorizontalAlignment="Stretch" ToolTip.Tip="{x:Static shared:HelpText.AppliesTo}"/>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

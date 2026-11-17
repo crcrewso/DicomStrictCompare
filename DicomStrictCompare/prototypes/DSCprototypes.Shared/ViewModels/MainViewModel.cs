@@ -139,7 +139,19 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>The comparison engine; HandWritten, the reference, unless chosen. Used by both tabs.</summary>
     [ObservableProperty] private ComparerKind _engine = ComparerKind.HandWritten;
-    public IReadOnlyList<ComparerKind> EngineChoices { get; } = Enum.GetValues<ComparerKind>();
+
+    /// <summary>The engines by plain name, with what each does (crcrewso, 2026-11-17); the setting keeps its code name.</summary>
+    public IReadOnlyList<EngineChoice> EngineChoices => EngineChoice.All;
+
+    /// <summary>The list's choice: the engine as an <see cref="EngineChoice"/>.</summary>
+    public EngineChoice SelectedEngine
+    {
+        get => EngineChoice.For(Engine);
+        set { if (value is not null) Engine = value.Kind; }
+    }
+
+    /// <summary>What the chosen engine does, for the line under the list.</summary>
+    public string EngineDescription => SelectedEngine.Description;
 
     /// <summary>
     /// CPU threads, from 1 to every logical processor, SMT included, defaulting to the recommended one, one per usable
@@ -220,7 +232,12 @@ public sealed partial class MainViewModel : ObservableObject
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Status = $"Settings not saved: {ex.Message}"; }
     }
 
-    partial void OnEngineChanged(ComparerKind value) => SaveSettings();
+    partial void OnEngineChanged(ComparerKind value)
+    {
+        OnPropertyChanged(nameof(SelectedEngine));
+        OnPropertyChanged(nameof(EngineDescription));
+        SaveSettings();
+    }
     partial void OnAlgorithmNamesChanged(string value) => SaveSettings();
     partial void OnThreadsChanged(ThreadChoice value) => SaveSettings();
     partial void OnPairsAtOnceChanged(int value) => SaveSettings();

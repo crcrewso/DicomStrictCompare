@@ -76,16 +76,18 @@ public sealed class MainForm : Form
     private readonly TabControl _workflows = new();
 
     // Kept with a comparison, because they can change results: Max and GPU float.
-    private readonly DropDown _maximum = new() { ToolTip = "GlobalMax: the source grid's maximum. CaxMax: the 3 x 3 average at the CAX maximum, used only when the source plan's jaws are on axis, otherwise Global Max." };
-    private readonly CheckBox _gpuFloat = new() { Text = "GPU float", ToolTip = "GPU engines only. Float may differ from the reference on a few points in millions; double matches it exactly." };
+    private readonly DropDown _maximum = new() { ToolTip = HelpText.Maximum };
+    private readonly CheckBox _gpuFloat = new() { Text = "GPU float", ToolTip = HelpText.GpuFloat };
 
     // This machine's settings (MachineSettings, kept in its file and saved as they change). None changes a count.
-    private readonly DropDown _engine = new() { ToolTip = "HandWritten is the original and the reference. The others apply the same rules faster and give the same counts." };
-    private readonly DropDown _threads = new() { ToolTip = "CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count leaves out SMT siblings and low-power E-cores." };
-    private readonly NumericStepper _pairsAtOnce = new() { MinValue = 0, MaxValue = 256, Width = 90, ToolTip = "0 chooses from free memory." };
-    private readonly CheckBox _partialTargetReads = new() { ToolTip = "Read each target only where the criteria and the edge check use it. The counts are the same either way." };
-    private readonly NumericStepper _readers = new() { MinValue = 0, MaxValue = 64, Width = 90, ToolTip = "Files read at once, ahead of the comparison; fewer if memory is short. 0 has each worker read its own pair." };
-    private readonly NumericStepper _pairsHeld = new() { MinValue = 1, MaxValue = 64, Width = 90, ToolTip = "Loaded pairs waiting for a worker, when Readers is above 0." };
+    // Engines by plain name, with what the chosen one does underneath (crcrewso, 2026-11-17); hover text is HelpText's.
+    private readonly DropDown _engine = new() { ToolTip = HelpText.Engine, Width = 280 };
+    private readonly Label _engineDescription = new() { Wrap = WrapMode.Word, Width = 560, TextColor = Colors.Gray };
+    private readonly DropDown _threads = new() { ToolTip = HelpText.Threads };
+    private readonly NumericStepper _pairsAtOnce = new() { MinValue = 0, MaxValue = 256, Width = 90, ToolTip = HelpText.PairsAtOnce };
+    private readonly CheckBox _partialTargetReads = new() { ToolTip = HelpText.TargetBoxOnly };
+    private readonly NumericStepper _readers = new() { MinValue = 0, MaxValue = 64, Width = 90, ToolTip = HelpText.Readers };
+    private readonly NumericStepper _pairsHeld = new() { MinValue = 1, MaxValue = 64, Width = 90, ToolTip = HelpText.Held };
     private readonly int[] _threadCounts = MachineSettings.ThreadCounts(CpuTopology.MaxThreads, CpuTopology.PhysicalCores).ToArray();
     private bool _loadingSettings;
 
@@ -269,32 +271,32 @@ public sealed class MainForm : Form
         _criteriaGrid.DataStore = _criteria;
         _criteriaGrid.Columns.Add(new GridColumn
         {
-            HeaderText = "Tol %", Editable = true, Width = 70,
+            HeaderText = "Tol %", HeaderToolTip = HelpText.Tolerance, Editable = true, Width = 70,
             DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, double>(r => r.TolerancePercent).Convert(d => d.ToString("0.##"), s => double.TryParse(s, out var v) ? v : 0) },
         });
         _criteriaGrid.Columns.Add(new GridColumn
         {
-            HeaderText = "DTA mm", Editable = true, Width = 70,
+            HeaderText = "DTA mm", HeaderToolTip = HelpText.Distance, Editable = true, Width = 70,
             DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, double>(r => r.DistanceMm).Convert(d => d.ToString("0.##"), s => double.TryParse(s, out var v) ? v : 0) },
         });
         _criteriaGrid.Columns.Add(new GridColumn
         {
-            HeaderText = "Thr %", Editable = true, Width = 70,
+            HeaderText = "Thr %", HeaderToolTip = HelpText.Threshold, Editable = true, Width = 70,
             DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, double>(r => r.ThresholdPercent).Convert(d => d.ToString("0.##"), s => double.TryParse(s, out var v) ? v : 0) },
         });
         _criteriaGrid.Columns.Add(new GridColumn
         {
-            HeaderText = "Global", Editable = true, Width = 60,
+            HeaderText = "Global", HeaderToolTip = HelpText.Global, Editable = true, Width = 60,
             DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Global) },
         });
         _criteriaGrid.Columns.Add(new GridColumn
         {
-            HeaderText = "Gamma", Editable = true, Width = 60,
+            HeaderText = "Gamma", HeaderToolTip = HelpText.Gamma, Editable = true, Width = 60,
             DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Gamma) },
         });
         _criteriaGrid.Columns.Add(new GridColumn
         {
-            HeaderText = "Applies to", Editable = true, Width = 90,
+            HeaderText = "Applies to", HeaderToolTip = HelpText.AppliesTo, Editable = true, Width = 90,
             DataCell = new ComboBoxCell
             {
                 DataStore = Enum.GetNames<BeamsCompared>(),
@@ -306,22 +308,22 @@ public sealed class MainForm : Form
     private void BuildResultsGrid()
     {
         _resultsGrid.DataStore = _rows;
-        GridColumn Col(string header, Func<ResultRow, string> get, int width = 90) => new()
+        GridColumn Col(string header, string tip, Func<ResultRow, string> get, int width = 90) => new()
         {
-            HeaderText = header, Width = width,
+            HeaderText = header, HeaderToolTip = tip, Width = width,
             DataCell = new TextBoxCell { Binding = Binding.Delegate(get) },
         };
-        _resultsGrid.Columns.Add(Col("Key", r => r.Key, 320));
-        _resultsGrid.Columns.Add(Col("Criterion", r => r.Criterion.Label, 180));
-        _resultsGrid.Columns.Add(Col("Ambiguous", r => r.WorstOf, 90));
-        _resultsGrid.Columns.Add(Col("Compared", r => r.Compared.ToString("N0")));
-        _resultsGrid.Columns.Add(Col("Failed", r => r.Failed.ToString("N0")));
-        _resultsGrid.Columns.Add(Col("% failed", r => r.PercentFailed is { } p ? p.ToString("0.000") : ""));
-        _resultsGrid.Columns.Add(Col("Max γ", r => r.MaxGamma is { } g ? g.ToString("0.00") : "", 60));
-        _resultsGrid.Columns.Add(Col("Src MU", r => r.SourceMonitorUnits?.ToString("0.#") ?? "", 70));
-        _resultsGrid.Columns.Add(Col("Tgt MU", r => r.TargetMonitorUnits?.ToString("0.#") ?? "", 70));
-        _resultsGrid.Columns.Add(Col("s", r => r.ElapsedSeconds.ToString("0.0"), 50));
-        _resultsGrid.Columns.Add(Col("Failure", r => r.Failure ?? "", 240));
+        _resultsGrid.Columns.Add(Col("Key", HelpText.Key, r => r.Key, 320));
+        _resultsGrid.Columns.Add(Col("Criterion", HelpText.Criterion, r => r.Criterion.Label, 180));
+        _resultsGrid.Columns.Add(Col("Ambiguous", HelpText.Ambiguous, r => r.WorstOf, 90));
+        _resultsGrid.Columns.Add(Col("Compared", HelpText.Compared, r => r.Compared.ToString("N0")));
+        _resultsGrid.Columns.Add(Col("Failed", HelpText.Failed, r => r.Failed.ToString("N0")));
+        _resultsGrid.Columns.Add(Col("% failed", HelpText.PercentFailed, r => r.PercentFailed is { } p ? p.ToString("0.000") : ""));
+        _resultsGrid.Columns.Add(Col("Max γ", HelpText.MaxGammaDoses, r => r.MaxGamma is { } g ? g.ToString("0.00") : "", 60));
+        _resultsGrid.Columns.Add(Col("Src MU", HelpText.SourceMu, r => r.SourceMonitorUnits?.ToString("0.#") ?? "", 70));
+        _resultsGrid.Columns.Add(Col("Tgt MU", HelpText.TargetMu, r => r.TargetMonitorUnits?.ToString("0.#") ?? "", 70));
+        _resultsGrid.Columns.Add(Col("s", HelpText.Seconds, r => r.ElapsedSeconds.ToString("0.0"), 50));
+        _resultsGrid.Columns.Add(Col("Failure", HelpText.Failure, r => r.Failure ?? "", 240));
     }
 
     private void WireEvents()
@@ -337,12 +339,13 @@ public sealed class MainForm : Form
     {
         foreach (var m in Enum.GetValues<MaximumKind>()) _maximum.Items.Add(m.ToString());
         _maximum.SelectedIndex = 0;
-        foreach (var k in Enum.GetValues<ComparerKind>()) _engine.Items.Add(k.ToString());
+        foreach (var e in EngineChoice.All) _engine.Items.Add(e.Label);
         foreach (int n in _threadCounts) _threads.Items.Add(n == CpuTopology.PhysicalCores ? $"{n} (recommended)" : n.ToString());
 
         var settings = MachineSettings.Load(MachineSettings.DefaultPath, out var problem);
         _loadingSettings = true;
-        _engine.SelectedIndex = Array.IndexOf(Enum.GetValues<ComparerKind>(), settings.Engine);
+        _engine.SelectedIndex = EngineChoice.All.ToList().FindIndex(e => e.Kind == settings.Engine);
+        _engineDescription.Text = EngineChoice.For(settings.Engine).Description;
         _threads.SelectedIndex = Array.IndexOf(_threadCounts, MachineSettings.ListedThreads(_threadCounts, settings.Threads));
         _pairsAtOnce.Value = settings.PairsAtOnce ?? 0;
         _partialTargetReads.Checked = settings.PartialTargetReads;
@@ -352,7 +355,11 @@ public sealed class MainForm : Form
         _loadingSettings = false;
         if (problem is not null) _status.Text = problem;
 
-        _engine.SelectedIndexChanged += (_, _) => SaveSettings();
+        _engine.SelectedIndexChanged += (_, _) =>
+        {
+            _engineDescription.Text = EngineChoice.All[Math.Max(0, _engine.SelectedIndex)].Description;
+            SaveSettings();
+        };
         _threads.SelectedIndexChanged += (_, _) => SaveSettings();
         _pairsAtOnce.ValueChanged += (_, _) => SaveSettings();
         _partialTargetReads.CheckedChanged += (_, _) => SaveSettings();
@@ -373,7 +380,7 @@ public sealed class MainForm : Form
         int threads = _threadCounts[Math.Max(0, _threads.SelectedIndex)];
         return new MachineSettings
         {
-            Engine = Enum.GetValues<ComparerKind>()[Math.Max(0, _engine.SelectedIndex)],
+            Engine = EngineChoice.All[Math.Max(0, _engine.SelectedIndex)].Kind,
             Threads = threads == CpuTopology.PhysicalCores ? null : threads,
             PairsAtOnce = _pairsAtOnce.Value > 0 ? (int)_pairsAtOnce.Value : null,
             PartialTargetReads = _partialTargetReads.Checked == true,
@@ -395,6 +402,7 @@ public sealed class MainForm : Form
         Label L(string text) => new() { Text = text, VerticalAlignment = VerticalAlignment.Center };
         var table = new TableLayout { Spacing = new Size(12, 8) };
         table.Rows.Add(new TableRow(L("Engine"), _engine, null));
+        table.Rows.Add(new TableRow(null, _engineDescription, null));
         table.Rows.Add(new TableRow(L("Threads"), _threads, null));
         table.Rows.Add(new TableRow(L("Pairs at once"), _pairsAtOnce, null));
         table.Rows.Add(new TableRow(L("Target box only"), _partialTargetReads, null));

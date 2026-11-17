@@ -28,8 +28,8 @@ public sealed class ScanPage : Panel
     // The criterion: 1 %/1 mm gamma, measurement as reference, by default (crcrewso, 2026-11-15: "1 % or tighter for analysis and validation").
     private readonly NumericStepper _dosePercent = new() { Value = 1, MinValue = 0.001, DecimalPlaces = 1, MaximumDecimalPlaces = 3, Increment = 0.5, Width = 70 };
     private readonly NumericStepper _distanceMm = new() { Value = 1, MinValue = 0, DecimalPlaces = 1, MaximumDecimalPlaces = 3, Increment = 0.5, Width = 70, ToolTip = "0 with the strict test: dose difference only" };
-    private readonly DropDown _test = new() { Width = 100 };
-    private readonly DropDown _reference = new() { Width = 120 };
+    private readonly DropDown _test = new() { Width = 100, ToolTip = HelpText.ScanTest };
+    private readonly DropDown _reference = new() { Width = 120, ToolTip = HelpText.ScanReference };
     private readonly CheckBox _local = new() { Text = "Local", ToolTip = "Dose difference as a percentage of the reference point, not of the reference maximum" };
     private readonly NumericStepper _cutoff = new() { Value = 10, MinValue = 0, MaxValue = 100, DecimalPlaces = 0, MaximumDecimalPlaces = 2, Width = 70, ToolTip = "Points below this percentage of the reference maximum aren't tested" };
     private readonly CheckBox _depthShift = new() { Text = "Depth shift", ToolTip = "Depth doses only: read the dose at depth + s for s within 3 mm in 0.1 mm steps, the best fit beyond dmax" };
@@ -167,9 +167,9 @@ public sealed class ScanPage : Panel
 
     private void BuildGrid()
     {
-        GridColumn Col(string header, Func<ScanPairRow, string> get, int width) => new()
+        GridColumn Col(string header, Func<ScanPairRow, string> get, int width, string? tip = null) => new()
         {
-            HeaderText = header, Width = width,
+            HeaderText = header, HeaderToolTip = tip, Width = width,
             DataCell = new TextBoxCell { Binding = Binding.Delegate(get) },
         };
         _grid.Columns.Add(Col("Row", r => r.Row.ToString(System.Globalization.CultureInfo.InvariantCulture), 50));
@@ -179,10 +179,10 @@ public sealed class ScanPage : Panel
         _grid.Columns.Add(Col("Energy", r => r.Energy, 70));
         _grid.Columns.Add(Col("Field", r => r.Field, 140));
         _grid.Columns.Add(Col("Dose", r => r.DoseFile, 200));
-        _grid.Columns.Add(Col("Pass %", r => r.PassRate, 60));
-        _grid.Columns.Add(Col("Points", r => r.Points, 80));
-        _grid.Columns.Add(Col("Max γ", r => r.MaxGamma, 60));
-        _grid.Columns.Add(Col("Outcome", r => r.OutcomeText, 160));
+        _grid.Columns.Add(Col("Pass %", r => r.PassRate, 60, HelpText.PassRate));
+        _grid.Columns.Add(Col("Points", r => r.Points, 80, HelpText.ScanPoints));
+        _grid.Columns.Add(Col("Max γ", r => r.MaxGamma, 60, HelpText.ScanMaxGamma));
+        _grid.Columns.Add(Col("Outcome", r => r.OutcomeText, 160, HelpText.ScanOutcome));
     }
 
     /// <summary>

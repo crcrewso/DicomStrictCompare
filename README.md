@@ -89,6 +89,11 @@ agree everywhere under your criteria, 100 % means no point agreed.
 Every engine gives exactly the reference's counts; the library's tests check this on every reference file and on
 random edge cases.
 
+In the windows' Settings tab they are listed by plain name, with a line describing the chosen one: *Reference: every
+point, one thread* (HandWritten), *CPU, one thread*, *CPU, several threads*, *Graphics card (ILGPU)* and *Graphics
+card (OpenCL)*. `settings.json` keeps the code names. Hover text on the criteria, the result columns and the settings
+says what each means; it is kept in one place, `prototypes/DSCprototypes.Shared/HelpText.cs`, for both windows.
+
 **Float, on GPUs only, by choice.** Many consumer GPUs run double precision far slower than float, for example
 NVIDIA GeForce RTX 20 series at about 1/32 of the float rate and RTX 30 and 40 series at about 1/64 (vendor figures;
 check your card). For those, the GPU engines offer float. It may differ from the reference by a few points out of

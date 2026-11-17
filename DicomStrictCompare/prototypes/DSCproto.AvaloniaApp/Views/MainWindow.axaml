@@ -77,19 +77,45 @@
         <TabItem Header="Results">
           <DataGrid ItemsSource="{Binding Rows}" IsReadOnly="True" AutoGenerateColumns="False" GridLinesVisibility="Horizontal">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="2*"/>
-              <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="*"/>
-              <DataGridTextColumn Header="Ambiguous" Binding="{Binding WorstOf}" Width="Auto"/>
-              <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
-              <DataGridTextColumn Header="Edge check" Binding="{Binding EdgeCheck}" Width="Auto"/>
-              <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
-              <DataGridTextColumn Header="Failed" Binding="{Binding Failed, StringFormat=N0}" Width="Auto"/>
-              <DataGridTextColumn Header="% failed" Binding="{Binding PercentFailed, StringFormat=0.000}" Width="Auto"/>
-              <DataGridTextColumn Header="Max γ" Binding="{Binding MaxGamma, StringFormat=0.00}" Width="Auto"/>
-              <DataGridTextColumn Header="Src MU" Binding="{Binding SourceMonitorUnits}" Width="Auto"/>
-              <DataGridTextColumn Header="Tgt MU" Binding="{Binding TargetMonitorUnits}" Width="Auto"/>
-              <DataGridTextColumn Header="s" Binding="{Binding ElapsedSeconds, StringFormat=0.0}" Width="Auto"/>
-              <DataGridTextColumn Header="Failure" Binding="{Binding Failure}" Width="*"/>
+              <DataGridTextColumn Binding="{Binding Key}" Width="2*">
+                <DataGridTextColumn.Header><TextBlock Text="Key" ToolTip.Tip="{x:Static shared:HelpText.Key}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding Criterion.Label}" Width="*">
+                <DataGridTextColumn.Header><TextBlock Text="Criterion" ToolTip.Tip="{x:Static shared:HelpText.Criterion}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding WorstOf}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Ambiguous" ToolTip.Tip="{x:Static shared:HelpText.Ambiguous}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding MaximumUsed}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Max used" ToolTip.Tip="{x:Static shared:HelpText.MaximumUsed}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding EdgeCheck}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Edge check" ToolTip.Tip="{x:Static shared:HelpText.EdgeCheck}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding Compared, StringFormat=N0}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Compared" ToolTip.Tip="{x:Static shared:HelpText.Compared}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding Failed, StringFormat=N0}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Failed" ToolTip.Tip="{x:Static shared:HelpText.Failed}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding PercentFailed, StringFormat=0.000}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="% failed" ToolTip.Tip="{x:Static shared:HelpText.PercentFailed}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding MaxGamma, StringFormat=0.00}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Max γ" ToolTip.Tip="{x:Static shared:HelpText.MaxGammaDoses}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding SourceMonitorUnits}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Src MU" ToolTip.Tip="{x:Static shared:HelpText.SourceMu}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding TargetMonitorUnits}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="Tgt MU" ToolTip.Tip="{x:Static shared:HelpText.TargetMu}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding ElapsedSeconds, StringFormat=0.0}" Width="Auto">
+                <DataGridTextColumn.Header><TextBlock Text="s" ToolTip.Tip="{x:Static shared:HelpText.Seconds}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
+              <DataGridTextColumn Binding="{Binding Failure}" Width="*">
+                <DataGridTextColumn.Header><TextBlock Text="Failure" ToolTip.Tip="{x:Static shared:HelpText.Failure}"/></DataGridTextColumn.Header>
+              </DataGridTextColumn>
             </DataGrid.Columns>
           </DataGrid>
         </TabItem>
@@ -259,15 +285,33 @@
                 <DataGridTextColumn Header="Machine" Binding="{Binding Facts.Machine}" Width="Auto"/>
                 <DataGridTextColumn Header="Energy" Binding="{Binding Facts.Energy}" Width="Auto"/>
                 <DataGridTextColumn Header="Field size" Binding="{Binding Facts.FieldSize}" Width="Auto"/>
-                <DataGridTextColumn Header="Criterion" Binding="{Binding Criterion.Label}" Width="Auto"/>
-                <DataGridTextColumn Header="Ambiguous" Binding="{Binding WorstOf}" Width="Auto"/>
-                <DataGridTextColumn Header="Max used" Binding="{Binding MaximumUsed}" Width="Auto"/>
-                <DataGridTextColumn Header="Edge check" Binding="{Binding EdgeCheck}" Width="Auto"/>
-                <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate, StringFormat=0.000}" Width="Auto"/>
-                <DataGridTextColumn Header="Compared" Binding="{Binding Compared, StringFormat=N0}" Width="Auto"/>
-                <DataGridTextColumn Header="Plan check" Binding="{Binding PlanCheck}" Width="*"/>
-                <DataGridTextColumn Header="Warnings" Binding="{Binding Warnings}" Width="*"/>
-                <DataGridTextColumn Header="Failure" Binding="{Binding Failure}" Width="*"/>
+                <DataGridTextColumn Binding="{Binding Criterion.Label}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Criterion" ToolTip.Tip="{x:Static shared:HelpText.Criterion}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding WorstOf}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Ambiguous" ToolTip.Tip="{x:Static shared:HelpText.Ambiguous}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding MaximumUsed}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Max used" ToolTip.Tip="{x:Static shared:HelpText.MaximumUsed}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding EdgeCheck}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Edge check" ToolTip.Tip="{x:Static shared:HelpText.EdgeCheck}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding PassRate, StringFormat=0.000}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Pass %" ToolTip.Tip="{x:Static shared:HelpText.PassRate}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Compared, StringFormat=N0}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Compared" ToolTip.Tip="{x:Static shared:HelpText.Compared}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding PlanCheck}" Width="*">
+                  <DataGridTextColumn.Header><TextBlock Text="Plan check" ToolTip.Tip="{x:Static shared:HelpText.PlanCheck}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Warnings}" Width="*">
+                  <DataGridTextColumn.Header><TextBlock Text="Warnings" ToolTip.Tip="{x:Static shared:HelpText.Warnings}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Failure}" Width="*">
+                  <DataGridTextColumn.Header><TextBlock Text="Failure" ToolTip.Tip="{x:Static shared:HelpText.Failure}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
               </DataGrid.Columns>
             </DataGrid>
           </TabItem>
@@ -354,10 +398,10 @@
         <TextBox Text="{Binding DosePercent}" Width="60"/>
         <TextBlock Text="Distance mm" VerticalAlignment="Center"/>
         <TextBox Text="{Binding DistanceMm}" Width="60" ToolTip.Tip="0 with the strict test: dose difference only"/>
-        <TextBlock Text="Test" VerticalAlignment="Center"/>
-        <ComboBox ItemsSource="{Binding Tests}" SelectedItem="{Binding Test}" MinWidth="100"/>
-        <TextBlock Text="Reference" VerticalAlignment="Center"/>
-        <ComboBox ItemsSource="{Binding References}" SelectedItem="{Binding Reference}" MinWidth="120"/>
+        <TextBlock Text="Test" VerticalAlignment="Center" ToolTip.Tip="{x:Static shared:HelpText.ScanTest}"/>
+        <ComboBox ItemsSource="{Binding Tests}" SelectedItem="{Binding Test}" MinWidth="100" ToolTip.Tip="{x:Static shared:HelpText.ScanTest}"/>
+        <TextBlock Text="Reference" VerticalAlignment="Center" ToolTip.Tip="{x:Static shared:HelpText.ScanReference}"/>
+        <ComboBox ItemsSource="{Binding References}" SelectedItem="{Binding Reference}" MinWidth="120" ToolTip.Tip="{x:Static shared:HelpText.ScanReference}"/>
         <CheckBox Content="Local" IsChecked="{Binding Local}" ToolTip.Tip="Dose difference as a percentage of the reference point, not of the reference maximum"/>
         <TextBlock Text="Cutoff %" VerticalAlignment="Center"/>
         <TextBox Text="{Binding CutoffPercent}" Width="60" ToolTip.Tip="Points below this percentage of the reference maximum aren't tested"/>
@@ -395,10 +439,18 @@
                 <DataGridTextColumn Header="Energy" Binding="{Binding Energy}" Width="Auto"/>
                 <DataGridTextColumn Header="Field" Binding="{Binding Field}" Width="Auto"/>
                 <DataGridTextColumn Header="Dose" Binding="{Binding DoseFile}" Width="260"/>
-                <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate}" Width="Auto"/>
-                <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="Auto"/>
-                <DataGridTextColumn Header="Max γ" Binding="{Binding MaxGamma}" Width="Auto"/>
-                <DataGridTextColumn Header="Outcome" Binding="{Binding OutcomeText}" Width="Auto"/>
+                <DataGridTextColumn Binding="{Binding PassRate}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Pass %" ToolTip.Tip="{x:Static shared:HelpText.PassRate}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Points}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Points" ToolTip.Tip="{x:Static shared:HelpText.ScanPoints}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding MaxGamma}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Max γ" ToolTip.Tip="{x:Static shared:HelpText.ScanMaxGamma}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding OutcomeText}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Outcome" ToolTip.Tip="{x:Static shared:HelpText.ScanOutcome}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
               </DataGrid.Columns>
             </DataGrid>
           </TabItem>
@@ -437,25 +489,33 @@
   <TabItem Header="Settings">
     <StackPanel Margin="6,12,6,12" Spacing="10" MaxWidth="720" HorizontalAlignment="Left">
       <TextBlock TextWrapping="Wrap" Text="Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study."/>
-      <Grid ColumnDefinitions="160,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+      <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
         <TextBlock Grid.Row="0" Text="Engine" VerticalAlignment="Center"/>
-        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding Engine}" MinWidth="160"
-                  ToolTip.Tip="HandWritten is the original and the reference. The others apply the same rules faster and are tested to give the same counts."/>
-        <TextBlock Grid.Row="1" Text="Threads" VerticalAlignment="Center"/>
-        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding ThreadChoices}" SelectedItem="{Binding Threads}" MinWidth="160"
-                  ToolTip.Tip="CPU threads: within a pair for MultiThread, pairs at once for HandWritten and SingleThread. The recommended count is one per full-speed core, leaving out SMT siblings and low-power E-cores."/>
-        <TextBlock Grid.Row="2" Text="Pairs at once" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PairsAtOnce}" Width="60" HorizontalAlignment="Left"
-                 ToolTip.Tip="0 chooses from free memory: as many as half of it holds, up to the thread count (2 for the multi-thread and GPU engines)."/>
-        <TextBlock Grid.Row="3" Text="Target box only" VerticalAlignment="Center"/>
-        <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding PartialTargetReads}"
-                  ToolTip.Tip="Read each target only where the criteria and the edge check use it. A pair with a gamma criterion reads its target whole. The counts are the same either way."/>
-        <TextBlock Grid.Row="4" Text="Readers" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Readers}" Width="60" HorizontalAlignment="Left"
-                 ToolTip.Tip="Files read at once, ahead of the comparison; fewer if memory is short. 0 has each worker read its own pair."/>
-        <TextBlock Grid.Row="5" Text="Held" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
-                 ToolTip.Tip="Loaded pairs waiting for a worker, when Readers is above 0. Each held pair is two grids in memory."/>
+        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding EngineChoices}" SelectedItem="{Binding SelectedEngine}" MinWidth="280"
+                  HorizontalAlignment="Left" ToolTip.Tip="{x:Static shared:HelpText.Engine}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="shared:EngineChoice">
+              <TextBlock Text="{Binding Label}" ToolTip.Tip="{Binding Description}"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <!-- What the chosen engine does, in plain words (crcrewso, 2026-11-17). -->
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding EngineDescription}" TextWrapping="Wrap" FontSize="12" Opacity="0.75"/>
+        <TextBlock Grid.Row="2" Text="Threads" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ThreadChoices}" SelectedItem="{Binding Threads}" MinWidth="160"
+                  HorizontalAlignment="Left" ToolTip.Tip="{x:Static shared:HelpText.Threads}"/>
+        <TextBlock Grid.Row="3" Text="Pairs at once" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PairsAtOnce}" Width="60" HorizontalAlignment="Left"
+                 ToolTip.Tip="{x:Static shared:HelpText.PairsAtOnce}"/>
+        <TextBlock Grid.Row="4" Text="Target box only" VerticalAlignment="Center"/>
+        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding PartialTargetReads}"
+                  ToolTip.Tip="{x:Static shared:HelpText.TargetBoxOnly}"/>
+        <TextBlock Grid.Row="5" Text="Readers" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Readers}" Width="60" HorizontalAlignment="Left"
+                 ToolTip.Tip="{x:Static shared:HelpText.Readers}"/>
+        <TextBlock Grid.Row="6" Text="Held" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
+                 ToolTip.Tip="{x:Static shared:HelpText.Held}"/>
       </Grid>
       <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="Pairing"/>
       <TextBlock TextWrapping="Wrap" Text="Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none."/>
