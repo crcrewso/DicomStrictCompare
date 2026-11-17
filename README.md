@@ -206,12 +206,19 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
     sides' metrics;
   - **below,** each tested point: gamma with its pass line at 1, or for the strict test the dose difference with the
     tolerance band. Points are marked pass or fail; a strict point outside the band can still pass on distance.
-- **In the windows.** The Graphs tab's *dose versus scans* mode (Avalonia and Eto) pairs and compares by the same
-  rules and draws the same figure for the chosen scan and dose.
-  - The criterion is 1 %/1 mm gamma with the measurement as reference by default; the test and the reference can
-    be changed.
-  - *Save plot* writes the figure shown as PNG or SVG.
-  - *Save plots of listed scans* writes one for every scan the filters list, against every dose it pairs with.
+- **In the windows.** Both windows (Avalonia and Eto) have two tabs at the top: **Doses vs doses**, the comparison
+  above, and **Doses vs scans**, which runs this same batch.
+  - The Doses vs scans tab has its own *Doses* and *Scans* folders, plan-label filter and folders to skip. Until a
+    doses folder is chosen there, it takes the Doses vs doses source folder.
+  - Its criterion is 1 %/1 mm gamma with the measurement as reference by default. The test, the reference, local
+    dose difference, the cutoff and the depth-dose shift search can be changed. A change shows only after *Run*.
+  - The table lists every pair by its results row, filtered by energy, field, curve, and all, failing or not
+    compared. *Unpaired* lists the scans no dose pairs with, and why. The chosen pair's figure is drawn beside the table.
+  - *Save plot* writes the figure shown as PNG or SVG. *Save plots of listed pairs* writes one for every pair the
+    filters list.
+  - *Export results (CSV)* writes the files `DSCprofiles` writes (stem `profiles`), with no plots, the failing pairs'
+    plots or all of them.
+  - `--scans DIR` (and `--doses DIR`, else `--source`) on a window's command line opens this tab and runs it.
 
 ## Assumptions and limitations
 

@@ -107,15 +107,21 @@ public static class ProfilePlot
     public static string Verdict(ProfileComparisonResult r)
     {
         ArgumentNullException.ThrowIfNull(r);
-        var o = r.Options;
+        string pass = r.Analysed == 0 ? "no points tested" : F($"{r.PassRate:0.00}% of {r.Analysed} points pass");
+        string gamma = r.MeanGamma is { } mean && r.MaxGammaFound is { } max ? F($" (mean {mean:0.00}, max {max:0.00})") : "";
+        return $"{Criterion(r.Options)}: {pass}{gamma}";
+    }
+
+    /// <summary>The criterion in words: "Gamma 1%/1 mm, measured reference", "Dose difference 1% local, calculated reference".</summary>
+    public static string Criterion(ProfileComparisonOptions o)
+    {
+        ArgumentNullException.ThrowIfNull(o);
         string test = o.Test == ProfileTest.Gamma ? "Gamma" : o.DistanceMm > 0 ? "Strict (dose, then distance)" : "Dose difference";
         string criterion = o.Test == ProfileTest.Strict && o.DistanceMm == 0
             ? F($"{o.DosePercent:0.###}%")
             : F($"{o.DosePercent:0.###}%/{o.DistanceMm:0.###} mm");
         string local = o.Local ? " local" : "";
-        string pass = r.Analysed == 0 ? "no points tested" : F($"{r.PassRate:0.00}% of {r.Analysed} points pass");
-        string gamma = r.MeanGamma is { } mean && r.MaxGammaFound is { } max ? F($" (mean {mean:0.00}, max {max:0.00})") : "";
-        return $"{test} {criterion}{local}, {o.Reference.ToString().ToLowerInvariant()} reference: {pass}{gamma}";
+        return $"{test} {criterion}{local}, {o.Reference.ToString().ToLowerInvariant()} reference";
     }
 
     /// <summary>The metrics box: normalisation, constancy and FauxPID metrics for a profile, depth-dose metrics for a PDD.</summary>

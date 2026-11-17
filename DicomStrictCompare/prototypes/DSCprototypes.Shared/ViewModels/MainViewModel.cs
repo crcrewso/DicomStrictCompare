@@ -58,7 +58,8 @@ public sealed partial class MainViewModel : ObservableObject
             if (problem is not null) Status = problem;
         }
         foreach (var d in DtaSpec.Defaults) Criteria.Add(new CriterionViewModel(d));
-        Graph = new GraphViewModel(ComparisonRunner.LoadGrid, pickFolder);
+        Graph = new GraphViewModel(ComparisonRunner.LoadGrid);
+        Scans = new ScanComparisonViewModel(pickFolder);
         Study = new StudyViewModel(pickFolder, () => Criteria.Select(c => c.ToSpec()).ToList(),
             runSettings: () => RunSettings, applyRunSettings: Apply, algorithms: () => ParsedAlgorithmTokens);
     }
@@ -66,10 +67,14 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>The Study tab: several dose sets and the comparisons between them (design/comparison-studies.md).</summary>
     public StudyViewModel Study { get; }
 
-    partial void OnSourceFolderChanged(string value) => Graph.SetSourceFolder(value);
+    /// <summary>The source folder is offered to the Doses vs scans tab until a doses folder is chosen there.</summary>
+    partial void OnSourceFolderChanged(string value) => Scans.OfferDosesFolder(value);
 
     /// <summary>The Graphs tab: curves out of the matched pairs of the last run (crcrewso, 2026-11-09: "implement the graph feature").</summary>
     public GraphViewModel Graph { get; }
+
+    /// <summary>The Doses vs scans tab: its own folders, criterion and results (crcrewso, 2026-11-17).</summary>
+    public ScanComparisonViewModel Scans { get; }
 
     /// <summary>
     /// Where a Browse dialog should open: the parent of this field's previous choice (crcrewso,

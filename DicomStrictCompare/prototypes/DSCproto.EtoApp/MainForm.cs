@@ -70,7 +70,10 @@ public sealed class MainForm : Form
     private ComparisonSession? _session;
     private CancellationTokenSource? _cancelSource;
     private readonly GraphPage _graphs;
+    private readonly ScanPage _scans;
     private readonly TabControl _tabs = new();
+    // Two comparisons with nothing in common but the doses (crcrewso, 2026-11-17): each tab its own inputs, run and results.
+    private readonly TabControl _workflows = new();
 
     // Kept with a comparison, because they can change results: Max and GPU float.
     private readonly DropDown _maximum = new() { ToolTip = "GlobalMax: the source grid's maximum. CaxMax: the 3 x 3 average at the CAX maximum, used only when the source plan's jaws are on axis, otherwise Global Max." };
@@ -88,7 +91,10 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        _graphs = new GraphPage(ComparisonRunner.LoadGrid, () => (_sourceAlias.Text, _targetAlias.Text), PickFolder, () => _sourceFolder.Text);
+        _graphs = new GraphPage(ComparisonRunner.LoadGrid, () => (_sourceAlias.Text, _targetAlias.Text));
+        _scans = new ScanPage(PickFolder);
+        // The source folder is offered to the Doses vs scans tab until a doses folder is chosen there.
+        _sourceFolder.TextChanged += (_, _) => _scans.OfferDosesFolder(_sourceFolder.Text);
         Title = "DicomStrictCompare - Eto.Forms prototype";
         ClientSize = new Size(1280, 820);
         MinimumSize = new Size(900, 600);
@@ -176,7 +182,9 @@ public sealed class MainForm : Form
         layout.EndHorizontal();
         layout.EndVertical();
 
-        Content = layout;
+        _workflows.Pages.Add(new TabPage(layout) { Text = "Doses vs doses" });
+        _workflows.Pages.Add(new TabPage(_scans) { Text = "Doses vs scans" });
+        Content = _workflows;
 
         // Command-line pre-fill and scripted run, the same path a click takes.
         var options = LaunchOptions.FromCommandLine();
@@ -196,7 +204,8 @@ public sealed class MainForm : Form
                     _status.Text = _session.Summary + " - wrote " + string.Join(" and ", written.Select(Path.GetFileName));
                 }
                 if (options.ShowGraphs) _tabs.SelectedIndex = 3;
-                await _graphs.ApplyAsync(options);
+                _graphs.Apply(options);
+                await ApplyScansAsync(options);
             };
         }
         else if (options.ShowGraphs || options.ScanFolder is not null)
@@ -204,9 +213,18 @@ public sealed class MainForm : Form
             Shown += async (_, _) =>
             {
                 if (options.ShowGraphs) _tabs.SelectedIndex = 3;
-                await _graphs.ApplyAsync(options);
+                _graphs.Apply(options);
+                await ApplyScansAsync(options);
             };
         }
+    }
+
+    /// <summary>With a scans folder on the command line, opens the Doses vs scans tab, which runs when it has a doses folder.</summary>
+    private async Task ApplyScansAsync(LaunchOptions options)
+    {
+        if (options.ScanFolder is null) return;
+        _workflows.SelectedIndex = 1;
+        await _scans.ApplyAsync(options);
     }
 
     private static TabPage Placeholder(string title, string text) =>

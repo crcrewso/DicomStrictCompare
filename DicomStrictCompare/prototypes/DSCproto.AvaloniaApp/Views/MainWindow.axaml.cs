@@ -36,7 +36,14 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Switches to the Graphs tab; used by a scripted run that wants a curve on screen.</summary>
-    public void ShowGraphs() => Tabs.SelectedIndex = 3;
+    public void ShowGraphs()
+    {
+        Workflows.SelectedIndex = 0;
+        Tabs.SelectedIndex = 3;
+    }
+
+    /// <summary>Switches to the Doses vs scans tab; used when the command line names a scans folder.</summary>
+    public void ShowScans() => Workflows.SelectedIndex = 1;
 
     // The view model exposes the curve as data; drawing it is the view's job, and ScottPlot's
     // AvaPlot is a control, so the hand-over happens here rather than through a binding.
@@ -46,6 +53,10 @@ public partial class MainWindow : Window
         _graph = (DataContext as MainViewModel)?.Graph;
         if (_graph is not null) _graph.PropertyChanged += OnGraphChanged;
         Draw(_graph?.Curves);
+
+        if (_scans is not null) _scans.PropertyChanged -= OnScansChanged;
+        _scans = (DataContext as MainViewModel)?.Scans;
+        if (_scans is not null) _scans.PropertyChanged += OnScansChanged;
         DrawScan();
 
         if (_study is not null) _study.PropertyChanged -= OnStudyChanged;
@@ -56,6 +67,7 @@ public partial class MainWindow : Window
     }
 
     private StudyViewModel? _study;
+    private ScanComparisonViewModel? _scans;
 
     private void OnStudyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -157,38 +169,39 @@ public partial class MainWindow : Window
 
     private void OnGraphChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // A mode change with nothing to draw raises no Curves change, so redraw on it as well for the empty-plot title.
-        if (e.PropertyName is nameof(GraphViewModel.Curves) or nameof(GraphViewModel.IsScanMode)) Draw(_graph?.Curves);
-        if (e.PropertyName is nameof(GraphViewModel.ScanResult) or nameof(GraphViewModel.IsScanMode)) DrawScan();
+        if (e.PropertyName is nameof(GraphViewModel.Curves)) Draw(_graph?.Curves);
+    }
+
+    private void OnScansChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ScanComparisonViewModel.SelectedResult) or nameof(ScanComparisonViewModel.HasResult)) DrawScan();
     }
 
     /// <summary>
-    /// Scan mode: the comparison's figure, drawn by the same code that saves it (DSCplots.ProfilePlot), into this
+    /// Doses vs scans: the chosen pair's figure, drawn by the same code that saves it (DSCplots.ProfilePlot), into this
     /// control's multiplot, curves above and each tested point below.
     /// </summary>
     private void DrawScan()
     {
-        if (_graph?.ScanResult is { } result && _graph.ScanLabels is { } labels)
+        if (_scans?.SelectedResult is { } result && _scans.SelectedLabels is { } labels)
             DSCplots.ProfilePlot.Fill(ScanPlot.Multiplot, result, labels);
         else
-            DSCplots.ProfilePlot.Empty(ScanPlot.Multiplot, "No comparison: load scans and choose one with a matched dose");
+            DSCplots.ProfilePlot.Empty(ScanPlot.Multiplot, _scans?.HasResult == true ? "No comparison for this row" : "Run, then choose a pair");
         ScanPlot.Refresh();
     }
 
     /// <summary>
     /// One curve, or one per depth: each drawn as source solid and target dashed in the same colour,
-    /// so "All depths" reads as four pairs rather than eight lines. In scan mode the source is the
-    /// calculated dose and the target the measurement.
+    /// so "All depths" reads as four pairs rather than eight lines.
     /// </summary>
     private void Draw(IReadOnlyList<ProfileCurve>? curves)
     {
         var main = DataContext as MainViewModel;
-        bool scans = _graph?.IsScanMode == true;
         var plot = GraphPlot.Plot;
         plot.Clear();
         if (curves is null || curves.Count == 0)
         {
-            plot.Title(scans ? "No curve: load scans and choose one with a matched dose" : "No curve: run a comparison and choose a beam");
+            plot.Title("No curve: run a comparison and choose a beam");
             plot.XLabel("");
             plot.YLabel("");
             plot.Legend.IsVisible = false;
@@ -205,13 +218,13 @@ public partial class MainWindow : Window
                 var colour = palette.GetColor(i);
 
                 var s = plot.Add.Scatter(xs, source);
-                s.LegendText = scans ? $"{tag}dose {curve.SourceName}" : $"{tag}{main?.SourceAlias ?? "Source"} {curve.SourceName}";
+                s.LegendText = $"{tag}{main?.SourceAlias ?? "Source"} {curve.SourceName}";
                 s.LineWidth = 2;
                 s.MarkerSize = 0;
                 s.Color = colour;
 
                 var t = plot.Add.Scatter(xs, target);
-                t.LegendText = scans ? $"{tag}scan {curve.TargetName}" : $"{tag}{main?.TargetAlias ?? "Target"} {curve.TargetName}";
+                t.LegendText = $"{tag}{main?.TargetAlias ?? "Target"} {curve.TargetName}";
                 t.LineWidth = 2;
                 t.MarkerSize = 0;
                 t.LinePattern = LinePattern.Dashed;

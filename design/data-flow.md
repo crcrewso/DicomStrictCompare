@@ -121,13 +121,17 @@ flowchart TD
     test -- strict --> strict["HandWrittenComparer's rule along the line:<br/>dose difference, else the reference's range at +-distance"]
     gamma --> extra
     strict --> extra["Constancy over the central 80 % of the reference field;<br/>FauxPID metrics or depth-dose metrics, both sides"]
-    extra --> csv["DSCprofiles: results, unpaired, curves and settings files"]
+    extra --> csv["ProfileBatchReport: results, unpaired, curves and settings files"]
     extra --> figure["DSCplots.ProfilePlot: curves above, gamma or dose difference per point below"]
-    figure --> files["DSCprofiles --plots / --plots-failing:<br/>one PNG or SVG per pair, named in the results' plot column"]
-    figure --> gui["Graphs tab, dose versus scans (Avalonia, Eto):<br/>one pair on screen (ScanComparison.Run); Save plot, Save plots of listed scans"]
+    figure --> files["ProfilePlotExport (--plots / --plots-failing):<br/>one PNG or SVG per pair, named in the results' plot column"]
+    csv --> cli["DSCprofiles"]
+    files --> cli
+    csv --> tab["Doses vs scans tab (Avalonia, Eto): its own doses and scans folders;<br/>rows filtered, the chosen pair's figure on screen;<br/>Save plot, Save plots of listed pairs, Export results"]
+    files --> tab
 ```
 
-The Graphs tab runs the same steps for the chosen scan and dose: `ScanCatalog.Match` (the same `ScanDoseMatching`),
-the grid loaded on its own, then `ScanComparison.Run`, which is `PhantomFrame.For` and `ProfileComparison.Compare`.
-What it shows and what it saves are one figure, drawn by `ProfilePlot`.
+The windows' Doses vs scans tab (`ScanRows`, `ScanComparisonViewModel`, Eto `ScanPage`) runs `ProfileBatch.Run` as
+`DSCprofiles` does. It writes the same files through the same `ProfileBatchReport` and `ProfilePlotExport`, so a row on
+screen, its plot file and its CSV line share a number. What the tab shows and what it saves are one figure, drawn by
+`ProfilePlot`. After a run, the tab hands the freed grids back to the system (`ScanRows.ReleaseGrids`).
 Core selection: [core-selection.md](core-selection.md).

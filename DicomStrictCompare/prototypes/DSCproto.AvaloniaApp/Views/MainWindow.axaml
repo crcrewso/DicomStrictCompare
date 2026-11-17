@@ -12,7 +12,28 @@
 
   <!-- Compiled bindings throughout: a typo in a binding path is a build error, not a blank control. -->
 
-  <Grid RowDefinitions="Auto,*,Auto" Margin="12">
+  <Window.Styles>
+    <!-- The splitters between panels. Avalonia's default template is transparent, so the grab area was an invisible
+         8 px gap (crcrewso, 2026-11-09: "is there a way to make the part one can grab visible"). A light bar with a
+         grip in the middle, the usual sash look. -->
+    <Style Selector="GridSplitter.sash">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
+            <Border Width="2" Height="36" CornerRadius="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </Window.Styles>
+
+  <!-- Two comparisons with nothing in common but the doses (crcrewso, 2026-11-17): dose against dose, with two dose
+       folders and the 3D criteria; and doses against water-tank scans, with a doses folder, a scans folder and a 1D
+       criterion. Each tab holds its own inputs, run and results. -->
+  <TabControl x:Name="Workflows" Margin="6,6,6,0">
+  <TabItem Header="Doses vs doses">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="6,12,6,12">
 
     <!-- Inputs: two folders, two aliases, the matching strategy -->
     <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,180,Auto,140" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
@@ -82,19 +103,8 @@
         </DataGrid>
       </DockPanel>
 
-      <!-- The splitter between criteria and results. Avalonia's default template is transparent, so
-           the grab area was an invisible 8 px gap (crcrewso, 2026-11-09: "is there a way to make the part
-           one can grab visible"). A light bar with a grip in the middle, the usual sash look. -->
-      <GridSplitter Grid.Column="1" ResizeDirection="Columns" Width="8" Margin="0,4" ToolTip.Tip="Drag to resize the criteria panel">
-        <GridSplitter.Template>
-          <ControlTemplate>
-            <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" CornerRadius="4">
-              <Border Width="2" Height="36" CornerRadius="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                      Background="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-            </Border>
-          </ControlTemplate>
-        </GridSplitter.Template>
-      </GridSplitter>
+      <!-- The splitter between criteria and results (the sash style above). -->
+      <GridSplitter Grid.Column="1" Classes="sash" ResizeDirection="Columns" Width="8" Margin="0,4" ToolTip.Tip="Drag to resize the criteria panel"/>
 
       <TabControl Grid.Column="2" x:Name="Tabs">
         <TabItem Header="Results">
@@ -124,106 +134,39 @@
         </TabItem>
         <!-- Graphs (crcrewso, 2026-11-09): curves out of the matched pairs of the last run, filtered by energy
              and field size, a depth dose or a profile at a depth chosen with the slider. The view model
-             owns the choice and the curve; this view only hands the curve to ScottPlot (code-behind). -->
+             owns the choice and the curve; this view only hands the curve to ScottPlot (code-behind).
+             Water-tank scans have their own tab, Doses vs scans, since 2026-11-17. -->
         <TabItem Header="Graphs">
-          <!-- Scrolls rather than squeezing the plot: below about 860 px the scan figure's lower plot has no room
-               (measured 2026-11-17 at the window's default size); a taller window still stretches the plot. -->
-          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-          <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0" MinHeight="860"
+          <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="6" Margin="0,6,0,0"
                 DataContext="{Binding Graph}" x:DataType="vm:GraphViewModel">
-
-            <!-- Mode: dose versus dose (the run's matched pairs) or dose versus water-tank scans -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="Compare" VerticalAlignment="Center"/>
-              <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" MinWidth="170"/>
+              <TextBlock Text="Energy" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+              <TextBlock Text="Field size" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding FieldSizes}" SelectedItem="{Binding SelectedFieldSize}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+              <TextBlock Text="Beam" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Beams}" SelectedItem="{Binding SelectedBeam}" MinWidth="360" IsEnabled="{Binding HasBeams}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="graphs:BeamDescriptor">
+                    <TextBlock Text="{Binding Label}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
               <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Width="120" VerticalAlignment="Center"/>
             </StackPanel>
-
-            <!-- Dose versus dose: energy, field size, beam; curve kind and a fixed depth (or all of them) -->
-            <StackPanel Grid.Row="1" Spacing="6" IsVisible="{Binding IsDoseMode}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Energy" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
-                <TextBlock Text="Field size" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding FieldSizes}" SelectedItem="{Binding SelectedFieldSize}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
-                <TextBlock Text="Beam" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding Beams}" SelectedItem="{Binding SelectedBeam}" MinWidth="360" IsEnabled="{Binding HasBeams}">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="graphs:BeamDescriptor">
-                      <TextBlock Text="{Binding Label}"/>
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Curve" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
-                <TextBlock Text="Depth" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                <ComboBox ItemsSource="{Binding DepthChoices}" SelectedItem="{Binding Depth}" MinWidth="130" IsEnabled="{Binding DepthEnabled}"/>
-                <TextBlock Text="{Binding DepthText}" VerticalAlignment="Center" MinWidth="70"/>
-                <TextBlock Text="Depths offered" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                <TextBox Text="{Binding DepthsText}" Width="220" ToolTip.Tip="For example: dmax, 15, 50, 100, 200, 300 mm (cm also accepted)"/>
-              </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Curve" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" MinWidth="150" IsEnabled="{Binding HasBeams}"/>
+              <TextBlock Text="Depth" VerticalAlignment="Center" Margin="12,0,0,0"/>
+              <ComboBox ItemsSource="{Binding DepthChoices}" SelectedItem="{Binding Depth}" MinWidth="130" IsEnabled="{Binding DepthEnabled}"/>
+              <TextBlock Text="{Binding DepthText}" VerticalAlignment="Center" MinWidth="70"/>
+              <TextBlock Text="Depths offered" VerticalAlignment="Center" Margin="12,0,0,0"/>
+              <TextBox Text="{Binding DepthsText}" Width="220" ToolTip.Tip="For example: dmax, 15, 50, 100, 200, 300 mm (cm also accepted)"/>
             </StackPanel>
-
-            <!-- Dose versus scans: a folder of PTW mcc files, filters, the scan, and the dose it matched -->
-            <StackPanel Grid.Row="2" Spacing="6" IsVisible="{Binding IsScanMode}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Scans" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding ScanFolder}" Width="520" PlaceholderText="Folder of PTW mcc files (searched with its subfolders)"/>
-                <Button Content="Browse" Command="{Binding BrowseScansCommand}"/>
-                <Button Content="Load scans" Command="{Binding LoadScansCommand}"/>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Energy" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding ScanEnergies}" SelectedItem="{Binding SelectedScanEnergy}" MinWidth="150" IsEnabled="{Binding HasScans}"/>
-                <TextBlock Text="Field size" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding ScanFieldSizes}" SelectedItem="{Binding SelectedScanFieldSize}" MinWidth="150" IsEnabled="{Binding HasScans}"/>
-                <TextBlock Text="Scan" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding Scans}" SelectedItem="{Binding SelectedScan}" MinWidth="420" IsEnabled="{Binding HasScans}">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="graphs:ScanDescriptor">
-                      <TextBlock Text="{Binding Label}"/>
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Matched dose" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding DoseCandidates}" SelectedItem="{Binding SelectedDose}" MinWidth="560" IsEnabled="{Binding HasScans}">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="graphs:DoseCandidate">
-                      <TextBlock Text="{Binding Label}"/>
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-              </StackPanel>
-              <!-- The comparison (2026-11-17): the criterion, the test and which side is the reference; then saving the
-                   figure, or one per listed scan, as PNG or SVG. -->
-              <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
-                <TextBlock Text="Dose %" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding ScanDosePercent}" Width="60"/>
-                <TextBlock Text="Distance mm" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding ScanDistanceMm}" Width="60" ToolTip.Tip="0 with the strict test: dose difference only"/>
-                <TextBlock Text="Test" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding Tests}" SelectedItem="{Binding ScanTest}" MinWidth="100"/>
-                <TextBlock Text="Reference" VerticalAlignment="Center"/>
-                <ComboBox ItemsSource="{Binding References}" SelectedItem="{Binding ScanReference}" MinWidth="120"/>
-                <TextBlock Text="Format" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                <ComboBox ItemsSource="{Binding PlotFormats}" SelectedItem="{Binding PlotFormat}" MinWidth="80"/>
-                <Button Content="Save plot" Command="{Binding SavePlotCommand}" IsEnabled="{Binding CanSavePlot}"/>
-                <Button Content="Save plots of listed scans" Command="{Binding SaveListedPlotsCommand}" IsEnabled="{Binding HasScans}"
-                        ToolTip.Tip="Every scan the filters list, against every dose it pairs with, at this criterion"/>
-              </WrapPanel>
-            </StackPanel>
-
-            <sp:AvaPlot Grid.Row="3" x:Name="GraphPlot" IsVisible="{Binding IsDoseMode}"/>
-            <!-- Scan mode: the profile comparison's figure, curves above and each tested point below (DSCplots.ProfilePlot). -->
-            <sp:AvaPlot Grid.Row="3" x:Name="ScanPlot" IsVisible="{Binding IsScanMode}"/>
-            <TextBlock Grid.Row="4" Text="{Binding Status}" TextWrapping="Wrap"/>
-            <TextBlock Grid.Row="5" Text="{Binding ConventionNote}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
+            <sp:AvaPlot Grid.Row="2" x:Name="GraphPlot"/>
+            <TextBlock Grid.Row="3" Text="{Binding Status}" TextWrapping="Wrap"/>
+            <TextBlock Grid.Row="4" Text="{Binding ConventionNote}" TextWrapping="Wrap" FontSize="11" Opacity="0.7"/>
           </Grid>
-          </ScrollViewer>
         </TabItem>
         <TabItem Header="Detector geometry">
           <TextBlock Margin="12" TextWrapping="Wrap"
@@ -439,4 +382,114 @@
       <TextBlock Text="{Binding Status}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
     </DockPanel>
   </Grid>
+  </TabItem>
+
+  <!-- Doses vs scans (crcrewso, 2026-11-17): its own doses and scans folders, a 1D criterion, and a run of the
+       library's batch over every scan and every dose it pairs with, as DSCprofiles runs it. The table lists the pairs;
+       the chosen pair's figure is drawn beside it by DSCplots.ProfilePlot (code-behind), the same figure saved. -->
+  <TabItem Header="Doses vs scans">
+    <Grid DataContext="{Binding Scans}" x:DataType="vm:ScanComparisonViewModel"
+          RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" RowSpacing="6" Margin="6,12,6,12">
+
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,220" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Doses" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DosesFolder}" PlaceholderText="Folder of RT Dose and RT Plan files (searched with its subfolders)"
+                 ToolTip.Tip="Filled in from the Doses vs doses source folder until you choose a folder here"/>
+        <Button Grid.Row="0" Grid.Column="2" Content="Browse" Command="{Binding BrowseDosesCommand}"/>
+        <TextBlock Grid.Row="0" Grid.Column="3" Text="Plan label filter" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding PlanFilter}" PlaceholderText="regex, optional"
+                 ToolTip.Tip="Only doses whose plan label matches this regular expression, ignoring case"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Scans" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ScansFolder}" PlaceholderText="Folder of PTW mcc files (searched with its subfolders)"/>
+        <Button Grid.Row="1" Grid.Column="2" Content="Browse" Command="{Binding BrowseScansCommand}"/>
+        <TextBlock Grid.Row="1" Grid.Column="3" Text="Skip scan folders" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding ExcludeFolders}" PlaceholderText="regex, for example ^zz"
+                 ToolTip.Tip="Scan files under a folder whose name matches this regular expression are left out"/>
+      </Grid>
+
+      <WrapPanel Grid.Row="1" Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
+        <TextBlock Text="Criterion" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <TextBlock Text="Dose %" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding DosePercent}" Width="60"/>
+        <TextBlock Text="Distance mm" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding DistanceMm}" Width="60" ToolTip.Tip="0 with the strict test: dose difference only"/>
+        <TextBlock Text="Test" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding Tests}" SelectedItem="{Binding Test}" MinWidth="100"/>
+        <TextBlock Text="Reference" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding References}" SelectedItem="{Binding Reference}" MinWidth="120"/>
+        <CheckBox Content="Local" IsChecked="{Binding Local}" ToolTip.Tip="Dose difference as a percentage of the reference point, not of the reference maximum"/>
+        <TextBlock Text="Cutoff %" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding CutoffPercent}" Width="60" ToolTip.Tip="Points below this percentage of the reference maximum aren't tested"/>
+        <CheckBox Content="Depth shift" IsChecked="{Binding DepthShift}"
+                  ToolTip.Tip="Depth doses only: read the dose at depth + s for s within 3 mm in 0.1 mm steps, the best fit beyond dmax"/>
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0,0,0">
+          <Button Content="Run" Command="{Binding RunCommand}" Classes="accent"/>
+          <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+          <ProgressBar IsIndeterminate="{Binding IsRunning}" IsVisible="{Binding IsRunning}" Width="120" VerticalAlignment="Center"/>
+        </StackPanel>
+      </WrapPanel>
+
+      <WrapPanel Grid.Row="2" Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
+        <TextBlock Text="Energy" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="130" IsEnabled="{Binding HasResult}"/>
+        <TextBlock Text="Field" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}" MinWidth="220" IsEnabled="{Binding HasResult}"/>
+        <TextBlock Text="Curve" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding Curves}" SelectedItem="{Binding SelectedCurve}" MinWidth="130" IsEnabled="{Binding HasResult}"/>
+        <TextBlock Text="Show" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding Shows}" SelectedItem="{Binding Show}" MinWidth="130" IsEnabled="{Binding HasResult}"/>
+        <TextBlock Text="{Binding Listed}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+      </WrapPanel>
+
+      <Grid Grid.Row="3" ColumnDefinitions="5*,8,6*">
+        <TabControl Grid.Column="0">
+          <TabItem Header="Pairs">
+            <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" IsReadOnly="True"
+                      AutoGenerateColumns="False" GridLinesVisibility="Horizontal" SelectionMode="Single">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Row" Binding="{Binding Row}" Width="Auto"/>
+                <DataGridTextColumn Header="Scan" Binding="{Binding Scan}" Width="300"/>
+                <DataGridTextColumn Header="Curve" Binding="{Binding Curve}" Width="Auto"/>
+                <DataGridTextColumn Header="Depth mm" Binding="{Binding Depth}" Width="Auto"/>
+                <DataGridTextColumn Header="Energy" Binding="{Binding Energy}" Width="Auto"/>
+                <DataGridTextColumn Header="Field" Binding="{Binding Field}" Width="Auto"/>
+                <DataGridTextColumn Header="Dose" Binding="{Binding DoseFile}" Width="260"/>
+                <DataGridTextColumn Header="Pass %" Binding="{Binding PassRate}" Width="Auto"/>
+                <DataGridTextColumn Header="Points" Binding="{Binding Points}" Width="Auto"/>
+                <DataGridTextColumn Header="Max γ" Binding="{Binding MaxGamma}" Width="Auto"/>
+                <DataGridTextColumn Header="Outcome" Binding="{Binding OutcomeText}" Width="Auto"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </TabItem>
+          <TabItem Header="Unpaired">
+            <ListBox ItemsSource="{Binding Unpaired}"/>
+          </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Column="1" Classes="sash" ResizeDirection="Columns" Width="8" Margin="0,4" ToolTip.Tip="Drag to resize the table and the figure"/>
+        <!-- The chosen pair's figure: curves above, each tested point below. -->
+        <sp:AvaPlot Grid.Column="2" x:Name="ScanPlot"/>
+      </Grid>
+
+      <WrapPanel Grid.Row="4" Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
+        <TextBlock Text="Format" VerticalAlignment="Center"/>
+        <ComboBox ItemsSource="{Binding PlotFormats}" SelectedItem="{Binding PlotFormat}" MinWidth="80"/>
+        <Button Content="Save plot" Command="{Binding SavePlotCommand}"/>
+        <Button Content="Save plots of listed pairs" Command="{Binding SaveListedPlotsCommand}"
+                ToolTip.Tip="One image per pair the filters list, named by its row"/>
+        <TextBlock Text="Plots in the export" VerticalAlignment="Center" Margin="16,0,0,0"/>
+        <ComboBox ItemsSource="{Binding PlotSelections}" SelectedItem="{Binding ExportPlots}" MinWidth="100"/>
+        <Button Content="Export results (CSV)" Command="{Binding ExportCommand}"
+                ToolTip.Tip="The files DSCprofiles writes: profiles-results.csv, profiles-unpaired.csv, profiles-settings.txt, and the plots in profiles-plots"/>
+      </WrapPanel>
+
+      <TextBlock Grid.Row="5" Text="{Binding Status}" TextWrapping="Wrap"/>
+      <TextBlock Grid.Row="6" TextWrapping="Wrap" FontSize="11" Opacity="0.7">
+        <Run Text="{Binding Details}"/>
+        <LineBreak/>
+        <Run Text="{Binding ConventionNote}"/>
+      </TextBlock>
+    </Grid>
+  </TabItem>
+  </TabControl>
 </Window>

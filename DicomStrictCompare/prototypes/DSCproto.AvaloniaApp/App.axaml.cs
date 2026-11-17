@@ -27,6 +27,11 @@ public partial class App : Application
                 await viewModel.AutoRunIfRequestedAsync(options);
                 if (options.ShowGraphs) window.ShowGraphs();
                 await viewModel.Graph.ApplyAsync(options);
+                if (options.ScanFolder is not null)
+                {
+                    window.ShowScans();
+                    await viewModel.Scans.ApplyAsync(options);
+                }
             };
             desktop.MainWindow = window;
         }

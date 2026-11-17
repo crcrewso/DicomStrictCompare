@@ -1,23 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using DSClibrary;
-using DSClibrary.Profiles;
-using DSClibrary.Results.DICOM;
 using DSClibrary.Studies;
-using DSCplots;
 using DSCprototypes.Shared.Graphs;
 
 namespace DSCprototypes.Shared.ViewModels;
-
-/// <summary>What the Graphs tab compares. Profile to profile is deferred (crcrewso, 2026-11-09).</summary>
-public enum GraphMode
-{
-    /// <summary>The matched pairs of the last run: source over target.</summary>
-    DoseVersusDose,
-    /// <summary>A folder of water-tank scans over the source folder's doses, matched by energy, filter and field size.</summary>
-    DoseVersusScans
-}
 
 /// <summary>One of the fixed depths a dose-to-dose profile is drawn at, or all of them on one plot.</summary>
 public sealed record DepthChoice(string Label, double? Mm, bool All = false)
@@ -26,43 +13,28 @@ public sealed record DepthChoice(string Label, double? Mm, bool All = false)
 }
 
 /// <summary>
-/// The Graphs tab's state for the XAML-family prototypes. Two modes: dose versus dose draws the
-/// matched pairs of the last run (depth dose, or a crossplane or inplane profile at dmax, 5, 10 or
-/// 20 cm - crcrewso, 2026-11-09); dose versus scans reads a folder of PTW mcc files, pairs each
-/// scan with the source doses of the same field, and compares the chosen pair with the library's
-/// profile comparison (2026-11-17), the same numbers and figure as <c>DSCprofiles</c>. Grids load off
-/// the UI thread when a beam or dose is chosen and the last one is kept. Knows nothing about the
-/// plotting control: the view watches <see cref="Curve"/>, or <see cref="ScanResult"/> in scan mode,
-/// and draws it; saving goes through <see cref="ProfilePlot"/>, which draws the same figure to a file.
+/// The Graphs tab's state for the XAML-family prototypes: the matched pairs of the last run, drawn source over target
+/// (depth dose, or a crossplane or inplane profile at dmax, 5, 10 or 20 cm - crcrewso, 2026-11-09). Grids load off the
+/// UI thread when a beam is chosen and the last pair is kept. Knows nothing about the plotting control: the view watches
+/// <see cref="Curve"/> and draws it. Water-tank scans have their own tab since 2026-11-17
+/// (<see cref="ScanComparisonViewModel"/>).
 /// </summary>
 public sealed partial class GraphViewModel : ObservableObject
 {
     private readonly Func<string, DoseMatrixOptimal> _loader;
-    private readonly Func<string, string?, Task<string?>> _pickFolder;
     private IReadOnlyList<BeamDescriptor> _all = Array.Empty<BeamDescriptor>();
-    private IReadOnlyList<ScanDescriptor> _allScans = Array.Empty<ScanDescriptor>();
-    private IReadOnlyList<RTDoseWithPlan> _sourceDoses = Array.Empty<RTDoseWithPlan>();
-    private string? _sourceFolder;
     private LoadedPair? _loaded;
-    private LoadedDose? _loadedDose;
     private int _loadSequence;
 
-    public GraphViewModel(Func<string, DoseMatrixOptimal> loader, Func<string, string?, Task<string?>>? pickFolder = null)
+    public GraphViewModel(Func<string, DoseMatrixOptimal> loader)
     {
         _loader = loader;
-        _pickFolder = pickFolder ?? ((_, _) => Task.FromResult<string?>(null));
         RebuildDepthChoices();
     }
 
-    /// <summary>How the curves are read out of the grids: <see cref="BeamLines"/>' reading for dose versus dose, the phantom
-    /// frame for scans.</summary>
-    public string ConventionNote => IsScanMode ? ScanConventionNote : BeamLines.ConventionNote;
+    /// <summary>How the curves are read out of the grids (<see cref="BeamLines"/>).</summary>
+    public string ConventionNote => BeamLines.ConventionNote;
 
-    public const string ScanConventionNote =
-        "Prototype (2026-11-17): scans pair with doses by field (ScanDoseMatching); the water surface comes from the plan, "
-        + "else the scan's SSD, checked against the dose (PhantomFrame). Depth doses are normalised to their maximum, profiles at the central axis.";
-
-    public IReadOnlyList<GraphMode> Modes { get; } = new[] { GraphMode.DoseVersusDose, GraphMode.DoseVersusScans };
     public IReadOnlyList<CurveKind> Kinds { get; } = new[] { CurveKind.DepthDose, CurveKind.Crossplane, CurveKind.Inplane };
     /// <summary>
     /// Dmax first when it is on, so it is the default (crcrewso, 2026-11-09), then each depth, then all of
@@ -97,11 +69,6 @@ public sealed partial class GraphViewModel : ObservableObject
         Redraw();
     }
 
-    // ---- shared ----
-    [ObservableProperty] private GraphMode _mode = GraphMode.DoseVersusDose;
-    [ObservableProperty] private bool _isDoseMode = true;
-    [ObservableProperty] private bool _isScanMode;
-
     /// <summary>The curves to draw: one, or one per depth for "All depths". Null for nothing.</summary>
     [ObservableProperty] private IReadOnlyList<ProfileCurve>? _curves;
 
@@ -112,7 +79,6 @@ public sealed partial class GraphViewModel : ObservableObject
     [ObservableProperty] private string _status = "Run a comparison, then choose a beam.";
     [ObservableProperty] private bool _isLoading;
 
-    // ---- dose versus dose ----
     public ObservableCollection<string> Energies { get; } = new();
     public ObservableCollection<string> FieldSizes { get; } = new();
     public ObservableCollection<BeamDescriptor> Beams { get; } = new();
@@ -125,63 +91,16 @@ public sealed partial class GraphViewModel : ObservableObject
     [ObservableProperty] private bool _depthEnabled;
     [ObservableProperty] private bool _hasBeams;
 
-    // ---- dose versus scans ----
-    public ObservableCollection<string> ScanEnergies { get; } = new();
-    public ObservableCollection<string> ScanFieldSizes { get; } = new();
-    public ObservableCollection<ScanDescriptor> Scans { get; } = new();
-    public ObservableCollection<DoseCandidate> DoseCandidates { get; } = new();
-    [ObservableProperty] private string _scanFolder = "";
-    [ObservableProperty] private string? _selectedScanEnergy;
-    [ObservableProperty] private string? _selectedScanFieldSize;
-    [ObservableProperty] private ScanDescriptor? _selectedScan;
-    [ObservableProperty] private DoseCandidate? _selectedDose;
-    [ObservableProperty] private bool _hasScans;
-    [ObservableProperty] private string _scanSummary = "";
-
-    // The comparison of the chosen scan and dose. 1 %/1 mm by default: the analysis criterion (crcrewso, 2026-11-15:
-    // "1 % or tighter for analysis and validation").
-    public IReadOnlyList<ProfileTest> Tests => ScanComparison.Tests;
-    public IReadOnlyList<ProfileReference> References => ScanComparison.References;
-    public IReadOnlyList<string> PlotFormats => ScanComparison.PlotFormats;
-    [ObservableProperty] private double _scanDosePercent = 1;
-    [ObservableProperty] private double _scanDistanceMm = 1;
-    [ObservableProperty] private ProfileTest _scanTest = ProfileTest.Gamma;
-    [ObservableProperty] private ProfileReference _scanReference = ProfileReference.Measured;
-    [ObservableProperty] private string _plotFormat = "png";
-
-    /// <summary>The chosen pair's comparison, and the labels its figure carries; null when there is nothing to show.</summary>
-    [ObservableProperty] private ProfileComparisonResult? _scanResult;
-    [ObservableProperty] private ProfilePlotLabels? _scanLabels;
-    [ObservableProperty] private bool _canSavePlot;
-    private string? _plotFolder;
-
-    partial void OnScanResultChanged(ProfileComparisonResult? value) => CanSavePlot = value is not null;
-    partial void OnScanDosePercentChanged(double value) => RedrawScan();
-    partial void OnScanDistanceMmChanged(double value) => RedrawScan();
-    partial void OnScanTestChanged(ProfileTest value) => RedrawScan();
-    partial void OnScanReferenceChanged(ProfileReference value) => RedrawScan();
-
-    /// <summary>The comparison options the controls describe; the library's defaults for everything else.</summary>
-    public ProfileComparisonOptions ScanOptions => new(ScanDosePercent, ScanDistanceMm, ScanTest, ScanReference);
-
-    /// <summary>
-    /// Applies the command line's graph choices: the curve and depth for dose versus dose, or the
-    /// scan folder (which switches the mode and loads it). Called by the view after any scripted run.
-    /// </summary>
-    public async Task ApplyAsync(LaunchOptions options)
+    /// <summary>Applies the command line's graph choices, the curve and depth. Called by the view after any scripted run.</summary>
+    public Task ApplyAsync(LaunchOptions options)
     {
         if (options.Curve is { } c && Enum.TryParse<CurveKind>(c, ignoreCase: true, out var kind)) Kind = kind;
         // "All depths" and "5 cm" contain a space, which a launcher may split; the first word is enough.
         if (options.Depth is { } d && DepthChoices.FirstOrDefault(x => x.Label.StartsWith(d.Trim(), StringComparison.OrdinalIgnoreCase)) is { } choice) Depth = choice;
-        if (options.ScanFolder is { } scans)
-        {
-            Mode = GraphMode.DoseVersusScans;
-            ScanFolder = scans;
-            await LoadScansCommand.ExecuteAsync(null);
-        }
+        return Task.CompletedTask;
     }
 
-    /// <summary>Rebuilds the dose-versus-dose filters from a finished run, or empties them for null.</summary>
+    /// <summary>Rebuilds the filters from a finished run, or empties them for null.</summary>
     public void SetSession(ComparisonSession? session)
     {
         int hiddenElectrons = 0;
@@ -189,7 +108,7 @@ public sealed partial class GraphViewModel : ObservableObject
             ? (Array.Empty<BeamDescriptor>(), 0)
             : PairCatalog.ForGraphs(session.Match.Pairs);
         _loaded = null;
-        if (IsDoseMode) Curves = null;
+        Curves = null;
 
         Energies.Clear();
         FieldSizes.Clear();
@@ -202,42 +121,11 @@ public sealed partial class GraphViewModel : ObservableObject
         SelectedFieldSize = FieldSizes[0];
         HasBeams = _all.Count > 0;
         string hidden = hiddenElectrons > 0 ? $" {hiddenElectrons} electron beam(s) not shown (photons only for now)." : "";
-        if (IsDoseMode)
-            Status = _all.Count == 0
-                ? (session is null ? "Run a comparison, then choose a beam." : "No photon beams among the matched pairs." + hidden)
-                : $"{_all.Count} photon pair(s); {Energies.Count - 1} energies, {FieldSizes.Count - 1} field sizes. Choose a beam.{hidden}";
-
-        // The source folder's doses are what scans are matched against, so a run refreshes them too.
-        if (session is not null) SetSourceDoses(session.Request.SourceFolder, session.Source.Doses);
+        Status = _all.Count == 0
+            ? (session is null ? "Run a comparison, then choose a beam." : "No photon beams among the matched pairs." + hidden)
+            : $"{_all.Count} photon pair(s); {Energies.Count - 1} energies, {FieldSizes.Count - 1} field sizes. Choose a beam.{hidden}";
         Refilter();
     }
-
-    /// <summary>The doses a scan can be matched to. Taken from a run, or read from the source folder when there was none.</summary>
-    public void SetSourceDoses(string? folder, IReadOnlyList<RTDoseWithPlan> doses)
-    {
-        _sourceFolder = folder;
-        _sourceDoses = doses;
-        RefilterScans();
-    }
-
-    /// <summary>Tells the view model where the source folder is, so scans can be matched before any run.</summary>
-    public void SetSourceFolder(string? folder)
-    {
-        if (string.Equals(folder, _sourceFolder, StringComparison.OrdinalIgnoreCase)) return;
-        _sourceFolder = folder;
-        _sourceDoses = Array.Empty<RTDoseWithPlan>();
-    }
-
-    partial void OnModeChanged(GraphMode value)
-    {
-        IsDoseMode = value == GraphMode.DoseVersusDose;
-        IsScanMode = value == GraphMode.DoseVersusScans;
-        OnPropertyChanged(nameof(ConventionNote));
-        Curves = null;
-        if (IsDoseMode) Redraw(); else RedrawScan();
-    }
-
-    // ---- dose versus dose ----
 
     partial void OnSelectedEnergyChanged(string? value) => Refilter();
     partial void OnSelectedFieldSizeChanged(string? value) => Refilter();
@@ -267,7 +155,7 @@ public sealed partial class GraphViewModel : ObservableObject
         if (beam is null)
         {
             _loaded = null;
-            if (IsDoseMode) Curves = null;
+            Curves = null;
             return;
         }
 
@@ -305,225 +193,9 @@ public sealed partial class GraphViewModel : ObservableObject
 
     private void Redraw()
     {
-        if (!IsDoseMode) return;
         if (_loaded is null) { Curves = null; return; }
         double depth = Depth?.Mm ?? BeamLines.DepthOfMaximum(_loaded);
         DepthText = Kind == CurveKind.DepthDose ? "" : Depth is { All: true } ? DepthsText : (Depth?.Mm is null ? $"dmax = {depth:0.#} mm" : $"{depth:0.#} mm");
         Curves = Depth is { All: true } && Kind != CurveKind.DepthDose ? BeamLines.ProfilesAtAllDepths(_loaded, Kind, _depthList) : new[] { BeamLines.ProfileAt(_loaded, Kind, depth) };
-    }
-
-    // ---- dose versus scans ----
-
-    [RelayCommand]
-    private async Task BrowseScansAsync()
-    {
-        var picked = await _pickFolder("Folder of PTW mcc scans", MainViewModel.ParentOf(ScanFolder) ?? MainViewModel.ParentOf(_sourceFolder));
-        if (picked is not null) ScanFolder = picked;
-    }
-
-    [RelayCommand]
-    private async Task LoadScansAsync()
-    {
-        if (!Directory.Exists(ScanFolder))
-        {
-            Status = "The scan folder must exist.";
-            return;
-        }
-        int sequence = ++_loadSequence;
-        IsLoading = true;
-        Status = $"Reading scans under {ScanFolder}";
-        try
-        {
-            string? sourceFolder = _sourceFolder;
-            bool needDoses = _sourceDoses.Count == 0 && sourceFolder is not null && Directory.Exists(sourceFolder);
-            var (result, doses) = await Task.Run(() =>
-            {
-                var scans = ScanCatalog.Load(ScanFolder);
-                // Headers only: pairing needs the plans and dose headers, and the chosen dose's grid is loaded on its own.
-                // A whole read of the Equinox QAtpsPTW folder would hold 21 GB of voxels.
-                var ds = needDoses ? RTFolderReader.Read(sourceFolder!, recursive: true, headersOnly: true).Doses : null;
-                return (scans, ds);
-            });
-            if (sequence != _loadSequence) return;
-            if (doses is not null) _sourceDoses = doses;
-
-            _allScans = result.Scans;
-            ScanEnergies.Clear();
-            ScanFieldSizes.Clear();
-            ScanEnergies.Add(ScanCatalog.AnyEnergy);
-            foreach (var e in ScanCatalog.Energies(_allScans)) ScanEnergies.Add(e);
-            ScanFieldSizes.Add(ScanCatalog.AnyFieldSize);
-            foreach (var f in ScanCatalog.FieldSizes(_allScans)) ScanFieldSizes.Add(f);
-            SelectedScanEnergy = ScanEnergies[0];
-            SelectedScanFieldSize = ScanFieldSizes[0];
-            HasScans = _allScans.Count > 0;
-
-            var hidden = new List<string>();
-            if (result.HiddenElectrons > 0) hidden.Add($"{result.HiddenElectrons} electron");
-            if (result.HiddenWedges > 0) hidden.Add($"{result.HiddenWedges} wedge");
-            if (result.HiddenOther > 0) hidden.Add($"{result.HiddenOther} other");
-            ScanSummary = $"{_allScans.Count} photon scan(s) in {result.Files} file(s)"
-                        + (hidden.Count > 0 ? $"; not shown: {string.Join(", ", hidden)}" : "")
-                        + (result.Errors.Count > 0 ? $"; {result.Errors.Count} file(s) failed to parse" : "")
-                        + $"; matched against {_sourceDoses.Count} source dose(s)" + (doses is not null ? " read from the source folder" : "");
-            Status = ScanSummary;
-            RefilterScans();
-        }
-        catch (Exception ex)
-        {
-            if (sequence == _loadSequence) Status = $"Could not read the scans: {ex.GetType().Name}: {ex.Message}";
-        }
-        finally
-        {
-            if (sequence == _loadSequence) IsLoading = false;
-        }
-    }
-
-    partial void OnSelectedScanEnergyChanged(string? value) => RefilterScans();
-    partial void OnSelectedScanFieldSizeChanged(string? value) => RefilterScans();
-
-    private void RefilterScans()
-    {
-        var keep = ScanCatalog.Filter(_allScans, SelectedScanEnergy, SelectedScanFieldSize);
-        var previous = SelectedScan;
-        Scans.Clear();
-        foreach (var s in keep) Scans.Add(s);
-        // Keep the current scan if it is still listed; otherwise the first scan that has a dose to
-        // show against, so the tab opens on a curve and not on "no source dose matches".
-        SelectedScan = keep.FirstOrDefault(s => ReferenceEquals(s, previous))
-            ?? keep.FirstOrDefault(s => ScanCatalog.MatchingDoses(s, _sourceDoses).Count > 0)
-            ?? keep.FirstOrDefault();
-        if (SelectedScan is not null && ReferenceEquals(SelectedScan, previous)) OnSelectedScanChanged(SelectedScan);
-    }
-
-    partial void OnSelectedScanChanged(ScanDescriptor? value)
-    {
-        var previousDose = SelectedDose?.Dose;
-        DoseCandidates.Clear();
-        string? reason = null;
-        if (value is not null)
-        {
-            var (candidates, why) = ScanCatalog.Match(value, _sourceDoses);
-            reason = why;
-            foreach (var c in candidates) DoseCandidates.Add(c);
-        }
-        SelectedDose = DoseCandidates.FirstOrDefault(c => ReferenceEquals(c.Dose, previousDose)) ?? DoseCandidates.FirstOrDefault();
-        if (SelectedDose is null && IsScanMode)
-        {
-            Curves = null;
-            ScanResult = null;
-            if (value is not null)
-                Status = _sourceDoses.Count == 0
-                    ? "No source doses to match against: set the source folder (and run, or load the scans again)."
-                    : $"No source dose matches {value.Energy} {value.FieldSize}: {reason ?? "no dose pairs with it"}.";
-        }
-        else if (SelectedDose is not null && ReferenceEquals(SelectedDose.Dose, previousDose))
-        {
-            RedrawScan();
-        }
-    }
-
-    partial void OnSelectedDoseChanged(DoseCandidate? value) => _ = LoadDoseAsync(value);
-
-    private async Task LoadDoseAsync(DoseCandidate? candidate)
-    {
-        if (candidate is null) return;
-        if (_loadedDose is not null && ReferenceEquals(_loadedDose.Dose, candidate.Dose)) { RedrawScan(); return; }
-
-        int sequence = ++_loadSequence;
-        IsLoading = true;
-        Status = $"Loading {candidate.Label}";
-        try
-        {
-            var loaded = await Task.Run(() => BeamLines.LoadDose(candidate.Dose, _loader));
-            if (sequence != _loadSequence) return;
-            _loadedDose = loaded;
-            Status = $"{candidate.Label}; {loaded.Grid.DimensionX}x{loaded.Grid.DimensionY}x{loaded.Grid.DimensionZ} @ {loaded.Grid.XRes:0.##} mm; "
-                   + (loaded.IsocentreFromPlan ? $"isocentre from the plan at ({loaded.IsoX:0.#}, {loaded.IsoY:0.#}, {loaded.IsoZ:0.#}) mm" : "no plan: the grid centre stands in for the isocentre");
-            RedrawScan();
-        }
-        catch (Exception ex)
-        {
-            if (sequence == _loadSequence)
-            {
-                _loadedDose = null;
-                Curves = null;
-                ScanResult = null;
-                Status = $"Could not load the dose: {ex.GetType().Name}: {ex.Message}";
-            }
-        }
-        finally
-        {
-            if (sequence == _loadSequence) IsLoading = false;
-        }
-    }
-
-    private void RedrawScan()
-    {
-        if (!IsScanMode) return;
-        Curves = null;
-        if (SelectedScan is null || _loadedDose is null || SelectedDose is null || !ReferenceEquals(_loadedDose.Dose, SelectedDose.Dose))
-        {
-            ScanResult = null;
-            return;
-        }
-        var outcome = ScanComparison.Run(SelectedScan, SelectedDose, _loadedDose.Grid, ScanOptions);
-        ScanLabels = outcome.Labels;
-        ScanResult = outcome.Result;
-        Status = outcome.Status;
-    }
-
-    /// <summary>Saves the figure on screen, as <see cref="PlotFormat"/>, into a folder the user picks.</summary>
-    [RelayCommand]
-    private async Task SavePlotAsync()
-    {
-        if (ScanResult is not { } result || ScanLabels is not { } labels || SelectedScan is null || SelectedDose is null) return;
-        var folder = await _pickFolder("Folder for the plot", _plotFolder ?? MainViewModel.ParentOf(ScanFolder));
-        if (folder is null) return;
-        _plotFolder = folder;
-        string path = Path.Combine(folder, ScanComparison.FileName(SelectedScan, SelectedDose, PlotFormat));
-        try
-        {
-            ProfilePlot.Save(result, labels, path);
-            Status = $"Saved {path}";
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            Status = $"The plot couldn't be saved: {ex.Message}";
-        }
-    }
-
-    /// <summary>
-    /// Saves a plot of every scan the filters list against every dose it pairs with, at the criterion shown, into a
-    /// folder the user picks. The batch form of <see cref="SavePlotCommand"/>; <c>DSCprofiles --plots</c> does the same
-    /// for a whole folder from the command line.
-    /// </summary>
-    [RelayCommand]
-    private async Task SaveListedPlotsAsync()
-    {
-        if (Scans.Count == 0) return;
-        var folder = await _pickFolder("Folder for the plots", _plotFolder ?? MainViewModel.ParentOf(ScanFolder));
-        if (folder is null) return;
-        _plotFolder = folder;
-        var scans = Scans.ToArray();
-        var doses = _sourceDoses;
-        var options = ScanOptions;
-        string format = PlotFormat;
-        IsLoading = true;
-        Status = $"Saving plots of {scans.Length} scan(s) into {folder}";
-        try
-        {
-            var progress = new Progress<string>(m => Status = m);
-            var (written, failed) = await Task.Run(() => ScanComparison.SaveAll(scans, doses, _loader, options, folder, format, progress));
-            Status = $"Saved {written} plot(s) into {folder}" + (failed.Count > 0 ? $"; {failed.Count} not drawn, the first: {failed[0]}" : "");
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            Status = $"The plots couldn't be saved: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
     }
 }

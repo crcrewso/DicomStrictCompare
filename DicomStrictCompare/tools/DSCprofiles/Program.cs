@@ -1,6 +1,6 @@
 using System.Globalization;
 using DSClibrary.Profiles;
-using DSCprofiles;
+using DSCplots;
 
 // DSCprofiles: water-tank scans against calculated doses, from the command line.
 //
@@ -39,9 +39,9 @@ bool local = false, curves = false;
 DepthShiftSearch? shift = null;
 string? plans = null, exclude = null, stem = "profiles";
 int? threads = null;
-PlotExport.Which? plots = null;
+var plots = PlotSelection.None;
 string plotFormat = "png";
-int plotWidth = DSCplots.ProfilePlot.DefaultWidth, plotHeight = DSCplots.ProfilePlot.DefaultHeight;
+int plotWidth = ProfilePlot.DefaultWidth, plotHeight = ProfilePlot.DefaultHeight;
 for (int i = 3; i < args.Length; i++)
 {
     switch (args[i])
@@ -66,8 +66,8 @@ for (int i = 3; i < args.Length; i++)
         case "--threads": threads = int.Parse(args[++i], ci); break;
         case "--curves": curves = true; break;
         case "--stem": stem = args[++i]; break;
-        case "--plots": plots = PlotExport.Which.All; break;
-        case "--plots-failing": plots = PlotExport.Which.Failing; break;
+        case "--plots": plots = PlotSelection.All; break;
+        case "--plots-failing": plots = PlotSelection.Failing; break;
         case "--plot-format":
             plotFormat = args[++i].ToLowerInvariant().TrimStart('.');
             if (plotFormat is not ("png" or "svg")) { Console.Error.WriteLine($"--plot-format is png or svg, not '{args[i]}'"); return 2; }
@@ -96,10 +96,8 @@ catch (ArgumentOutOfRangeException ex) { Console.Error.WriteLine($"invalid crite
 void Say(string message) => Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}Z] {message}");
 Say($"criterion: {comparison}");
 var result = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(comparison, plans, exclude, threads), Say);
-var plotFiles = plots is { } which
-    ? PlotExport.Write(output, stem!, scans, result, which, plotFormat, plotWidth, plotHeight, threads, Say)
-    : new Dictionary<int, string>();
-ProfileReport.Write(output, stem!, scans, doses, comparison, plans, exclude, result, curves, plotFiles);
+var plotFiles = ProfilePlotExport.Write(output, stem!, scans, result, plots, plotFormat, plotWidth, plotHeight, threads, Say);
+ProfileBatchReport.Write(output, stem!, scans, doses, comparison, plans, exclude, result, curves, plotFiles);
 
 int compared = result.Rows.Count(r => r.Result is not null);
 Say($"{compared} of {result.Rows.Count} pairs compared, {result.Unmatched.Count} scans unpaired, "
