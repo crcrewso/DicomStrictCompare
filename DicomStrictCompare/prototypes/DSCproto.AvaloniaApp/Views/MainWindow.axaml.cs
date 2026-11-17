@@ -38,12 +38,12 @@ public partial class MainWindow : Window
     /// <summary>Switches to the Graphs tab; used by a scripted run that wants a curve on screen.</summary>
     public void ShowGraphs()
     {
-        Workflows.SelectedIndex = 0;
+        Workflows.SelectedItem = DosesTab;
         Tabs.SelectedIndex = 3;
     }
 
     /// <summary>Switches to the Doses vs scans tab; used when the command line names a scans folder.</summary>
-    public void ShowScans() => Workflows.SelectedIndex = 1;
+    public void ShowScans() => Workflows.SelectedItem = ScansTab;
 
     // The view model exposes the curve as data; drawing it is the view's job, and ScottPlot's
     // AvaPlot is a control, so the hand-over happens here rather than through a binding.
