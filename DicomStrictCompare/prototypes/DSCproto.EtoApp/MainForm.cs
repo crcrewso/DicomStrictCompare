@@ -446,7 +446,8 @@ public sealed class MainForm : Form
     private void BuildSettings()
     {
         foreach (var m in Enum.GetValues<MaximumKind>()) { _maximum.Items.Add(m.ToString()); _studyMaximum.Items.Add(m.ToString()); }
-        _maximum.SelectedIndex = _studyMaximum.SelectedIndex = 0;
+        // CAX Max by default (crcrewso, 2026-11-18), as MainViewModel.
+        _maximum.SelectedIndex = _studyMaximum.SelectedIndex = Array.IndexOf(Enum.GetValues<MaximumKind>(), MaximumKind.CaxMax);
         _maximum.SelectedIndexChanged += (_, _) => { if (_studyMaximum.SelectedIndex != _maximum.SelectedIndex) _studyMaximum.SelectedIndex = _maximum.SelectedIndex; };
         _studyMaximum.SelectedIndexChanged += (_, _) => { if (_maximum.SelectedIndex != _studyMaximum.SelectedIndex) _maximum.SelectedIndex = _studyMaximum.SelectedIndex; };
         foreach (var e in EngineChoice.All) _engine.Items.Add(e.Label);

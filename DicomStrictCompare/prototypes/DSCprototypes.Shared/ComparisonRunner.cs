@@ -54,12 +54,12 @@ public sealed record DtaSpec(double TolerancePercent, double DistanceMm, double 
 
     public string Algorithm => Gamma ? "gamma" : "dta";
 
-    /// <summary>The set DSCcore ships with by default, so the prototypes start where the GUI does.</summary>
+    /// <summary>The windows' starting criteria (crcrewso, 2026-11-18): 0.1 %/0 mm, 3 %/2 mm local, 3 %/2 mm global gamma.</summary>
     public static IReadOnlyList<DtaSpec> Defaults { get; } = new[]
     {
-        new DtaSpec(1.0, 1.0, 10.0, Global: true),
-        new DtaSpec(2.0, 2.0, 10.0, Global: true),
-        new DtaSpec(3.0, 3.0, 10.0, Global: true),
+        new DtaSpec(0.1, 0.0, 10.0, Global: true),
+        new DtaSpec(3.0, 2.0, 10.0, Global: false),
+        new DtaSpec(3.0, 2.0, 10.0, Global: true, Gamma: true),
     };
 
     /// <summary>The gamma criterion a window adds on <c>--gamma</c>: 3 %/3 mm, 10 % cutoff, global.</summary>

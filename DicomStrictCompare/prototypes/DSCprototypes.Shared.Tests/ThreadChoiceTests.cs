@@ -55,6 +55,21 @@ public class ThreadChoiceTests
     }
 
     [TestMethod]
+    public void TheWindowStartsAtTheAgreedCriteriaAndCaxMax()
+    {
+        // crcrewso, 2026-11-18: 0.1 %/0 mm, 3 %/2 mm local, 3 %/2 mm global gamma, CAX normalisation.
+        CollectionAssert.AreEqual(new[]
+        {
+            new DtaSpec(0.1, 0, 10, Global: true),
+            new DtaSpec(3, 2, 10, Global: false),
+            new DtaSpec(3, 2, 10, Global: true, Gamma: true),
+        }, DtaSpec.Defaults.ToArray());
+        var vm = NewMain(Path.Combine(_dir, "settings.json"));
+        Assert.AreEqual(MaximumKind.CaxMax, vm.Maximum);
+        CollectionAssert.AreEqual(DtaSpec.Defaults.ToArray(), vm.Criteria.Select(c => c.ToSpec()).ToArray());
+    }
+
+    [TestMethod]
     public void SettingsAreKeptInTheirFileAndNotTakenFromAStudy()
     {
         string path = Path.Combine(_dir, "settings.json");
@@ -71,8 +86,8 @@ public class ThreadChoiceTests
         Assert.AreEqual(2, again.Readers);
 
         // A study decides Max and GPU precision only; this machine's engine and threads stay.
-        again.Apply(new StudyRunSettings(MaximumKind.CaxMax, new ComparerSettings(ComparerKind.OpenCl, 8, GpuPrecision.Float)));
-        Assert.AreEqual(MaximumKind.CaxMax, again.Maximum);
+        again.Apply(new StudyRunSettings(MaximumKind.GlobalMax, new ComparerSettings(ComparerKind.OpenCl, 8, GpuPrecision.Float)));
+        Assert.AreEqual(MaximumKind.GlobalMax, again.Maximum);
         Assert.IsTrue(again.GpuFloat);
         Assert.AreEqual(ComparerKind.MultiThread, again.Engine);
         Assert.AreEqual(1, again.Threads.Count);

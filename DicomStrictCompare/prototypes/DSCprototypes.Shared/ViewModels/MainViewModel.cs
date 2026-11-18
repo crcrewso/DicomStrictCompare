@@ -132,7 +132,8 @@ public sealed partial class MainViewModel : ObservableObject
     /// The "Max" setting: Global Max, or CAX where the source plan's jaws are on axis (falling back to Global Max).
     /// Used by both the Comparison and Study tabs, like the criteria.
     /// </summary>
-    [ObservableProperty] private MaximumKind _maximum = MaximumKind.GlobalMax;
+    // CAX Max by default (crcrewso, 2026-11-18); it falls back to Global Max where the jaws aren't on the axis.
+    [ObservableProperty] private MaximumKind _maximum = MaximumKind.CaxMax;
     public IReadOnlyList<MaximumKind> MaximumChoices { get; } = Enum.GetValues<MaximumKind>();
 
     // ---- Machine settings: the Settings tab, kept in MachineSettings' file. None changes a count. ----
