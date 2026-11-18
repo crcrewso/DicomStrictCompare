@@ -38,4 +38,11 @@
     <ProjectReference Include="..\DSCprototypes.Shared\DSCprototypes.Shared.csproj" />
   </ItemGroup>
 
+  <!-- WC2: the GC is slow to reclaim large grids, so many pairs at once could overrun memory; a heap limit keeps
+       the app inside half the RAM, and FreeMemory sizes pairs at once to it. Override per run with
+       DOTNET_GCHeapHardLimitPercent (hex). -->
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.GC.HeapHardLimitPercent" Value="50" />
+  </ItemGroup>
+
 </Project>
