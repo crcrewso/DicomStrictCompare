@@ -14,11 +14,14 @@ namespace DSCproto.AvaloniaApp.Views;
 /// </summary>
 internal static class GridCopy
 {
-    /// <summary>Handles the context request for every <see cref="DataGrid"/> in <paramref name="root"/>, current and future.</summary>
-    public static void Attach(Control root) =>
-        root.AddHandler(Control.ContextRequestedEvent, OnContextRequested, RoutingStrategies.Bubble);
+    /// <summary>
+    /// Handles the context request for every <see cref="DataGrid"/> in <paramref name="root"/>, current and future.
+    /// <paramref name="more"/> adds items for a row's item (the scans table's "Fix this scan's header"), after the copies.
+    /// </summary>
+    public static void Attach(Control root, Func<object?, IEnumerable<MenuItem>>? more = null) =>
+        root.AddHandler(Control.ContextRequestedEvent, (s, e) => OnContextRequested(e, more), RoutingStrategies.Bubble);
 
-    private static void OnContextRequested(object? sender, ContextRequestedEventArgs e)
+    private static void OnContextRequested(ContextRequestedEventArgs e, Func<object?, IEnumerable<MenuItem>>? more)
     {
         // A cell being edited holds a TextBox, which handles the request with its own menu (cut, copy, paste) first.
         if (e.Source is not Visual source) return;
@@ -40,7 +43,11 @@ internal static class GridCopy
             string.Join('\t', columns.Select(c => Clean(HeadingOf(c.Header)))) + Environment.NewLine
             + string.Join('\t', columns.Select(c => Clean(TextOf(c.GetCellContent(row))))));
 
-        var menu = new ContextMenu { ItemsSource = new[] { copyValue, copyRow } };
+        var items = new List<Control> { copyValue, copyRow };
+        var extra = more?.Invoke(row.DataContext).ToList() ?? new List<MenuItem>();
+        if (extra.Count > 0) items.Add(new Separator());
+        items.AddRange(extra);
+        var menu = new ContextMenu { ItemsSource = items };
         menu.Open(cell);
         e.Handled = true;
     }

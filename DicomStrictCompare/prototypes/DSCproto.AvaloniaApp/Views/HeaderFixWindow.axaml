@@ -1,0 +1,54 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DSCprototypes.Shared.ViewModels"
+        x:Class="DSCproto.AvaloniaApp.Views.HeaderFixWindow"
+        x:DataType="vm:HeaderFixViewModel"
+        Title="Fix a scan's header" Icon="/Assets/dsc.ico"
+        Width="560" SizeToContent="Height" CanResize="False" WindowStartupLocation="CenterOwner">
+
+  <!-- One scan's header fix (crcrewso, 2026-11-17). Filled from the scan's fix, else its file's header; saved in the
+       scans folder's fixes file, never in the scan file. -->
+  <StackPanel Margin="16" Spacing="10">
+    <TextBlock FontWeight="SemiBold" TextWrapping="Wrap">
+      <Run Text="{Binding File}"/><Run Text=", scan "/><Run Text="{Binding ScanNumber}"/>
+    </TextBlock>
+    <TextBlock Text="{Binding FileSays}" TextWrapping="Wrap" Opacity="0.8"/>
+    <TextBlock Text="{Binding CheckSays}" TextWrapping="Wrap" Foreground="#C0392B" IsVisible="{Binding HasCheck}"/>
+
+    <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+      <TextBlock Text="Energy (MV or MeV)" VerticalAlignment="Center"/>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+        <TextBox Text="{Binding Energy}" Width="80"/>
+        <CheckBox Content="FFF" IsChecked="{Binding Fff}" IsVisible="{Binding !IsElectron}"/>
+      </StackPanel>
+      <TextBlock Grid.Row="1" Text="Field crossplane (mm)" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding FieldCrossplaneMm}" Width="80" HorizontalAlignment="Left"
+               ToolTip.Tip="The field's size along the tank's crossplane axis, at the isocentre: 200 for a 20 cm field"/>
+      <TextBlock Grid.Row="2" Text="Field inplane (mm)" VerticalAlignment="Center"/>
+      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FieldInplaneMm}" Width="80" HorizontalAlignment="Left"/>
+      <TextBlock Grid.Row="3" Text="Wedge" VerticalAlignment="Center"/>
+      <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <ComboBox ItemsSource="{x:Static vm:HeaderFixViewModel.WedgeAngles}" SelectedItem="{Binding WedgeAngle}" MinWidth="90"/>
+        <ComboBox ItemsSource="{x:Static vm:HeaderFixViewModel.Directions}" SelectedItem="{Binding WedgeDirection}" MinWidth="80"
+                  ToolTip.Tip="As PTW writes it on the scan (WEDGE=15 out); pairing reads Eclipse's orientation 0 as IN and 180 as OUT"/>
+      </StackPanel>
+      <TextBlock Grid.Row="4" Text="Why (kept with the fix)" VerticalAlignment="Top" Margin="0,6,0,0"/>
+      <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Note}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="54"
+               PlaceholderText="e.g. wedged; order matches the 17 June EDW scans"/>
+      <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding WholeFile}" IsVisible="{Binding CanFixWholeFile}">
+        <TextBlock>Every scan in this file (<Run Text="{Binding ScansInFile}"/>)</TextBlock>
+      </CheckBox>
+    </Grid>
+
+    <TextBlock Text="{Binding Problem}" Foreground="#C0392B" TextWrapping="Wrap" IsVisible="{Binding HasProblem}"/>
+    <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.7">
+      <Run Text="Saved in "/><Run Text="{Binding FixesPath}"/><Run Text=". The scan file isn't changed. Run again to apply."/>
+    </TextBlock>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Remove fix" Click="OnRemove" IsVisible="{Binding HasFix}"/>
+      <Button Content="Cancel" Click="OnCancel" IsCancel="True"/>
+      <Button Content="Save" Click="OnSave" Classes="accent" IsDefault="True"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

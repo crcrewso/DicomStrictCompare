@@ -48,6 +48,7 @@ namespace DSClibrary.Profiles
                 $"doses: {doses}",
                 $"criterion: {options}",
                 $"plan label filter: {plans ?? "(none)"}; scan folders excluded: {exclude ?? "(none)"}",
+                $"header fixes: {HeaderFixesLine(result)}",
                 $"{result.Scans} scans in {result.ScanFiles} files; {result.Doses} doses; {result.Rows.Count} pairs; {result.Unmatched.Count} scans unpaired",
                 $"{result.Threads} thread(s), {result.Elapsed.TotalSeconds.ToString("0.0", Ci)} s",
                 $"plots: {(plots.Count == 0 ? "none" : $"{plots.Count} in {stem}-plots")}",
@@ -63,11 +64,19 @@ namespace DSClibrary.Profiles
             return result.Passed < result.Analysed || result.Analysed == 0;
         }
 
+        /// <summary>"3 scans fixed, from ...\dsc-header-fixes.json", or "none".</summary>
+        private static string HeaderFixesLine(ProfileBatchResult result)
+        {
+            var fixedScans = result.Rows.Select(r => r.Scan).Concat(result.Unmatched.Select(u => u.Scan))
+                .Where(s => s.HeaderFix is not null).Select(s => (s.File, s.ScanNumber)).Distinct().Count();
+            return fixedScans == 0 ? "none" : $"{fixedScans} scan(s) fixed" + (result.HeaderFixesPath is { } p ? $", from {p}" : "");
+        }
+
         private static readonly string[] ResultColumns =
         {
             "row", "scan_file", "scan_folder", "scan_number", "curve", "depth_mm", "offaxis_crossplane_mm", "offaxis_inplane_mm",
             "beam", "detector", "dose_file", "plan_label", "beam_name", "algorithm", "grid_mm", "surface", "pairing_notes",
-            "header_check", "header_field_mm", "scan_field_mm", "scan_slope_percent",
+            "header_fix", "header_check", "header_field_mm", "scan_field_mm", "scan_slope_percent",
             "normalisation", "points", "outside_grid", "analysed", "passed", "pass_rate", "mean_gamma", "max_gamma",
             "depth_shift_mm", "constancy_percent",
             "field_size_measured_mm", "field_size_calculated_mm", "cax_offset_measured_mm", "cax_offset_calculated_mm",
@@ -109,6 +118,7 @@ namespace DSClibrary.Profiles
                     grid,
                     r.Frame?.Describe(),
                     string.Join("; ", r.PairingNotes),
+                    r.Scan.HeaderFix is { } fix ? fix.Describe() + (string.IsNullOrWhiteSpace(fix.Note) ? "" : "; " + fix.Note) : "",
                     r.HeaderCheck.Summary,
                     N(r.HeaderCheck.HeaderFieldMm, "0.#"), N(r.HeaderCheck.MeasuredFieldMm, "0.0"), N(r.HeaderCheck.SlopePercent, "0.00"),
                     x?.Normalization.ToString(),

@@ -9,7 +9,8 @@ namespace DSCproto.EtoApp;
 /// </summary>
 internal static class GridCopy
 {
-    public static void Attach(GridView grid) => grid.CellClick += (_, e) =>
+    /// <param name="more">Items for the clicked row's item after the copies (the scans table's "Fix this scan's header").</param>
+    public static void Attach(GridView grid, Func<object, IEnumerable<MenuItem>>? more = null) => grid.CellClick += (_, e) =>
     {
         if (e.Buttons != MouseButtons.Alternate || e.Item is null || e.GridColumn is null) return;
         var columns = grid.Columns.Where(c => c.Visible).ToList();
@@ -23,7 +24,9 @@ internal static class GridCopy
         copyRow.Click += (_, _) => Copy(
             string.Join('\t', columns.Select(c => Clean(c.HeaderText ?? ""))) + Environment.NewLine
             + string.Join('\t', columns.Select(c => Clean(TextOf(c.DataCell, item)))));
-        new ContextMenu(copyValue, copyRow).Show(grid);
+        var menu = new ContextMenu(copyValue, copyRow);
+        foreach (var extra in more?.Invoke(item) ?? Enumerable.Empty<MenuItem>()) menu.Items.Add(extra);
+        menu.Show(grid);
     };
 
     private static void Copy(string text)

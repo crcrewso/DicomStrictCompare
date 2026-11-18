@@ -481,6 +481,8 @@
         <TextBlock Text="Format" VerticalAlignment="Center"/>
         <ComboBox ItemsSource="{Binding PlotFormats}" SelectedItem="{Binding PlotFormat}" MinWidth="80"/>
         <Button Content="Save plot" Command="{Binding SavePlotCommand}"/>
+        <Button Content="Fix scan header..." Command="{Binding FixHeaderCommand}" CommandParameter="{x:Null}"
+                ToolTip.Tip="{x:Static shared:HelpText.FixHeader}"/>
         <Button Content="Save plots of listed pairs" Command="{Binding SaveListedPlotsCommand}"
                 ToolTip.Tip="One image per pair the filters list, named by its row"/>
         <TextBlock Text="Plots in the export" VerticalAlignment="Center" Margin="16,0,0,0"/>

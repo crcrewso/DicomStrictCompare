@@ -14,9 +14,21 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        GridCopy.Attach(this);
+        GridCopy.Attach(this, ScanRowMenu);
         DataContextChanged += (_, _) => AttachGraph();
     }
+
+    /// <summary>The scans table's own right-click item: fix the clicked scan's header.</summary>
+    private IEnumerable<MenuItem> ScanRowMenu(object? item)
+    {
+        if (item is not ScanPairRow row || _scans is null) yield break;
+        var fix = new MenuItem { Header = new TextBlock { Text = "Fix this scan's header..." } };
+        fix.Click += (_, _) => { if (_scans.FixHeaderCommand.CanExecute(row)) _scans.FixHeaderCommand.Execute(row); };
+        yield return fix;
+    }
+
+    private async Task<HeaderFixOutcome> ShowHeaderFixAsync(HeaderFixViewModel form) =>
+        await new HeaderFixWindow { DataContext = form }.ShowDialog<HeaderFixOutcome>(this);
 
     /// <summary>
     /// The one platform service the view model needs. Avalonia reaches native pickers through the
@@ -57,7 +69,11 @@ public partial class MainWindow : Window
 
         if (_scans is not null) _scans.PropertyChanged -= OnScansChanged;
         _scans = (DataContext as MainViewModel)?.Scans;
-        if (_scans is not null) _scans.PropertyChanged += OnScansChanged;
+        if (_scans is not null)
+        {
+            _scans.PropertyChanged += OnScansChanged;
+            _scans.EditHeaderFix = ShowHeaderFixAsync;
+        }
         DrawScan();
 
         if (_study is not null) _study.PropertyChanged -= OnStudyChanged;

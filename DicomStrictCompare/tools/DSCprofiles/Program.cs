@@ -21,13 +21,15 @@ using DSCplots;
 //   --plots                an image of every compared pair, in <stem>-plots/ (the Graphs tab's figure)
 //   --plots-failing        the same, only for pairs with a point that failed
 //   --plot-format png|svg  (default png)                                 --plot-size 1200x900   pixels
+//   --header-fixes FILE    people's corrections to scan headers (default: the scans folder's dsc-header-fixes.json
+//                          when there is one)                            --no-header-fixes  use the files' headers as they are
 
 if (args.Length < 3)
 {
     Console.Error.WriteLine("usage: DSCprofiles <scansDir> <dosesDir> <outputDir> [--dose 2] [--distance 2] [--test gamma|strict]");
     Console.Error.WriteLine("       [--reference measured|calculated] [--local] [--cutoff 10] [--pdd-cutoff 10] [--max-gamma inf]");
     Console.Error.WriteLine("       [--interp 10] [--depth-shift 3[,0.1]] [--plans regex] [--exclude regex] [--threads N] [--curves] [--stem name]");
-    Console.Error.WriteLine("       [--plots | --plots-failing] [--plot-format png|svg] [--plot-size 1200x900]");
+    Console.Error.WriteLine("       [--plots | --plots-failing] [--plot-format png|svg] [--plot-size 1200x900] [--header-fixes FILE | --no-header-fixes]");
     return 2;
 }
 
@@ -37,7 +39,8 @@ var test = ProfileTest.Gamma;
 var reference = ProfileReference.Measured;
 bool local = false, curves = false;
 DepthShiftSearch? shift = null;
-string? plans = null, exclude = null, stem = "profiles";
+string? plans = null, exclude = null, stem = "profiles", headerFixes = null;
+bool noHeaderFixes = false;
 int? threads = null;
 var plots = PlotSelection.None;
 string plotFormat = "png";
@@ -68,6 +71,8 @@ for (int i = 3; i < args.Length; i++)
         case "--stem": stem = args[++i]; break;
         case "--plots": plots = PlotSelection.All; break;
         case "--plots-failing": plots = PlotSelection.Failing; break;
+        case "--header-fixes": headerFixes = args[++i]; break;
+        case "--no-header-fixes": noHeaderFixes = true; break;
         case "--plot-format":
             plotFormat = args[++i].ToLowerInvariant().TrimStart('.');
             if (plotFormat is not ("png" or "svg")) { Console.Error.WriteLine($"--plot-format is png or svg, not '{args[i]}'"); return 2; }
@@ -95,7 +100,18 @@ catch (ArgumentOutOfRangeException ex) { Console.Error.WriteLine($"invalid crite
 
 void Say(string message) => Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}Z] {message}");
 Say($"criterion: {comparison}");
-var result = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(comparison, plans, exclude, threads), Say);
+
+ScanHeaderFixes? fixes = null;
+if (!noHeaderFixes)
+{
+    string fixesPath = headerFixes is null ? ScanHeaderFixes.DefaultPath(scans) : Path.GetFullPath(headerFixes);
+    if (headerFixes is not null && !File.Exists(fixesPath)) { Console.Error.WriteLine($"header fixes file not found: {fixesPath}"); return 2; }
+    try { fixes = ScanHeaderFixes.Load(fixesPath); }
+    catch (Exception ex) when (ex is InvalidDataException or System.Text.Json.JsonException or IOException)
+    { Console.Error.WriteLine($"header fixes can't be read: {ex.Message}"); return 2; }
+    if (fixes.Fixes.Count > 0) Say($"{fixes.Fixes.Count} header fix(es) from {fixesPath}");
+}
+var result = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(comparison, plans, exclude, threads, fixes), Say);
 var plotFiles = ProfilePlotExport.Write(output, stem!, scans, result, plots, plotFormat, plotWidth, plotHeight, threads, Say);
 ProfileBatchReport.Write(output, stem!, scans, doses, comparison, plans, exclude, result, curves, plotFiles);
 

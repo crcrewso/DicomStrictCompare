@@ -27,6 +27,29 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
     /// <summary>What a run was given, kept for the export and the plot labels.</summary>
     private sealed record RunInputs(string Doses, string Scans, string? PlanFilter, string? ExcludeFolders, ProfileComparisonOptions Options);
 
+    /// <summary>
+    /// Shows the header-fix form and says what the person chose; set by the window. Unset, Fix header does nothing.
+    /// </summary>
+    public Func<HeaderFixViewModel, Task<HeaderFixOutcome>>? EditHeaderFix { get; set; }
+
+    private bool CanFixHeader(ScanPairRow? row) => (row ?? SelectedRow) is not null && !IsRunning && _ran is not null;
+
+    /// <summary>
+    /// Opens the header-fix form for a row's scan (the selected row's by default) and saves the answer in the scans
+    /// folder's fixes file. The rows shown keep their old header until the next run, which the status says.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanFixHeader))]
+    private async Task FixHeaderAsync(ScanPairRow? row)
+    {
+        row ??= SelectedRow;
+        if (row is null || _ran is null || EditHeaderFix is null) return;
+        var (fixes, problem) = ScanRows.LoadFixes(_ran.Scans);
+        if (fixes is null) { Status = problem!; return; }
+        var form = HeaderFixViewModel.For(row, _ran.Scans, fixes, ScanRows.ScansInFile(_result!, row.Pair.Scan.File));
+        var outcome = await EditHeaderFix(form);
+        if (ScanRows.Answer(fixes, form, outcome) is { } said) Status = said;
+    }
+
     public ScanComparisonViewModel(Func<string, string?, Task<string?>> pickFolder)
     {
         _pickFolder = pickFolder;
@@ -68,7 +91,7 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
     partial void OnDepthShiftChanged(bool value) => NoteCriterionChanged();
 
     // ---- run state ----
-    [ObservableProperty, NotifyCanExecuteChangedFor(nameof(RunCommand), nameof(CancelCommand), nameof(ExportCommand), nameof(SaveListedPlotsCommand))]
+    [ObservableProperty, NotifyCanExecuteChangedFor(nameof(RunCommand), nameof(CancelCommand), nameof(ExportCommand), nameof(SaveListedPlotsCommand), nameof(FixHeaderCommand))]
     private bool _isRunning;
     [ObservableProperty] private string _status = "Choose a folder of doses (RT Dose and RT Plan) and a folder of PTW mcc scans, then run.";
     [ObservableProperty] private string _details = "";
@@ -87,7 +110,7 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
     /// <summary>Words every listed row must contain (<see cref="ScanRows.Matches"/>): "10FFF 6x6".</summary>
     [ObservableProperty] private string _find = "";
     [ObservableProperty] private string _listed = "";
-    [ObservableProperty] private ScanPairRow? _selectedRow;
+    [ObservableProperty, NotifyCanExecuteChangedFor(nameof(FixHeaderCommand))] private ScanPairRow? _selectedRow;
 
     /// <summary>The selected row's comparison and its figure's labels; null when there is nothing to draw.</summary>
     [ObservableProperty] private ProfileComparisonResult? _selectedResult;
@@ -146,6 +169,12 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
             Status = refusal;
             return;
         }
+        var (fixes, fixesProblem) = ScanRows.LoadFixes(scans);
+        if (fixes is null)
+        {
+            Status = fixesProblem!;
+            return;
+        }
 
         IsRunning = true;
         _cancel = new CancellationTokenSource();
@@ -156,7 +185,7 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
         {
             var result = await Task.Run(() =>
             {
-                var r = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(options, plan, exclude), m => ((IProgress<string>)progress).Report(m), token);
+                var r = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(options, plan, exclude, HeaderFixes: fixes), m => ((IProgress<string>)progress).Report(m), token);
                 ScanRows.ReleaseGrids();
                 return r;
             }, token);

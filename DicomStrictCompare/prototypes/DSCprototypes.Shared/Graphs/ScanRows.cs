@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using DSClibrary.Profiles;
 using DSClibrary.Results.PTW;
 using DSCplots;
+using DSCprototypes.Shared.ViewModels;
 
 namespace DSCprototypes.Shared.Graphs;
 
@@ -94,6 +95,61 @@ public static class ScanRows
         try { options.Validate(); }
         catch (ArgumentOutOfRangeException ex) { return $"Invalid criterion: {ex.Message}"; }
         return null;
+    }
+
+    /// <summary>
+    /// The scans folder's header fixes (<see cref="ScanHeaderFixes.DefaultPath"/>; none when the file isn't there), or
+    /// null with a sentence saying why the file can't be used.
+    /// </summary>
+    public static (ScanHeaderFixes? Fixes, string? Problem) LoadFixes(string scansFolder)
+    {
+        string path = ScanHeaderFixes.DefaultPath(scansFolder);
+        try { return (ScanHeaderFixes.Load(path), null); }
+        catch (Exception ex) when (ex is InvalidDataException or System.Text.Json.JsonException or IOException or UnauthorizedAccessException)
+        { return (null, $"The header fixes in {path} can't be read: {ex.Message}"); }
+    }
+
+    /// <summary>How many scans a run read from one file, paired or not: what "every scan in this file" covers.</summary>
+    public static int ScansInFile(ProfileBatchResult result, string file)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return Math.Max(1, result.Rows.Select(r => r.Scan).Concat(result.Unmatched.Select(u => u.Scan))
+            .Where(s => s.File == file).Select(s => s.ScanNumber).Distinct().Count());
+    }
+
+    /// <summary>
+    /// Carries out the header-fix form's answer: saves the fix (a whole-file fix replaces the scan's own) or removes the
+    /// scan's and its file's, in the form's fixes file. Returns the status line to show, or null for Cancel.
+    /// </summary>
+    public static string? Answer(ScanHeaderFixes fixes, HeaderFixViewModel form, HeaderFixOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(fixes);
+        ArgumentNullException.ThrowIfNull(form);
+        string scanName = $"{form.File} scan {form.ScanNumber}";
+        try
+        {
+            switch (outcome)
+            {
+                case HeaderFixOutcome.Save when form.ToFix() is { } fix:
+                    if (fix.Scan is null) fixes.Remove(fix.File, form.ScanNumber);
+                    fixes.Set(fix);
+                    fixes.Save(form.FixesPath);
+                    return $"Header fix saved for {(fix.Scan is null ? $"every scan in {fix.File}" : scanName)}: {fix.Describe()}, in {form.FixesPath}. "
+                        + "Run again to apply it.";
+                case HeaderFixOutcome.Save:
+                    return $"The header fix wasn't saved: {form.Problem}";
+                case HeaderFixOutcome.Remove:
+                    bool removed = fixes.Remove(form.File, form.ScanNumber) | fixes.Remove(form.File, null);
+                    fixes.Save(form.FixesPath);
+                    return removed ? $"Header fix removed for {scanName} (and its file's). Run again to use the file's header." : $"{scanName} had no fix.";
+                default:
+                    return null;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return $"The header fixes couldn't be saved in {form.FixesPath}: {ex.Message}";
+        }
     }
 
     /// <summary>The batch's rows, numbered from 1 as the results CSV numbers them.</summary>
@@ -202,7 +258,7 @@ public static class ScanRows
     /// The search box's words, each lower-cased with its spaces gone, so "10FFF 6x6" is two words and "6 x 6" one.
     /// A word in quotes keeps its spaces out too: "6 x 6" (quoted) is the word 6x6.
     /// </summary>
-    internal static string[] Words(string? find)
+    public static string[] Words(string? find)
     {
         if (string.IsNullOrWhiteSpace(find)) return Array.Empty<string>();
         var words = new List<string>();
@@ -240,7 +296,23 @@ public static class ScanRows
         return false;
     }
 
-    private static string Squash(string s) => new string(s.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLowerInvariant();
+    /// <summary>
+    /// Lower-cased with spaces removed, except a space between two digits, which becomes a separator: "6 x 6 cm" is 6x6cm
+    /// but "260616 14'16'17" stays two numbers (260616|14'16'17), so whole-number matching still finds 14'16'17.
+    /// </summary>
+    private static string Squash(string s)
+    {
+        var sb = new System.Text.StringBuilder(s.Length);
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (!char.IsWhiteSpace(s[i])) { sb.Append(char.ToLowerInvariant(s[i])); continue; }
+            int next = i;
+            while (next < s.Length && char.IsWhiteSpace(s[next])) next++;
+            if (sb.Length > 0 && char.IsDigit(sb[^1]) && next < s.Length && char.IsDigit(s[next])) sb.Append('|');
+            i = next - 1;
+        }
+        return sb.ToString();
+    }
 
     /// <summary>The run in a line: pairs, how they came out, what didn't pair, how long it took.</summary>
     public static string Summary(ProfileBatchResult result, IReadOnlyList<ScanPairRow> rows, ProfileComparisonOptions options)

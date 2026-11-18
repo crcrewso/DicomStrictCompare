@@ -106,7 +106,8 @@ Float on the GPU engines is a user's choice and may differ from the reference on
 
 ```mermaid
 flowchart TD
-    scans["Scans folder: every *.mcc, recursive<br/>MCCParser, MCCMeasurementMapper: a Profile per scan"] --> check
+    scans["Scans folder: every *.mcc, recursive<br/>MCCParser, MCCMeasurementMapper: a Profile per scan"] --> fixes
+    fixes["ScanHeaderFixes (dsc-header-fixes.json in the scans folder, or --header-fixes):<br/>a person's corrections to energy, FFF, field, wedge,<br/>applied as if the header had said them; the scan keeps what the file said"] --> check
     check["ScanHeaderCheck: the curve against its own header<br/>(field between the penumbrae within 15 %; a photon field called open<br/>level within 3 %); a flag carried on the scan's rows, nothing else changes"] --> pair
     doses["Doses folder: RTFolderReader, headers only<br/>optional plan-label filter"] --> pair
     pair["ScanDoseMatching.Match<br/>field on the tank axes (jaws turned by the collimator, or the applicator),<br/>energy, FFF, EDW angle and IN/OUT, SSD if the plan has one"] --> unpaired["Unpaired scans, with the closest miss"]
@@ -139,5 +140,6 @@ screen, its plot file and its CSV line share a number. What the tab shows and wh
 Pairing trusts the scan's header, so `ScanHeaderCheck` checks the header against the curve first (2026-11-17, after the
 Equinox "low res wedges" scans, whose headers all say open 10 x 10). A scan that disagrees is still paired and compared
 as its header says; the disagreement goes into the results' `header_check` column, the unpaired file, the tab's Header
-column and its "Header disagrees" filter.
+column and its "Header disagrees" filter. A person corrects a wrong header with a header fix (`ScanHeaderFixes`, the
+tab's *Fix scan header...*), kept beside the scans and applied before the check, so a right fix clears the flag.
 Core selection: [core-selection.md](core-selection.md).

@@ -187,7 +187,19 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
   - or the header says no wedge but a photon field slopes more than 3 % from side to side. Not checked for
     electrons, fields under 3 cm, or fields centred off the axis, none of which is level.
 
-  A flag changes nothing else: the scan is still paired and compared as its header says. It is written in the results'
+- **Header fixes.** A wrong header can be corrected per scan, or for every scan in a file: energy, FFF, field size and
+  wedge. Fixes are kept in `dsc-header-fixes.json` in the scans folder (`ScanHeaderFixes`); the scan files are never
+  changed. Each scan is read as if its header had said the fixed values, so pairing and the header check use them (a
+  right fix clears the check's flag), and every row it gives says what was fixed and what the file said (the results'
+  `header_fix` column; the settings file names the fixes file). `DSCprofiles` uses the scans folder's file when there
+  is one; `--header-fixes FILE` names another, `--no-header-fixes` ignores them. In the windows, *Fix scan header...*
+  (also on a row's right-click menu) opens a form filled from the scan's header.
+
+  On the Equinox 10 MV `low res wedges` scans, fixes giving each one's wedge and field (taken from the 17 June EDW
+  scans' order and shapes) clear every flag, and the scans pass 90 to 100 % at 1 %/1 mm against the EDW doses, apart
+  from the 45 and 60 degree scans at 5 cm (54 to 68 %); the same fixes with the 60 degree directions swapped pass 0 to 3 %.
+
+  A header-check flag changes nothing else: the scan is still paired and compared as its header says. It is written in the results'
   `header_check` column (with `header_field_mm`, `scan_field_mm` and `scan_slope_percent`) and the unpaired file. On the
   Equinox scans it flags every "low res wedges" scan (wedged, headers say open 10 x 10), every 40 x 40 scan (about
   50 cm wide), and one 15 MV scan whose header says 8 x 8 but which is 6 x 6.

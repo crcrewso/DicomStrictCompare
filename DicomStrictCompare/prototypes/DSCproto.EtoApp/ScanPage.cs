@@ -52,6 +52,7 @@ public sealed class ScanPage : Panel
     private readonly Button _savePlot = new() { Text = "Save plot", Enabled = false };
     private readonly Button _saveListed = new() { Text = "Save plots of listed pairs", Enabled = false, ToolTip = "One image per pair the filters list, named by its row" };
     private readonly DropDown _exportPlots = new() { Width = 100 };
+    private readonly Button _fixHeader = new() { Text = "Fix scan header...", Enabled = false, ToolTip = HelpText.FixHeader };
     private readonly Button _export = new() { Text = "Export results (CSV)", Enabled = false,
         ToolTip = "The files DSCprofiles writes: profiles-results.csv, profiles-unpaired.csv, profiles-settings.txt, and the plots in profiles-plots" };
 
@@ -94,6 +95,7 @@ public sealed class ScanPage : Panel
         _find.TextChanged += (_, _) => Refilter();
         _grid.SelectionChanged += (_, _) => ShowSelected();
         _savePlot.Click += (_, _) => SavePlot();
+        _fixHeader.Click += (_, _) => { if (_grid.SelectedItem is ScanPairRow row) FixHeader(row); };
         _saveListed.Click += async (_, _) => await SaveListedAsync();
         _export.Click += async (_, _) => await ExportAsync();
         _dosePercent.ValueChanged += (_, _) => NoteCriterionChanged();
@@ -144,7 +146,7 @@ public sealed class ScanPage : Panel
         layout.EndVertical();
 
         layout.BeginVertical();
-        layout.AddRow(Caption("Format"), _format, _savePlot, _saveListed, Caption("Plots in the export"), _exportPlots, _export, null);
+        layout.AddRow(Caption("Format"), _format, _savePlot, _fixHeader, _saveListed, Caption("Plots in the export"), _exportPlots, _export, null);
         layout.EndVertical();
         layout.BeginVertical();
         layout.Add(_status);
@@ -176,7 +178,13 @@ public sealed class ScanPage : Panel
             HeaderText = header, HeaderToolTip = tip, Width = width,
             DataCell = new TextBoxCell { Binding = Binding.Delegate(get) },
         };
-        GridCopy.Attach(_grid);
+        GridCopy.Attach(_grid, item =>
+        {
+            if (item is not ScanPairRow row) return Array.Empty<MenuItem>();
+            var fix = new ButtonMenuItem { Text = "Fix this scan's header..." };
+            fix.Click += (_, _) => FixHeader(row);
+            return new MenuItem[] { new SeparatorMenuItem(), fix };
+        });
         _grid.Columns.Add(Col("Row", r => r.Row.ToString(System.Globalization.CultureInfo.InvariantCulture), 50));
         _grid.Columns.Add(Col("Scan", r => r.Scan, 260));
         _grid.Columns.Add(Col("Curve", r => r.Curve, 80));
@@ -222,6 +230,8 @@ public sealed class ScanPage : Panel
         string doses = _doses.Text.Trim(), scans = _scans.Text.Trim();
         string? plan = ScanRows.NullIfBlank(_planFilter.Text), exclude = ScanRows.NullIfBlank(_exclude.Text);
         if (ScanRows.Refusal(doses, scans, plan, exclude, options) is { } refusal) { _status.Text = refusal; return; }
+        var (fixes, fixesProblem) = ScanRows.LoadFixes(scans);
+        if (fixes is null) { _status.Text = fixesProblem!; return; }
 
         SetBusy(true);
         _cancelSource = new CancellationTokenSource();
@@ -232,7 +242,7 @@ public sealed class ScanPage : Panel
             void Say(string m) => Application.Instance.AsyncInvoke(() => _status.Text = m);
             var result = await Task.Run(() =>
             {
-                var r = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(options, plan, exclude), Say, token);
+                var r = ProfileBatch.Run(scans, doses, new ProfileBatchOptions(options, plan, exclude, HeaderFixes: fixes), Say, token);
                 ScanRows.ReleaseGrids();
                 return r;
             }, token);
@@ -254,8 +264,20 @@ public sealed class ScanPage : Panel
         }
     }
 
+    /// <summary>The header-fix form for a row's scan; the answer is saved in the scans folder's fixes file.</summary>
+    private void FixHeader(ScanPairRow row)
+    {
+        if (_ran is not { } ran || _result is null || _cancelSource is not null) return;
+        var (fixes, problem) = ScanRows.LoadFixes(ran.Scans);
+        if (fixes is null) { _status.Text = problem!; return; }
+        var form = HeaderFixViewModel.For(row, ran.Scans, fixes, ScanRows.ScansInFile(_result, row.Pair.Scan.File));
+        var outcome = new HeaderFixDialog(form).ShowModal(this);
+        if (ScanRows.Answer(fixes, form, outcome) is { } said) _status.Text = said;
+    }
+
     private void SetBusy(bool busy)
     {
+        _fixHeader.Enabled = !busy && _result is not null;
         _run.Enabled = !busy;
         _cancel.Enabled = busy;
         _busy.Visible = busy;

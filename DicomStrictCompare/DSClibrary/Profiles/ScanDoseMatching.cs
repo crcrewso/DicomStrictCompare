@@ -200,7 +200,7 @@ namespace DSClibrary.Profiles
         }
 
         /// <summary>A PTW scan's wedge: WEDGE_ANGLE when it's set, else the WEDGE text ("10 in", "60 out").</summary>
-        internal static (double? Angle, string? Direction) ScanWedge(double? wedgeAngle, string? wedgeText)
+        public static (double? Angle, string? Direction) ScanWedge(double? wedgeAngle, string? wedgeText)
         {
             var m = Regex.Match(wedgeText ?? "", @"^\s*(\d+(?:\.\d+)?)\s*(in|out)?\s*$", RegexOptions.IgnoreCase);
             if (m.Success)

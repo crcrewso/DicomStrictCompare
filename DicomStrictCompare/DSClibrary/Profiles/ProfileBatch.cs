@@ -22,14 +22,27 @@ namespace DSClibrary.Profiles
     /// file under a matching folder is skipped. For example <c>^zz</c> leaves out folders kept for reference.</param>
     /// <param name="Threads">Doses loaded at once; by default the physical cores, fewer when half the free memory won't
     /// hold that many of the largest grid.</param>
+    /// <param name="HeaderFixes">People's corrections to scan headers (<see cref="ScanHeaderFixes"/>), applied as each
+    /// scan is read; null for none.</param>
     public sealed record ProfileBatchOptions(
         ProfileComparisonOptions Comparison,
         string? PlanLabelPattern = null,
         string? ExcludeFolderPattern = null,
-        int? Threads = null);
+        int? Threads = null,
+        ScanHeaderFixes? HeaderFixes = null);
 
     /// <summary>One water-tank scan: its file, its number within the file and its profile as measured.</summary>
-    public sealed record ScanRef(string File, string RelativeFolder, int ScanNumber, Profile Profile);
+    public sealed record ScanRef(string File, string RelativeFolder, int ScanNumber, Profile Profile)
+    {
+        /// <summary>The header fix applied to <see cref="Profile"/>, if any; <see cref="OriginalBeam"/> is then the file's own.</summary>
+        public ScanHeaderFix? HeaderFix { get; init; }
+        public BeamKey? OriginalBeam { get; init; }
+
+        /// <summary>"header fixed by hand: wedge 15 OUT (the file says open 10 x 10 cm); why", or null.</summary>
+        public string? HeaderFixNote => HeaderFix is { } f
+            ? $"header fixed by hand: {f.Describe()} (the file says {OriginalBeam})" + (string.IsNullOrWhiteSpace(f.Note) ? "" : $"; {f.Note}")
+            : null;
+    }
 
     /// <summary>One scan compared with one dose. <see cref="Failure"/> says why there's no <see cref="Result"/>.</summary>
     public sealed record ProfilePairRow(
@@ -65,6 +78,8 @@ namespace DSClibrary.Profiles
         public required int Doses { get; init; }
         public required int Threads { get; init; }
         public required TimeSpan Elapsed { get; init; }
+        /// <summary>The header fixes file the run used, or null.</summary>
+        public string? HeaderFixesPath { get; init; }
     }
 
     /// <summary>
@@ -84,7 +99,7 @@ namespace DSClibrary.Profiles
             options.Comparison.Validate();
             var clock = Stopwatch.StartNew();
 
-            var (scans, scanFiles, unreadableScans) = ReadScans(scansFolder, options.ExcludeFolderPattern, progress);
+            var (scans, scanFiles, unreadableScans) = ReadScans(scansFolder, options.ExcludeFolderPattern, progress, options.HeaderFixes);
             progress?.Invoke($"{scans.Count} scans in {scanFiles} files; reading dose headers");
 
             var folder = RTFolderReader.Read(dosesFolder, recursive: true, headersOnly: true);
@@ -106,7 +121,8 @@ namespace DSClibrary.Profiles
                     continue;
                 }
                 var (candidates, reason) = ScanDoseMatching.Match(scan.Profile, doses);
-                if (candidates.Count == 0) unmatched.Add(new UnmatchedScan(scan, reason ?? "no dose pairs with it") { HeaderCheck = check });
+                if (candidates.Count == 0)
+                    unmatched.Add(new UnmatchedScan(scan, (reason ?? "no dose pairs with it") + (scan.HeaderFixNote is { } n ? "; " + n : "")) { HeaderCheck = check });
                 foreach (var c in candidates) pairs.Add((scan, c));
             }
             var byDose = pairs.GroupBy(p => p.Candidate.Dose.Dose.SourcePath, StringComparer.Ordinal).ToArray();
@@ -156,7 +172,11 @@ namespace DSClibrary.Profiles
             {
                 Rows = rows.OrderBy(r => r.Scan.File, StringComparer.Ordinal).ThenBy(r => r.Scan.ScanNumber)
                     .ThenBy(r => r.Dose.Dose.SourcePath, StringComparer.Ordinal)
-                    .Select(r => r with { HeaderCheck = checks[r.Scan] }).ToArray(),
+                    .Select(r => r with
+                    {
+                        HeaderCheck = checks[r.Scan],
+                        PairingNotes = r.Scan.HeaderFixNote is { } fixNote ? r.PairingNotes.Prepend(fixNote).ToArray() : r.PairingNotes,
+                    }).ToArray(),
                 Unmatched = unmatched,
                 UnreadableScans = unreadableScans,
                 UnreadableDoses = folder.Unreadable,
@@ -164,13 +184,17 @@ namespace DSClibrary.Profiles
                 Scans = scans.Count,
                 Doses = doses.Length,
                 Threads = threads,
-                Elapsed = clock.Elapsed
+                Elapsed = clock.Elapsed,
+                HeaderFixesPath = options.HeaderFixes is { Fixes.Count: > 0 } f ? f.SourcePath : null,
             };
         }
 
-        /// <summary>Every scan of every PTW mcc file under a folder, mapped; files that can't be read are listed.</summary>
+        /// <summary>
+        /// Every scan of every PTW mcc file under a folder, mapped, with any header fix applied; files that can't be read
+        /// are listed.
+        /// </summary>
         public static (IReadOnlyList<ScanRef> Scans, int Files, IReadOnlyList<(string Path, string Reason)> Unreadable) ReadScans(
-            string folder, string? excludeFolderPattern = null, Action<string>? progress = null)
+            string folder, string? excludeFolderPattern = null, Action<string>? progress = null, ScanHeaderFixes? fixes = null)
         {
             var exclude = excludeFolderPattern is { Length: > 0 } p ? new Regex(p, RegexOptions.IgnoreCase) : null;
             var mapper = new MCCMeasurementMapper();
@@ -187,7 +211,14 @@ namespace DSClibrary.Profiles
                 { unreadable.Add((file, ex.Message)); continue; }
                 foreach (var scan in result.Scans)
                 {
-                    try { scans.Add(new ScanRef(file, relative, scan.ScanNumber, mapper.MapScan(scan, result))); }
+                    try
+                    {
+                        var profile = mapper.MapScan(scan, result);
+                        var fix = fixes?.For(ScanHeaderFixes.KeyOf(folder, file), scan.ScanNumber);
+                        scans.Add(fix is null
+                            ? new ScanRef(file, relative, scan.ScanNumber, profile)
+                            : new ScanRef(file, relative, scan.ScanNumber, ScanHeaderFixes.Apply(profile, fix)) { HeaderFix = fix, OriginalBeam = profile.Beam });
+                    }
                     catch (Exception ex) when (ex is FormatException or InvalidOperationException or ArgumentException)
                     { unreadable.Add(($"{file} scan {scan.ScanNumber}", ex.Message)); }
                 }

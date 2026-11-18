@@ -239,7 +239,46 @@ public class ScanComparisonTests
             Assert.IsFalse(ScanRows.Matches(big, new[] { "6x6" }), "6x6 isn't found inside 16x16");
             Assert.IsFalse(ScanRows.Matches(big, new[] { "50mm" }), "nor 50 mm inside 150 mm");
             Assert.IsTrue(ScanRows.Matches(big, new[] { "10fff", "16x16" }));
+            var dated = new ScanPairRow
+            {
+                Row = 10, Pair = r0.Pair, Scan = @"10x\low res wedges\X10 OPEN 20X20 Y IMR 260616 14'16'17.mcc scan 1", Energy = "10 MV",
+                Field = "10 x 10 cm", Curve = r0.Curve, Depth = "100", DoseFile = "", Plan = "", Beam = "", PassRate = "", Points = "",
+                MaxGamma = "", Outcome = r0.Outcome, OutcomeText = r0.OutcomeText,
+            };
+            vm.Find = "low res 14'16'17";
+            Assert.IsTrue(ScanRows.Matches(dated, ScanRows.Words(vm.Find)), "a time after a date is still its own number");
+            Assert.IsTrue(ScanRows.Matches(dated, ScanRows.Words("10 x 10")), "spaces inside a field size don't matter");
+            vm.Find = "";
             Assert.AreEqual(3, vm.Rows.Count);
+
+            // Fix a scan's header: the form is filled from the header, and Save writes the scans folder's fixes file.
+            Directory.CreateDirectory(scansDir);   // the pretend scan's folder, where its fixes file goes
+            HeaderFixViewModel? shown = null;
+            string prefilledWedge = "", prefilledField = "";
+            vm.EditHeaderFix = form =>
+            {
+                shown = form;
+                (prefilledWedge, prefilledField) = (form.WedgeAngle, form.FieldInplaneMm);
+                form.FieldInplaneMm = "200";
+                form.WedgeAngle = "15";
+                form.WedgeDirection = "OUT";
+                form.Note = "test";
+                return Task.FromResult(HeaderFixOutcome.Save);
+            };
+            await vm.FixHeaderCommand.ExecuteAsync(vm.Rows[0]);
+            Assert.AreEqual("sub/pretend.mcc", shown!.File);
+            Assert.AreEqual(("open", vm.Rows[0].Pair.Scan.Profile.Beam.FieldInplane!.Value.Millimetres.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)),
+                (prefilledWedge, prefilledField), "filled from the header");
+            Assert.IsFalse(shown.HasFix);
+            Assert.IsTrue(shown.HasCheck, "the form says what the header check found");
+            StringAssert.StartsWith(vm.Status, "Header fix saved for sub/pretend.mcc scan 1: ");
+            var saved = ScanHeaderFixes.Load(ScanHeaderFixes.DefaultPath(scansDir)).For("sub/pretend.mcc", 1)!;
+            Assert.AreEqual((200.0, 15.0, "OUT", "test"), (saved.FieldInplaneMm!.Value, saved.WedgeAngle!.Value, saved.WedgeDirection, saved.Note));
+            vm.EditHeaderFix = form => { shown = form; return Task.FromResult(HeaderFixOutcome.Remove); };
+            await vm.FixHeaderCommand.ExecuteAsync(vm.Rows[0]);
+            Assert.IsTrue(shown.HasFix, "the second time, the form knows there is a fix");
+            Assert.AreEqual("test", shown.Note, "and is filled from it");
+            Assert.AreEqual(0, ScanHeaderFixes.Load(ScanHeaderFixes.DefaultPath(scansDir)).Fixes.Count);
 
             vm.DosePercent = 2;
             Assert.IsTrue(vm.Status.StartsWith("The rows are at Gamma 1%/1 mm, measured reference; run again to compare at Gamma 2%/1 mm"), vm.Status);
