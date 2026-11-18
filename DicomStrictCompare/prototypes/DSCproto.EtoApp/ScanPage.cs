@@ -210,11 +210,12 @@ public sealed class ScanPage : Panel
         _doses.Text = _offeredDoses;
     }
 
-    /// <summary>The command line's choices: <c>--doses</c> and <c>--scans</c>; with both, the tab runs.</summary>
+    /// <summary>The command line's choices: <c>--doses</c>, <c>--scans</c> and <c>--exclude</c>; with both folders, the tab runs.</summary>
     public async Task ApplyAsync(LaunchOptions options)
     {
         if (options.DosesFolder is { } doses) _doses.Text = doses;
         if (options.ScanFolder is { } scans) _scans.Text = scans;
+        if (options.ExcludeFolders is { } exclude) _exclude.Text = exclude;
         if (options.ScanFolder is not null && Directory.Exists(_doses.Text)) await RunAsync();
     }
 
