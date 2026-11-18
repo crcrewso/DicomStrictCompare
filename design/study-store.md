@@ -204,7 +204,8 @@ crcrewso, 2026-11-18: *"can we have a 3D viewer for any difference map?"*
     together;
   - a maximum-intensity projection along each axis, showing where the worst points are at a glance;
   - clicking a point gives its context (SS4: dose level, gradient, depth, distance from the axis and the 50 % edge);
-  - drawn with ScottPlot heatmaps, which both GUIs already use, so it ports to Eto unchanged.
+  - drawn with ScottPlot heatmaps, which both GUIs already use, so it ports to Eto unchanged. *Superseded
+    2026-11-18:* NiiVue in a WebView, with the maps as NIfTI in the beam frame; see `difference-viewer.md`.
 - **Step 2, true 3D, Avalonia only for now (SS-Q5):**
   - Avalonia's OpenGL host control, with Silk.NET's OpenGL bindings, from the same family as the shipped
     `Silk.NET.OpenCL` 2.23.0;

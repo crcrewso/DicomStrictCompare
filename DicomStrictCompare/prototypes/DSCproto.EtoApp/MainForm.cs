@@ -97,6 +97,8 @@ public sealed class MainForm : Form
     private CancellationTokenSource? _cancelSource;
     private readonly GraphPage _graphs;
     private readonly ScanPage _scans;
+    private readonly ViewerPage _viewer = new();
+    private TabPage? _viewerTab;
     // The Study tab binds to the shared view model, so it behaves as Avalonia's does; criteria and settings come from here.
     private readonly StudyViewModel _study;
     private readonly StudyPage _studyPage;
@@ -143,6 +145,7 @@ public sealed class MainForm : Form
         foreach (var d in DtaSpec.Defaults) _criteria.Add(CriterionRow.From(d));
         BuildResultsGrid();
         GridCopy.Attach(_resultsGrid);
+        AttachViewer();
         WireEvents();
         BuildSettings();
 
@@ -217,6 +220,8 @@ public sealed class MainForm : Form
         _workflows.Pages.Add(StudyTab());
         _scansTab = new TabPage(_scans) { Text = "Doses vs scans" };
         _workflows.Pages.Add(_scansTab);
+        _viewerTab = new TabPage(_viewer) { Text = "Viewer" };
+        _workflows.Pages.Add(_viewerTab);
         // This machine's settings serve every tab that compares doses, so they have a top tab of their own (2026-11-17).
         _workflows.Pages.Add(SettingsPage());
         Content = _workflows;
@@ -296,6 +301,24 @@ public sealed class MainForm : Form
             if (picked is not null) target.Text = picked;
         };
         return button;
+    }
+
+    /// <summary>"View difference" on a result row opens its pair in the Viewer tab, at the row's criterion.</summary>
+    private void AttachViewer()
+    {
+        var view = new ButtonMenuItem { Text = "View difference" };
+        view.Click += (_, _) =>
+        {
+            if (_resultsGrid.SelectedItem is not ResultRow row || _session is null) return;
+            var o = _session.Outcomes.FirstOrDefault(o => o.Key.ToString() == row.Key
+                && Path.GetFileName(o.SourcePath) == row.SourceFile && Path.GetFileName(o.TargetPath) == row.TargetFile);
+            if (o is null) return;
+            _workflows.SelectedPage = _viewerTab;
+            _ = _viewer.ShowAsync(o.SourcePath, o.TargetPath, row.Criterion.TolerancePercent, row.Criterion.DistanceMm, row.Criterion.ThresholdPercent);
+        };
+        var menu = _resultsGrid.ContextMenu ?? new ContextMenu();
+        menu.Items.Add(view);
+        _resultsGrid.ContextMenu = menu;
     }
 
     /// <summary>The Study tab: the criteria list on the left, as on Doses vs doses, and the study's own tabs on the right.</summary>

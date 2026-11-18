@@ -20,6 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The difference viewer's page and NiiVue (BSD-2, Viewer/assets/NIIVUE-LICENSE.txt), served by ViewerServer. -->
+    <None Include="Viewer\viewer.html;Viewer\assets\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\DSClibrary\DSClibrary.csproj" />
     <!-- The profile figure, so the windows show and save the same one as DSCprofiles. It draws only when asked. -->
     <ProjectReference Include="..\..\DSCplots\DSCplots.csproj" />

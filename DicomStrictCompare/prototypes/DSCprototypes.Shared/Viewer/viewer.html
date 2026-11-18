@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Difference map</title>
+<!-- DicomStrictCompare's difference viewer (prototype, 2026-11-18). NiiVue: see assets/NIIVUE-LICENSE.txt. -->
+<style>
+  :root { color-scheme: dark; --bg: #15161a; --panel: #202228; --text: #e6e6e6; --muted: #9aa0aa; --accent: #6cc3ff; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { background: var(--panel); padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
+  header h1 { font-size: 14px; margin: 0; font-weight: 600; }
+  header .muted, footer .muted { color: var(--muted); }
+  label { display: inline-flex; gap: 6px; align-items: center; }
+  select, input { appearance: none; background: #2b2e36; color: var(--text); border: 1px solid #3a3e48; border-radius: 4px; padding: 2px 4px; font: inherit; }
+  input[type=number] { width: 5em; }
+  select { padding-right: 18px; background-repeat: no-repeat; background-position: right 5px center;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%239aa0aa'/%3E%3C/svg%3E"); }
+  main { flex: 1; position: relative; min-height: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; outline: none; }
+  footer { background: var(--panel); padding: 5px 10px; font-variant-numeric: tabular-nums; min-height: 1.4em; }
+  #status { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Difference map</h1>
+  <span class="muted" id="criterion"></span>
+  <label>Show <select id="overlay">
+    <option value="gamma">Gamma</option>
+    <option value="percent">% difference</option>
+    <option value="none">Dose only</option>
+  </select></label>
+  <label title="Values whose size is below this are transparent: 1 hides gamma under 1, and % differences between -1 and +1">
+    Threshold <input id="threshold" type="number" value="1" min="0" step="0.1"></label>
+  <label title="The top of the colour scale">Scale to <input id="top" type="number" value="3" min="0.1" step="0.5"></label>
+  <label>View <select id="view">
+    <option value="multi">Slices and 3D</option>
+    <option value="render">3D</option>
+    <option value="slices">Slices</option>
+  </select></label>
+  <label title="Cut the 3D dose through the origin, to see inside the phantom; an overlay is shown whole">Cut <select id="cut">
+    <option value="none">None</option>
+    <option value="x">Across the X jaws</option>
+    <option value="y">Across the Y jaws</option>
+  </select></label>
+  <span class="muted" id="axes">x: X jaws (coll 0) · y: Y jaws, toward the gantry · z: beam axis, toward the source</span>
+</header>
+<main><canvas id="gl"></canvas></main>
+<footer><span id="status">Loading…</span> <span id="where"></span> <span class="muted" id="frame"></span></footer>
+<script src="niivue.umd.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 2) => Number.isFinite(v) ? v.toFixed(d) : "–";
+let info, nv, raw = {}, shape;
+
+async function main() {
+  info = await (await fetch("maps/info.json", { cache: "no-store" })).json();
+  shape = info.GridShape;
+  $("title").textContent = info.Title;
+  $("criterion").textContent = `${info.SourceFile} vs ${info.TargetFile} · ${info.Criterion} · `
+    + (info.GammaEvaluated ? `${(100 * (info.GammaEvaluated - info.GammaFailed) / info.GammaEvaluated).toFixed(1)} % pass` : "");
+  $("frame").textContent = "· origin: " + info.FrameNote;
+
+  nv = new niivue.Niivue({
+    backColor: [0.08, 0.08, 0.1, 1], clipPlaneColor: [0, 0, 0, 0], crosshairColor: [0.3, 1, 0.3, 1], show3Dcrosshair: true,
+    isOrientationTextVisible: false, isOrientCube: false, isColorbar: true,
+    multiplanarShowRender: niivue.SHOW_RENDER.ALWAYS, multiplanarLayout: niivue.MULTIPLANAR_TYPE.GRID,
+  });
+  await nv.attachTo("gl");
+  // The phantom as a lit surface: zero (outside it) is clear, low dose half-clear so a ray reads a few voxels in past the
+  // partial-volume edge, higher dose brighter and opaque, so the entrance field (or an arc's ring) shows on the surface.
+  nv.addColormap("phantom", { R: [0, 60, 150, 255], G: [0, 66, 150, 250], B: [0, 80, 160, 235], A: [0, 40, 200, 255], I: [0, 1, 100, 255] });
+  const max = info.SourceMaximumGy;
+  const list = [{ url: "maps/dose.nii", name: "dose.nii", colormap: "gray", cal_min: 0, cal_max: max, trustCalMinMax: true }];
+  if (info.Volumes.includes("gamma.nii")) list.push({ url: "maps/gamma.nii", name: "gamma.nii", colormap: "warm", cal_min: 1, cal_max: 3, trustCalMinMax: true });
+  list.push({ url: "maps/percent.nii", name: "percent.nii", colormap: "warm", colormapNegative: "winter", cal_min: 1, cal_max: 10, trustCalMinMax: true });
+  await nv.loadVolumes(list);
+
+  // NaN marks points not evaluated: keep the values for the readout, show them as transparent (0 is under any threshold).
+  for (const v of nv.volumes) {
+    raw[v.name.replace(".nii", "")] = Float32Array.from(v.img);
+    for (let i = 0; i < v.img.length; i++) if (Number.isNaN(v.img[i])) v.img[i] = 0;
+  }
+  nv.setVolumeRenderIllumination(0.6);
+  nv.setSliceType(nv.sliceTypeMultiplanar);
+  nv.onLocationChange = where;
+  // Settings from the address, so a view can be linked: ?show=percent&threshold=1&top=10&view=render
+  const q = new URLSearchParams(location.search);
+  if (q.has("show")) { $("overlay").value = q.get("show"); $("top").value = $("overlay").value === "percent" ? 10 : 3; }
+  for (const id of ["threshold", "top", "view", "cut"]) if (q.has(id)) $(id).value = q.get(id);
+  if (q.has("azimuth")) nv.setRenderAzimuthElevation(+q.get("azimuth"), +(q.get("elevation") ?? 15));
+  for (const id of ["overlay", "threshold", "top", "view", "cut"]) $(id).addEventListener("change", apply);
+  $("overlay").addEventListener("change", () => { $("top").value = $("overlay").value === "percent" ? 10 : 3; apply(); });
+  apply();
+  $("status").textContent = `Source max ${fmt(max, 3)} Gy, cutoff ${info.CutoffPercent} %, grid ${shape.join("×")} at ${info.GridSpacingMm.map(s => fmt(s, 1)).join("×")} mm.`;
+}
+
+function volume(name) { return nv.volumes.find(v => v.name === name + ".nii"); }
+
+function apply() {
+  const show = $("overlay").value, t = Math.max(0, +$("threshold").value || 0), top = Math.max(t + 0.01, +$("top").value || 1);
+  for (const name of ["gamma", "percent"]) {
+    const v = volume(name);
+    if (!v) continue;
+    v.opacity = name === show ? 1 : 0;
+    v.colorbarVisible = name === show;
+    // Below the threshold is transparent; for % the same holds on the negative side (-t to +t hidden).
+    v.cal_min = Math.max(t, 1e-6); v.cal_max = top;
+    if (name === "percent") { v.cal_minNeg = -top; v.cal_maxNeg = -Math.max(t, 1e-6); }
+  }
+  // Dose alone: the phantom surface. With an overlay, the dose turns see-through so the overlay inside shows.
+  const dose = volume("dose");
+  dose.colormap = show === "none" ? "phantom" : "gray";
+  // The surface shows entrance dose, a few to tens of % of the maximum: the phantom ramp tops out at 30 %.
+  dose.cal_max = (show === "none" ? 0.3 : 1) * info.SourceMaximumGy;
+  dose.opacity = show === "none" ? 1 : 0.35;
+  // Less shading on the phantom surface, so voxel steps on a curved phantom don't read as dose contours.
+  nv.setVolumeRenderIllumination(show === "none" ? 0.25 : 0.6);
+  const cut = $("cut").value;
+  nv.setClipPlane(cut === "x" ? [0, 270, 0] : cut === "y" ? [0, 180, 0] : [2, 0, 0]);
+  const view = $("view").value;
+  if (view === "render") nv.setSliceType(nv.sliceTypeRender);
+  else { nv.opts.multiplanarShowRender = view === "multi" ? niivue.SHOW_RENDER.ALWAYS : niivue.SHOW_RENDER.NEVER; nv.setSliceType(nv.sliceTypeMultiplanar); }
+  nv.updateGLVolume();
+}
+
+function where(data) {
+  if (!data || !data.vox) return;
+  const [i, j, k] = data.vox.map(Math.round), [x, y, z] = data.mm;
+  const at = i + shape[0] * (j + shape[1] * k);
+  const value = name => raw[name] ? raw[name][at] : NaN;
+  const dose = value("dose"), g = value("gamma"), p = value("percent");
+  $("where").textContent = `x ${fmt(x, 1)}  y ${fmt(y, 1)}  z ${fmt(z, 1)} mm · off axis ${fmt(Math.hypot(x, y), 1)} mm · `
+    + `dose ${fmt(dose, 3)} Gy (${fmt(100 * dose / info.SourceMaximumGy, 1)} %) · `
+    + (raw.gamma ? `gamma ${Number.isNaN(g) ? "not evaluated" : fmt(g)} · ` : "")
+    + `difference ${Number.isNaN(p) ? "not evaluated" : fmt(p) + " %"}`;
+}
+
+main().catch(e => { $("status").textContent = "Couldn't open the maps: " + e; console.error(e); });
+</script>
+</body>
+</html>
