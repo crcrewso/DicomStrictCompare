@@ -222,7 +222,8 @@ the study folders for future recall. This is mostly so that if data is stored on
 - **SS-Q2:** *"I wouldn't worry about any study that's < 10% of the source data"*. The budget is 10 % of the study's
   DICOM bytes. For E15V11 (20 GB) and E15V15 Prod (129 GB) that's about 15 GB.
   - A dense float32 delta for one 1 mm pair is about 0.4 GB, about the size of the target dose file. So deltas for
-    every pair would pass the budget; deltas for the kept pairs, sparse, would not (SS4, revised).
+    every pair would pass the budget; deltas for the kept pairs, sparse, would not (SS4, revised). Since SS-Q7 a kept
+    pair stores one volume per criterion it fell below, so up to three times that for three criteria.
 - **SS-Q3:** *"assume replaces, pre-populates with previous comparison settings"*. "Run all again" replaces the
   stored results, and the run form starts from the last run's settings. The `run` table keeps only the latest run's
   provenance per comparison.
@@ -231,19 +232,24 @@ the study folders for future recall. This is mostly so that if data is stored on
 - **SS-Q5:** *"keep it Avalonia-only, once I'm happy with it then we can port it to Eto and show both implementation
   to other users"*.
 
-### SS4, revised: profiles and one delta volume per kept pair
+### SS4, revised: profiles and one result volume per kept criterion
 
 - **Profiles:** the source, target and delta lines at the study's depths and the PDD, from the `curve` table. Small,
   so they are kept for **every** pair, not only kept ones.
-- **The delta volume:** target minus source, on the comparison lattice, for each kept pair and criterion. One per
-  pair rather than per criterion, because the delta doesn't depend on the criterion.
+- **The result volume:** for each kept pair, one volume for each criterion it fell below, on the comparison lattice.
+  It holds the value the criterion itself computes (SS-Q7):
+  - **a gamma criterion:** the gamma index, capped at 3;
+  - **a percent criterion:** the percent difference, (target − source) over the criterion's normalisation (the
+    global maximum, or the source point for a local criterion), signed.
   - **Sparse:** only the points the comparison evaluated, those above the dose threshold. Stored as a bit mask over
     the lattice (1 bit a point) and float32 values for the set bits, compressed. A 1 mm pair of about 100 million
     points is a 12 MB mask (which compresses well) plus 4 bytes per evaluated point.
-  - **Which points failed** is a second bit mask per criterion, so "where it fails" and "by how much" come from one
-    stored volume.
+  - **Which points failed** is a second bit mask. A gamma point fails above 1, but a percent point passes either
+    within its tolerance or when a point within the DTA distance agrees. So failure can't be read from the percent
+    value alone, and the mask is stored.
   - The coarse failure-fraction blocks stay, for a quick overview of every kept pair.
-- **The second pass on the reference engine** (unchanged) captures the delta and the masks.
+- **The second pass on the reference engine** (unchanged) captures the values and the masks: `HandWrittenComparer`
+  for percent criteria, `GammaShell` for gamma, which already returns a gamma value per point (review RV1).
 
 ### SS-Q4, existing formats to borrow
 
@@ -260,8 +266,11 @@ the study folders for future recall. This is mostly so that if data is stored on
 - **MetaImage (`.mha`, compressed)** is what Plastimatch, a radiotherapy toolkit, writes for its dose-difference
   and gamma maps. 3D Slicer and ITK read it. Writing it is a short text header plus zlib, with no dependency.
 - **NRRD (`.nrrd`, gzip)** is 3D Slicer's native volume format; a similar size and effort.
-- **Proposed:** keep the sparse form in the study; export a kept pair's delta as DICOM RT Dose `ERROR` (DICOM tools,
-  and a check on the DICOM claim above) and as `.mha` (Slicer and Plastimatch), both on the dose grid's geometry.
+- **Proposed (revised with SS-Q7):** keep the sparse form in the study. Export a kept result as `.mha`, the format
+  Plastimatch uses for its own gamma and dose-difference maps, which Slicer reads, on the dose grid's geometry.
+  - DICOM RT Dose `ERROR` no longer fits, because the stored values are gamma or percent, not dose.
+  - DICOM's own form for a map of values that aren't dose is the Parametric Map object. *From memory:* it holds float
+    pixels with a stated quantity and unit. Few radiotherapy tools read it, so it waits until someone asks.
 
 ### SS-Q6, decided 2026-11-18
 
@@ -277,15 +286,17 @@ He asked for E11V11 vs E15V11 and E15V15 Prod vs Equinox, ignoring the wedges, a
   - In E11V11 vs E15V11, 222 of 329 pass 100 % even at 0.1 %/0 mm. At 1 %/1 mm, 80 of the 107 are the electron
     flat-field plans (`STBflatE`, `AiXflatE`, `SiXflatE`).
 - **Decided:** the threshold applies to each criterion separately. A pair is kept when any criterion falls below it,
-  and it keeps one delta volume (SS4, revised) with a failed-points mask for each criterion it fell below.
+  and it keeps one result volume (gamma or percent difference, SS-Q7) with a failed-points mask for each criterion
+  it fell below.
 
 ### New questions
 
 - ~~**SS-Q6:**~~ *Decided above.* **SS-Q6 (as asked):** At the strict criteria every pair falls below 97.5 % (all 422 at 0.1 %/0 mm). Should the threshold
   apply per criterion, with some criteria exempt from saving, or should a pair be kept only by its loosest criterion?
-- **SS-Q7, decided 2026-11-18 (crcrewso): *"store the delta in Gy"*.** Percent of a criterion's normalisation
-  is derived when viewing; the DICOM RT Dose `ERROR` and `.mha` exports carry Gy. The question was: units of the delta: dose (Gy) or percent of the normalisation the criterion used? The stored value can
-  be Gy, with percent derived when viewing; the export needs one choice.
+- **SS-Q7, decided 2026-11-18 (crcrewso):** *"store the data in Gamma or gamma (capped at 3) or percent difference if
+  a percent is computed"*. That replaces his first answer, Gy, the same day. So the stored value is the criterion's
+  own: gamma capped at 3, or the percent difference. SS4 (revised) stores one volume per kept criterion, not one per
+  pair. The question was: units of the delta, dose (Gy) or percent of the normalisation the criterion used?
 
 ## Order of work
 
