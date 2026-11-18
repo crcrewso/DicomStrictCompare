@@ -140,7 +140,10 @@ public class ScanComparisonTests
         {
             Rows = new[]
             {
-                new ProfilePairRow(crossRef, dose, null, plan, notes, frame, crossResult, null),
+                new ProfilePairRow(crossRef, dose, null, plan, notes, frame, crossResult, null)
+                {
+                    HeaderCheck = new ScanHeaderCheckResult(100, 200, 0, new[] { "the header says a 100 mm field crossplane, but the scan's field is 200 mm at the SSD" })
+                },
                 new ProfilePairRow(pddRef, dose, null, plan, notes, frame, pddResult, null),
                 new ProfilePairRow(pddRef with { ScanNumber = 3 }, dose, null, plan, notes, null, null, "the dose couldn't be read: test"),
             },
@@ -163,7 +166,8 @@ public class ScanComparisonTests
             Assert.AreEqual("100", vm.Rows[0].Depth);
             Assert.AreEqual("100.00", vm.Rows[0].PassRate);
             Assert.IsTrue(vm.Rows[2].OutcomeText.StartsWith("not compared: the dose couldn't be read"), vm.Rows[2].OutcomeText);
-            CollectionAssert.AreEqual(new[] { ScanRows.AnyEnergy, "10 MV" }, vm.Energies.ToArray());
+            CollectionAssert.AreEqual(new[] { "10 MV" }, vm.EnergyFilter.Items.Select(i => i.Label).ToArray());
+            Assert.AreEqual("All energies", vm.EnergyFilter.Summary);
             Assert.AreEqual(1, vm.Unpaired.Count);
             Assert.IsTrue(vm.Status.Contains("3 pair(s) of 4 scan(s) in 1 file(s) with 1 dose(s); 1 pass every point, 1 fail somewhere, 1 not compared; 1 scan(s) unpaired"), vm.Status);
 
@@ -191,6 +195,51 @@ public class ScanComparisonTests
             vm.SelectedCurve = "Crossplane";
             Assert.AreEqual(1, vm.Rows.Single().Row);
             vm.SelectedCurve = ScanRows.AnyCurve;
+
+            // The header check: a column, a Show choice, the details line and the run's summary.
+            Assert.AreEqual("check", vm.Rows[0].HeaderFlag);
+            Assert.AreEqual("", vm.Rows[1].HeaderFlag);
+            vm.Show = ScanRows.HeaderDisagrees;
+            Assert.AreEqual(1, vm.Rows.Single().Row);
+            Assert.IsTrue(vm.Details.Contains("CHECK THE SCAN'S HEADER: the header says a 100 mm field"), vm.Details);
+            vm.Show = ScanRows.AllPairs;
+
+            // Find: every word, anywhere in the row, case and spaces ignored, numbers whole.
+            vm.Find = "PRETEND crossplane";
+            Assert.AreEqual(1, vm.Rows.Single().Row);
+            vm.Find = "10mv \"depth dose\"";
+            CollectionAssert.AreEqual(new[] { 2, 3 }, vm.Rows.Select(r => r.Row).ToArray());
+            vm.Find = "10 MV";
+            Assert.AreEqual(3, vm.Rows.Count, "two words, 10 and mv, each found whole");
+            vm.Find = "nothing-like-this";
+            Assert.AreEqual(0, vm.Rows.Count);
+            Assert.AreEqual("0 of 3 pair(s) listed", vm.Listed);
+            vm.Find = "";
+
+            // Energy and field size: dropdowns of check boxes with All and None; fields follow the ticked energies.
+            vm.EnergyFilter.NoneCommand.Execute(null);
+            Assert.AreEqual(0, vm.Rows.Count);
+            Assert.AreEqual("None", vm.EnergyFilter.Summary);
+            Assert.AreEqual(0, vm.FieldFilter.Items.Count, "no energy ticked, no field sizes to offer");
+            vm.EnergyFilter.Items[0].IsChecked = true;
+            Assert.AreEqual(3, vm.Rows.Count);
+            Assert.IsTrue(vm.FieldFilter.Items.Count > 0 && vm.FieldFilter.Items.All(i => i.IsChecked), "fields offered again, all ticked");
+            vm.FieldFilter.NoneCommand.Execute(null);
+            Assert.AreEqual(0, vm.Rows.Count);
+            vm.FieldFilter.AllCommand.Execute(null);
+            Assert.AreEqual(3, vm.Rows.Count);
+
+            var r0 = vm.Rows[0];
+            var big = new ScanPairRow
+            {
+                Row = 9, Pair = r0.Pair, Scan = @"10FFF\X10 FFF OPEN 16X16 XY WAT.mcc scan 1", Energy = "10 MV FFF", Field = "16 x 16 cm",
+                Curve = r0.Curve, Depth = "150", DoseFile = "", Plan = "", Beam = "", PassRate = "", Points = "", MaxGamma = "",
+                Outcome = r0.Outcome, OutcomeText = r0.OutcomeText,
+            };
+            Assert.IsFalse(ScanRows.Matches(big, new[] { "6x6" }), "6x6 isn't found inside 16x16");
+            Assert.IsFalse(ScanRows.Matches(big, new[] { "50mm" }), "nor 50 mm inside 150 mm");
+            Assert.IsTrue(ScanRows.Matches(big, new[] { "10fff", "16x16" }));
+            Assert.AreEqual(3, vm.Rows.Count);
 
             vm.DosePercent = 2;
             Assert.IsTrue(vm.Status.StartsWith("The rows are at Gamma 1%/1 mm, measured reference; run again to compare at Gamma 2%/1 mm"), vm.Status);

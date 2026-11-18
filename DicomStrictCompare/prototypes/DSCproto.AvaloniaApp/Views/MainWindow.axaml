@@ -420,15 +420,20 @@
         </StackPanel>
       </WrapPanel>
 
+      <!-- Energy and field size as dropdowns of check boxes with All and None (crcrewso, 2026-11-17); the field list holds
+           only the ticked energies' fields. Built from the run's rows, so they hold only what was measured. -->
       <WrapPanel Grid.Row="2" Orientation="Horizontal" ItemSpacing="8" LineSpacing="6">
         <TextBlock Text="Energy" VerticalAlignment="Center"/>
-        <ComboBox ItemsSource="{Binding Energies}" SelectedItem="{Binding SelectedEnergy}" MinWidth="130" IsEnabled="{Binding HasResult}"/>
+        <Panel IsEnabled="{Binding HasResult}"><views:CheckListFilter DataContext="{Binding EnergyFilter}"/></Panel>
         <TextBlock Text="Field" VerticalAlignment="Center"/>
-        <ComboBox ItemsSource="{Binding Fields}" SelectedItem="{Binding SelectedField}" MinWidth="220" IsEnabled="{Binding HasResult}"/>
+        <Panel IsEnabled="{Binding HasResult}"><views:CheckListFilter DataContext="{Binding FieldFilter}"/></Panel>
         <TextBlock Text="Curve" VerticalAlignment="Center"/>
         <ComboBox ItemsSource="{Binding Curves}" SelectedItem="{Binding SelectedCurve}" MinWidth="130" IsEnabled="{Binding HasResult}"/>
         <TextBlock Text="Show" VerticalAlignment="Center"/>
         <ComboBox ItemsSource="{Binding Shows}" SelectedItem="{Binding Show}" MinWidth="130" IsEnabled="{Binding HasResult}"/>
+        <TextBlock Text="Find" VerticalAlignment="Center" Margin="8,0,0,0"/>
+        <TextBox Text="{Binding Find}" PlaceholderText="e.g. 10FFF 6x6" MinWidth="200" IsEnabled="{Binding HasResult}"
+                 ToolTip.Tip="{x:Static shared:HelpText.ScanFind}"/>
         <TextBlock Text="{Binding Listed}" VerticalAlignment="Center" Margin="8,0,0,0"/>
       </WrapPanel>
 
@@ -456,6 +461,9 @@
                 </DataGridTextColumn>
                 <DataGridTextColumn Binding="{Binding OutcomeText}" Width="Auto">
                   <DataGridTextColumn.Header><TextBlock Text="Outcome" ToolTip.Tip="{x:Static shared:HelpText.ScanOutcome}"/></DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding HeaderFlag}" Width="Auto">
+                  <DataGridTextColumn.Header><TextBlock Text="Header" ToolTip.Tip="{x:Static shared:HelpText.ScanHeader}"/></DataGridTextColumn.Header>
                 </DataGridTextColumn>
               </DataGrid.Columns>
             </DataGrid>

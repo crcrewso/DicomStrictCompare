@@ -34,6 +34,8 @@ public sealed class ScanPairRow
     public required ScanOutcome Outcome { get; init; }
     /// <summary>"pass", "fail", or "not compared: " and why.</summary>
     public required string OutcomeText { get; init; }
+    /// <summary>"check" when the scan's data disagrees with its header (<see cref="ScanHeaderCheck"/>), else blank.</summary>
+    public string HeaderFlag => Pair.HeaderCheck.Agrees ? "" : "check";
 
     // Sort keys for the filter lists.
     internal double EnergyValue { get; init; }
@@ -57,6 +59,7 @@ public static class ScanRows
     public const string AllPairs = "All pairs";
     public const string FailingPairs = "Failing";
     public const string NotComparedPairs = "Not compared";
+    public const string HeaderDisagrees = "Header disagrees";
     /// <summary>The export's file stem, the same default as <c>DSCprofiles</c>.</summary>
     public const string Stem = "profiles";
 
@@ -64,7 +67,7 @@ public static class ScanRows
     public static IReadOnlyList<ProfileReference> References { get; } = new[] { ProfileReference.Measured, ProfileReference.Calculated };
     public static IReadOnlyList<string> PlotFormats { get; } = new[] { "png", "svg" };
     public static IReadOnlyList<PlotSelection> PlotSelections { get; } = new[] { PlotSelection.Failing, PlotSelection.All, PlotSelection.None };
-    public static IReadOnlyList<string> Shows { get; } = new[] { AllPairs, FailingPairs, NotComparedPairs };
+    public static IReadOnlyList<string> Shows { get; } = new[] { AllPairs, FailingPairs, NotComparedPairs, HeaderDisagrees };
 
     public const string ConventionNote =
         "Prototype (2026-11-17): every scan pairs with every dose of the same field (ScanDoseMatching: energy, filter, field and its centre, "
@@ -152,7 +155,8 @@ public static class ScanRows
     {
         ArgumentNullException.ThrowIfNull(result);
         var lines = result.Unmatched
-            .Select(u => $"{Path.GetRelativePath(scansFolder, u.Scan.File)} scan {u.Scan.ScanNumber}, {ProfilePlot.Describe(u.Scan.Profile.Scan)}: {u.Reason}")
+            .Select(u => $"{Path.GetRelativePath(scansFolder, u.Scan.File)} scan {u.Scan.ScanNumber}, {ProfilePlot.Describe(u.Scan.Profile.Scan)}: {u.Reason}"
+                + (u.HeaderCheck.Summary is { } check ? "; check the header: " + check : ""))
             .ToList();
         lines.AddRange(result.UnreadableScans.Select(u => $"{u.Path}: unreadable scan: {u.Reason}"));
         lines.AddRange(result.UnreadableDoses.Select(u => $"{u.Path}: unreadable dose: {u.Reason}"));
@@ -170,17 +174,73 @@ public static class ScanRows
     public static IReadOnlyList<string> Curves(IEnumerable<ScanPairRow> rows) =>
         new[] { AnyCurve }.Concat(rows.Select(r => r.Curve).Distinct().OrderBy(c => c, StringComparer.Ordinal)).ToArray();
 
-    /// <summary>The rows the filters keep; null or an "any" choice keeps everything on that axis.</summary>
-    public static IReadOnlyList<ScanPairRow> Filter(IEnumerable<ScanPairRow> rows, string? energy, string? field, string? curve, string? show) =>
-        rows.Where(r => (energy is null or AnyEnergy || r.Energy == energy)
-                     && (field is null or AnyField || r.Field == field)
+    /// <summary>The rows the filters keep; null or an "any" choice keeps everything on that axis, and a blank search every row.</summary>
+    public static IReadOnlyList<ScanPairRow> Filter(IEnumerable<ScanPairRow> rows, string? energy, string? field, string? curve, string? show,
+        string? find = null) =>
+        Filter(rows, energy is null or AnyEnergy ? null : new HashSet<string> { energy }, field is null or AnyField ? null : new HashSet<string> { field },
+            curve, show, find);
+
+    /// <summary>The rows the filters keep, with several energies and field sizes allowed at once; a null set keeps every one.</summary>
+    public static IReadOnlyList<ScanPairRow> Filter(IEnumerable<ScanPairRow> rows, IReadOnlySet<string>? energies, IReadOnlySet<string>? fields,
+        string? curve, string? show, string? find)
+    {
+        var words = Words(find);
+        return rows.Where(r => (energies is null || energies.Contains(r.Energy))
+                     && (fields is null || fields.Contains(r.Field))
                      && (curve is null or AnyCurve || r.Curve == curve)
+                     && (words.Length == 0 || Matches(r, words))
                      && show switch
                      {
                          FailingPairs => r.Outcome == ScanOutcome.Failed,
                          NotComparedPairs => r.Outcome == ScanOutcome.NotCompared,
+                         HeaderDisagrees => !r.Pair.HeaderCheck.Agrees,
                          _ => true
                      }).ToArray();
+    }
+
+    /// <summary>
+    /// The search box's words, each lower-cased with its spaces gone, so "10FFF 6x6" is two words and "6 x 6" one.
+    /// A word in quotes keeps its spaces out too: "6 x 6" (quoted) is the word 6x6.
+    /// </summary>
+    internal static string[] Words(string? find)
+    {
+        if (string.IsNullOrWhiteSpace(find)) return Array.Empty<string>();
+        var words = new List<string>();
+        foreach (Match m in Regex.Matches(find, "\"([^\"]*)\"|(\\S+)"))
+        {
+            string w = Squash(m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value);
+            if (w.Length > 0) words.Add(w);
+        }
+        return words.ToArray();
+    }
+
+    /// <summary>
+    /// Whether a row contains every word somewhere in what it shows or names: the scan's file and folder, energy, field,
+    /// curve, depth, dose file, plan, beam and outcome, compared lower-case with spaces removed. So "10FFF 6x6" keeps
+    /// the 10FFF folder's 6X6 files, and "10mvfff 6x6cm" the same rows by their energy and field columns.
+    /// </summary>
+    public static bool Matches(ScanPairRow row, IReadOnlyList<string> words)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        string text = Squash(string.Join("|", row.Scan, row.Energy, row.Field, row.Curve, row.Depth + "mm", row.DoseFile, row.Plan, row.Beam,
+            row.OutcomeText, row.HeaderFlag));
+        return words.All(w => Contains(text, w));
+    }
+
+    /// <summary>Whether text holds the word where no digit runs on from it, so 6x6 isn't found in 16x16 nor 50 in 150.</summary>
+    private static bool Contains(string text, string word)
+    {
+        for (int at = text.IndexOf(word, StringComparison.Ordinal); at >= 0; at = text.IndexOf(word, at + 1, StringComparison.Ordinal))
+        {
+            int end = at + word.Length;
+            bool before = at == 0 || !char.IsDigit(word[0]) || !char.IsDigit(text[at - 1]);
+            bool after = end == text.Length || !char.IsDigit(word[^1]) || !char.IsDigit(text[end]);
+            if (before && after) return true;
+        }
+        return false;
+    }
+
+    private static string Squash(string s) => new string(s.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLowerInvariant();
 
     /// <summary>The run in a line: pairs, how they came out, what didn't pair, how long it took.</summary>
     public static string Summary(ProfileBatchResult result, IReadOnlyList<ScanPairRow> rows, ProfileComparisonOptions options)
@@ -188,8 +248,10 @@ public static class ScanRows
         ArgumentNullException.ThrowIfNull(result);
         int passed = rows.Count(r => r.Outcome == ScanOutcome.Passed), failed = rows.Count(r => r.Outcome == ScanOutcome.Failed);
         int none = rows.Count - passed - failed;
+        int flagged = rows.Count(r => !r.Pair.HeaderCheck.Agrees);
         return $"{ProfilePlot.Criterion(options)}: {rows.Count} pair(s) of {result.Scans} scan(s) in {result.ScanFiles} file(s) with {result.Doses} dose(s); "
              + $"{passed} pass every point, {failed} fail somewhere, {none} not compared; {result.Unmatched.Count} scan(s) unpaired; "
+             + (flagged > 0 ? $"{flagged} pair(s) whose scan disagrees with its header; " : "")
              + $"{result.Elapsed.TotalSeconds.ToString("0.0", CultureInfo.InvariantCulture)} s";
     }
 
@@ -199,6 +261,7 @@ public static class ScanRows
         ArgumentNullException.ThrowIfNull(row);
         var pair = row.Pair;
         var parts = new List<string> { $"Row {row.Row}: {row.Scan} against {row.DoseFile} ({row.Plan} / {row.Beam})" };
+        if (pair.HeaderCheck.Summary is { } check) parts.Add("CHECK THE SCAN'S HEADER: " + check);
         if (pair.Result is { } x) parts.Add(ProfilePlot.Verdict(x));
         if (pair.Frame is { } frame) parts.Add(frame.Describe());
         parts.AddRange(pair.PairingNotes);

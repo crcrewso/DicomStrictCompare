@@ -129,4 +129,13 @@ public static class HelpText
     public const string ScanMaxGamma = "The largest gamma index found (gamma test only).";
     public const string ScanOutcome =
         "pass: every tested point passed. fail: at least one point failed, or none could be tested. not compared: and why.";
+    public const string ScanFind =
+        "Lists only the pairs that contain every word you type, anywhere in the scan's folder and file name, energy, field, "
+        + "curve, depth, dose file, plan, beam or outcome. Case and spaces are ignored: \"10FFF 6x6\" keeps the 10FFF folder's "
+        + "6 x 6 scans, and a number matches only whole, so 6x6 doesn't find 16x16. Works with the other filters.";
+    public const string ScanHeader =
+        "\"check\" when the scan's own curve disagrees with its file's header: the field measured between the penumbrae is "
+        + "more than 15 % off the header's, or a photon field the header calls open slopes more than 3 % from side to side. "
+        + "Pairing trusts the header, so such a scan may be paired with the wrong dose; it is still compared. "
+        + "The row's details say what disagrees; Show, Header disagrees lists them.";
 }

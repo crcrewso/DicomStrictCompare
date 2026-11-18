@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DSCprototypes.Shared.ViewModels"
+             x:Class="DSCproto.AvaloniaApp.Views.CheckListFilter"
+             x:DataType="vm:CheckList">
+
+  <!-- A CheckList as a dropdown of check boxes with All and None (crcrewso, 2026-11-17). The button says what is ticked. -->
+  <DropDownButton Content="{Binding Summary}" MinWidth="170" HorizontalContentAlignment="Left">
+    <DropDownButton.Flyout>
+      <Flyout Placement="BottomEdgeAlignedLeft">
+        <StackPanel Spacing="6" MinWidth="220">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Content="All" Command="{Binding AllCommand}"/>
+            <Button Content="None" Command="{Binding NoneCommand}"/>
+          </StackPanel>
+          <ScrollViewer MaxHeight="480" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Items}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CheckChoice">
+                  <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" MinHeight="26" Padding="6,0,0,0"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </Flyout>
+    </DropDownButton.Flyout>
+  </DropDownButton>
+</UserControl>

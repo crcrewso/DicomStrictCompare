@@ -27,7 +27,12 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
     /// <summary>What a run was given, kept for the export and the plot labels.</summary>
     private sealed record RunInputs(string Doses, string Scans, string? PlanFilter, string? ExcludeFolders, ProfileComparisonOptions Options);
 
-    public ScanComparisonViewModel(Func<string, string?, Task<string?>> pickFolder) => _pickFolder = pickFolder;
+    public ScanComparisonViewModel(Func<string, string?, Task<string?>> pickFolder)
+    {
+        _pickFolder = pickFolder;
+        EnergyFilter.Changed += OnEnergiesChanged;
+        FieldFilter.Changed += (_, _) => Refilter();
+    }
 
     public string ConventionNote => ScanRows.ConventionNote;
     public IReadOnlyList<ProfileTest> Tests => ScanRows.Tests;
@@ -73,13 +78,14 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
     // ---- results ----
     public ObservableCollection<ScanPairRow> Rows { get; } = new();
     public ObservableCollection<string> Unpaired { get; } = new();
-    public ObservableCollection<string> Energies { get; } = new() { ScanRows.AnyEnergy };
-    public ObservableCollection<string> Fields { get; } = new() { ScanRows.AnyField };
+    /// <summary>The energies to list, any number ticked; the field sizes offered are those measured at the ticked energies.</summary>
+    public CheckList EnergyFilter { get; } = new("energies");
+    public CheckList FieldFilter { get; } = new("field sizes");
     public ObservableCollection<string> Curves { get; } = new() { ScanRows.AnyCurve };
-    [ObservableProperty] private string? _selectedEnergy = ScanRows.AnyEnergy;
-    [ObservableProperty] private string? _selectedField = ScanRows.AnyField;
     [ObservableProperty] private string? _selectedCurve = ScanRows.AnyCurve;
     [ObservableProperty] private string _show = ScanRows.AllPairs;
+    /// <summary>Words every listed row must contain (<see cref="ScanRows.Matches"/>): "10FFF 6x6".</summary>
+    [ObservableProperty] private string _find = "";
     [ObservableProperty] private string _listed = "";
     [ObservableProperty] private ScanPairRow? _selectedRow;
 
@@ -187,12 +193,13 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
 
         Unpaired.Clear();
         foreach (var line in ScanRows.Unpaired(result, scansFolder)) Unpaired.Add(line);
-        Refill(Energies, ScanRows.Energies(_all));
-        Refill(Fields, ScanRows.Fields(_all));
+        string? curve = SelectedCurve;
+        _refilling = true;
+        EnergyFilter.SetChoices(ScanRows.Energies(_all).Skip(1));
         Refill(Curves, ScanRows.Curves(_all));
-        SelectedEnergy = Keep(Energies, SelectedEnergy, ScanRows.AnyEnergy);
-        SelectedField = Keep(Fields, SelectedField, ScanRows.AnyField);
-        SelectedCurve = Keep(Curves, SelectedCurve, ScanRows.AnyCurve);
+        SelectedCurve = Keep(Curves, curve, ScanRows.AnyCurve);
+        _refilling = false;
+        RefillFields();
         HasResult = true;
         Refilter();
         Status = ScanRows.Summary(result, _all, options);
@@ -207,14 +214,32 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
     private static string Keep(IReadOnlyCollection<string> list, string? current, string any) =>
         current is not null && list.Contains(current) ? current : any;
 
-    partial void OnSelectedEnergyChanged(string? value) => Refilter();
-    partial void OnSelectedFieldChanged(string? value) => Refilter();
-    partial void OnSelectedCurveChanged(string? value) => Refilter();
+    /// <summary>
+    /// The field-size choices measured at the ticked energies only (crcrewso, 2026-11-17: choices "populated
+    /// dynamically"), so ticking 10 MV FFF offers just its fields. A field keeps its tick while it stays offered.
+    /// </summary>
+    private void RefillFields()
+    {
+        var energies = EnergyFilter.Checked;
+        FieldFilter.SetChoices(ScanRows.Fields(energies is null ? _all : _all.Where(r => energies.Contains(r.Energy))).Skip(1));
+    }
+
+    // While a choice list is refilled, a list control may clear its selection: that isn't the user's choice.
+    private bool _refilling;
+
+    private void OnEnergiesChanged(object? sender, EventArgs e)
+    {
+        RefillFields();
+        Refilter();
+    }
+
+    partial void OnSelectedCurveChanged(string? value) { if (!_refilling) Refilter(); }
     partial void OnShowChanged(string value) => Refilter();
+    partial void OnFindChanged(string value) => Refilter();
 
     private void Refilter()
     {
-        var keep = ScanRows.Filter(_all, SelectedEnergy, SelectedField, SelectedCurve, Show);
+        var keep = ScanRows.Filter(_all, EnergyFilter.Checked, FieldFilter.Checked, SelectedCurve, Show, Find);
         var previous = SelectedRow;
         Rows.Clear();
         foreach (var r in keep) Rows.Add(r);

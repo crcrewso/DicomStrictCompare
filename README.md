@@ -180,6 +180,17 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
   - the SSD, where the plan states one.
 
   Names aren't used, and a field calculated twice (two grid spacings, AAA and AXB) gives two rows, each labelled.
+- **Header check.** Pairing trusts each scan's header, so each crossplane and inplane scan's curve is first checked
+  against it (`ScanHeaderCheck`). A scan is flagged when:
+  - its field, measured between the steepest points of its two penumbrae and projected to the SSD, is more than 15 %
+    off the header's (the steepest point, not 50 % of the axis dose, so FFF and wedged fields measure true);
+  - or the header says no wedge but a photon field slopes more than 3 % from side to side. Not checked for
+    electrons, fields under 3 cm, or fields centred off the axis, none of which is level.
+
+  A flag changes nothing else: the scan is still paired and compared as its header says. It is written in the results'
+  `header_check` column (with `header_field_mm`, `scan_field_mm` and `scan_slope_percent`) and the unpaired file. On the
+  Equinox scans it flags every "low res wedges" scan (wedged, headers say open 10 x 10), every 40 x 40 scan (about
+  50 cm wide), and one 15 MV scan whose header says 8 x 8 but which is 6 x 6.
 - **Geometry.** Only head-first supine at gantry and couch 0. The beam axis is the isocentre's x and z, and the beam
   runs along +y.
   - The water surface is the plan's surface entry point, else its SSD, else the scan's SSD, placed from the source at
@@ -213,20 +224,29 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
     tolerance band. Points are marked pass or fail; a strict point outside the band can still pass on distance.
 - **In the windows.** The windows have a tab at the top for each kind of comparison, each with its own inputs and
   results: **Doses vs doses**, the comparison above; **Study** (Avalonia only), several dose sets at once; and
-  **Doses vs scans**, which runs this same batch. Doses vs doses and Study show the same criteria list, Max and GPU
-  float beside them, so a change in one tab is a change in both. A last top tab, **Settings**, holds this machine's
-  engine, threads and reading options, which serve every tab that compares doses.
+  **Doses vs scans**, which runs this same batch. Doses vs doses and Study show the same criteria list and Max beside
+  them, so a change in one tab is a change in both. A last top tab, **Settings**, holds this machine's engine, threads
+  and reading options, which serve every tab that compares doses, and GPU float, which is kept with a study.
+  Every table has a right-click menu to copy a value or a row; in the Avalonia window, columns resize by dragging.
   - The Doses vs scans tab has its own *Doses* and *Scans* folders, plan-label filter and folders to skip. Until a
     doses folder is chosen there, it takes the Doses vs doses source folder.
   - Its criterion is 1 %/1 mm gamma with the measurement as reference by default. The test, the reference, local
     dose difference, the cutoff and the depth-dose shift search can be changed. A change shows only after *Run*.
-  - The table lists every pair by its results row, filtered by energy, field, curve, and all, failing or not
-    compared. *Unpaired* lists the scans no dose pairs with, and why. The chosen pair's figure is drawn beside the table.
+  - The table lists every pair by its results row. Filters:
+    - *Energy* and *Field*: dropdowns of check boxes with All and None, any number ticked. *Field* offers only the
+      field sizes measured at the ticked energies.
+    - *Curve*, and *Show*: all pairs, failing, not compared, or those whose scan disagrees with its header (the
+      table's *Header* column says "check"; the row's details say what disagrees).
+    - *Find*: words every listed row must contain anywhere in its scan path, energy, field, curve, depth, dose, plan,
+      beam or outcome, ignoring case and spaces; numbers match whole. "10FFF 6x6" lists the 10FFF folder's 6 x 6 scans.
+
+    *Unpaired* lists the scans no dose pairs with, and why. The chosen pair's figure is drawn beside the table.
   - *Save plot* writes the figure shown as PNG or SVG. *Save plots of listed pairs* writes one for every pair the
     filters list.
   - *Export results (CSV)* writes the files `DSCprofiles` writes (stem `profiles`), with no plots, the failing pairs'
     plots or all of them.
-  - `--scans DIR` (and `--doses DIR`, else `--source`) on a window's command line opens this tab and runs it.
+  - `--scans DIR` (and `--doses DIR`, else `--source`) on a window's command line opens this tab and runs it;
+    `--exclude REGEX` fills its folders to skip.
 
 ## Assumptions and limitations
 

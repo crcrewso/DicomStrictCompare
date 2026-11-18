@@ -37,10 +37,11 @@ public sealed class ScanPage : Panel
     private readonly Button _cancel = new() { Text = "Cancel", Enabled = false };
     private readonly ProgressBar _busy = new() { Indeterminate = true, Visible = false, Width = 120 };
 
-    private readonly DropDown _energy = new() { Width = 130, Enabled = false };
-    private readonly DropDown _field = new() { Width = 220, Enabled = false };
+    private readonly CheckListButton _energy = new(new CheckList("energies")) { Enabled = false };
+    private readonly CheckListButton _field = new(new CheckList("field sizes")) { Enabled = false };
     private readonly DropDown _curve = new() { Width = 130, Enabled = false };
     private readonly DropDown _show = new() { Width = 130, Enabled = false };
+    private readonly TextBox _find = new() { Width = 200, Enabled = false, PlaceholderText = "e.g. 10FFF 6x6", ToolTip = HelpText.ScanFind };
     private readonly Label _listed = new() { VerticalAlignment = VerticalAlignment.Center };
 
     private readonly GridView _grid = new() { AllowMultipleSelection = false };
@@ -87,7 +88,10 @@ public sealed class ScanPage : Panel
         browseScans.Click += (_, _) => Browse(_scans, "Scans: a folder of PTW mcc files", _doses);
         _run.Click += async (_, _) => await RunAsync();
         _cancel.Click += (_, _) => _cancelSource?.Cancel();
-        foreach (var d in new[] { _energy, _field, _curve, _show }) d.SelectedIndexChanged += (_, _) => Refilter();
+        foreach (var d in new[] { _curve, _show }) d.SelectedIndexChanged += (_, _) => Refilter();
+        _energy.List.Changed += (_, _) => { RefillFields(); Refilter(); };
+        _field.List.Changed += (_, _) => Refilter();
+        _find.TextChanged += (_, _) => Refilter();
         _grid.SelectionChanged += (_, _) => ShowSelected();
         _savePlot.Click += (_, _) => SavePlot();
         _saveListed.Click += async (_, _) => await SaveListedAsync();
@@ -122,7 +126,7 @@ public sealed class ScanPage : Panel
             _local, Caption("Cutoff %"), _cutoff, _depthShift, _run, _cancel, _busy, null);
         layout.EndVertical();
         layout.BeginVertical();
-        layout.AddRow(Caption("Energy"), _energy, Caption("Field"), _field, Caption("Curve"), _curve, Caption("Show"), _show, _listed, null);
+        layout.AddRow(Caption("Energy"), _energy, Caption("Field"), _field, Caption("Curve"), _curve, Caption("Show"), _show, Caption("Find"), _find, _listed, null);
         layout.EndVertical();
 
         var tables = new TabControl();
@@ -184,6 +188,7 @@ public sealed class ScanPage : Panel
         _grid.Columns.Add(Col("Points", r => r.Points, 80, HelpText.ScanPoints));
         _grid.Columns.Add(Col("Max γ", r => r.MaxGamma, 60, HelpText.ScanMaxGamma));
         _grid.Columns.Add(Col("Outcome", r => r.OutcomeText, 160, HelpText.ScanOutcome));
+        _grid.Columns.Add(Col("Header", r => r.HeaderFlag, 70, HelpText.ScanHeader));
     }
 
     /// <summary>
@@ -266,13 +271,20 @@ public sealed class ScanPage : Panel
         foreach (var line in ScanRows.Unpaired(result, ran.Item2)) _unpaired.Items.Add(line);
 
         _refilling = true;
-        Refill(_energy, ScanRows.Energies(_all));
-        Refill(_field, ScanRows.Fields(_all));
+        _energy.List.SetChoices(ScanRows.Energies(_all).Skip(1));
         Refill(_curve, ScanRows.Curves(_all));
         _refilling = false;
-        _energy.Enabled = _field.Enabled = _curve.Enabled = _show.Enabled = true;
+        RefillFields();
+        _energy.Enabled = _field.Enabled = _curve.Enabled = _show.Enabled = _find.Enabled = true;
         Refilter();
         _status.Text = ScanRows.Summary(result, _all, ran.Item5);
+    }
+
+    /// <summary>The field sizes measured at the ticked energies only, as the Avalonia window offers them.</summary>
+    private void RefillFields()
+    {
+        var energies = _energy.List.Checked;
+        _field.List.SetChoices(ScanRows.Fields(energies is null ? _all : _all.Where(r => energies.Contains(r.Energy))).Skip(1));
     }
 
     private static void Refill(DropDown list, IReadOnlyList<string> items)
@@ -286,7 +298,7 @@ public sealed class ScanPage : Panel
     private void Refilter()
     {
         if (_refilling) return;
-        var keep = ScanRows.Filter(_all, _energy.SelectedValue as string, _field.SelectedValue as string, _curve.SelectedValue as string, _show.SelectedValue as string);
+        var keep = ScanRows.Filter(_all, _energy.List.Checked, _field.List.Checked, _curve.SelectedValue as string, _show.SelectedValue as string, _find.Text);
         var previous = _grid.SelectedItem as ScanPairRow;
         _grid.DataStore = keep;
         _listed.Text = _all.Count == 0 ? "" : $"{keep.Count} of {_all.Count} pair(s) listed";
