@@ -36,18 +36,19 @@ flowchart TD
     mode -- yes --> readers["K readers, fewer if readers + held + workers<br/>wouldn't fit half the free memory"] --> channel["Bounded queue, M pairs held"] --> workers
     workers --> load
     subgraph load["Load, once per pair"]
-        applies["Criteria that apply to the beam<br/>(AppliesTo: Photon, Electron, Both)"] --> src["Source grid: DoseGridReader"]
+        applies["Criteria that apply to the beam<br/>(AppliesTo: Photon, Electron, Both)"] --> src["Source grid: DoseGridReader<br/>array from the batch's GridPool"]
         src --> max["ReferenceMaximum<br/>GlobalMax, or CaxMax when the jaws are on axis"]
         max --> tgt{"Target box only,<br/>and no gamma criterion?"}
         tgt -- yes --> part["Partial read: union of the criteria's boxes<br/>plus the edge-check rows; the rest holds 1e300"]
-        tgt -- no --> whole["Whole target grid"]
+        tgt -- no --> whole["Whole target grid<br/>array from the GridPool, as is a partial read's"]
     end
     load --> evaluate
     subgraph evaluate["Evaluate"]
         edges["JawEdgeCheck, source and target"] --> dta["DTA criteria together:<br/>comparer.CompareAll (one GPU upload)"]
         dta --> gamma["Each gamma criterion: GammaShell.Compare<br/>points that can't reach the evaluation grid: not analysed, as pymedphys"]
     end
-    evaluate --> worst{"Pairing of an ambiguous key?"}
+    evaluate --> pool["Both grids back to the GridPool (WC2)<br/>reused by a later pair of the same size;<br/>kept and lent together stay within pairs at once"]
+    pool --> worst{"Pairing of an ambiguous key?"}
     worst -- "yes, held until its last pairing" --> keep["Worst per criterion kept: failure, then % failed,<br/>then failed points; Candidates = pairings"]
     worst -- no --> done
     keep --> done
