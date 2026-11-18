@@ -34,6 +34,8 @@ F9 ("where it fails") and F13 (provenance).
   - Opening a `.dscstudy` written by an older version runs its schema migrations (SS6).
 - **The definition is also kept as JSON text inside the file,** in the same serialiser's format as today's study
   file. "Export definition" writes it out, so a definition can still be diffed or shared without results.
+- **File names live only in the SQLite file** (crcrewso, 2026-11-18). The JSON definition, inside or exported, names
+  folders, never files. A setting adds the matched files to an exported JSON definition when someone asks for it.
 - **The DICOM files stay where they are.** The study stores paths with each file's size and modification time,
   never dose grids. A file that moved or changed is reported, and its pairs are marked stale (SS3).
 
@@ -132,6 +134,62 @@ edge.
   So reopening an old study always keeps what the user typed. At worst, it asks to run again.
 - **Package:** `Microsoft.Data.Sqlite` (MIT), which ships SQLite's native library for Linux and Windows. Nothing
   else is needed.
+
+### SS7: a copy of the data a study used, in the study's folder
+
+crcrewso, 2026-11-18: *"There should also be the option to save all data used in an analysis within a sub folder of
+the study folders for future recall. This is mostly so that if data is stored on network drives"*.
+
+- **What today records:** the study's JSON file holds only the definition. The study CSV names each match's source
+  and target **by file name alone**, and names repeat across plan folders: E11V11 has an
+  `RD.QAEclipseDcf.Dose_BEAM_1.dcm` in many of them. So today a result can't always be traced back to its file. SS2's
+  `pair` and `dose_file` tables fix that: they store each set's folder plus each file's path relative to it.
+- **The option:** "Keep a copy of the data with the study", per study. Off by default; the size is shown before it
+  starts.
+- **What is copied:** every DICOM file a run used, meaning each paired dose and its plan. Optionally the whole of each
+  set's folder, for a later comparison that pairs differently.
+- **Where, and under what names:** a fixed layout of short generated names, not the original folders, so the copy
+  works under a Windows user's home folder (crcrewso, 2026-11-18: *"some consistent subfolder format, that can exist in
+  windows under a users home folder without breaking folder count or filename compatibility"*).
+
+  ```
+  <study folder>\<study name> data\
+      s01\                one folder per set, in the study's set order
+          p0001\          one folder per plan
+              rp.dcm      the plan
+              d0001.dcm   its doses, in beam order
+          noplan\         doses whose plan the set doesn't hold
+      s02\ ...
+  ```
+
+  - **Names:** lowercase letters and digits with a fixed width. That rules out Windows' reserved names (`CON`, `NUL`,
+    `COM1` and so on), characters it refuses, trailing dots and spaces, and two names that differ only in case.
+    E11V11's `06x w15` beside `06x W15` would otherwise share a name on Windows.
+  - **Length:** after the study's name, the generated part is 25 characters (` data\s01\p0001\d0001.dcm`). The
+    study's name is cut to 60 characters in folder names, so a study under `C:\Users\<name>\Documents\` stays well inside the 260-character
+    limit that Windows applies without long paths enabled. A location that would still pass 240 characters is
+    refused, with the length shown, before anything is copied.
+  - **Folder sizes:** a folder holds one set's plans or one plan's doses, a few hundred entries at most. A plan with
+    more than 999 doses is split into `d0001`–`d0999`, then a `p0001-2\` folder.
+  - **Where the original names are:** only in the SQLite file. `dose_file` maps each original path to its copy, as
+    the first bullet of SS1 requires. Without the study file the copy still opens in any DICOM tool, because UIDs,
+    labels and beam names are in the files. A set can be pointed at `s01\` and paired again.
+  - **Pairing is unchanged:** it reads DICOM content, never file names (matching uses paths only in messages, and a
+    dose finds its plan by UID). One exception: when two pairings of an ambiguous key tie exactly, the file path
+    breaks the tie, so which file is named could differ. The counts can't.
+- **When:** as each file is first read for a run. One read from the network drive both feeds the comparison and makes
+  the copy, so a slow drive is read once.
+- **Checked:** each copied file's size and SHA-256 are recorded in `dose_file` and checked once the copy is written.
+  A file that fails is copied again, never kept. (Lesson from the T5 drive, 2026-11-17: 136 copied files came back at
+  0 bytes, with the file count intact.)
+- **Shared files:** a file used by two sets is stored once, by hash. On the same volume it is hard-linked rather than
+  copied.
+- **Reopening:**
+  - Each set records both its original folder and its copy (`s01\` and so on).
+  - When the original can't be reached, or a file there no longer matches its recorded size and hash, the study uses
+    the copy and says so.
+  - A per-set switch picks either one.
+- **Budget:** the copy is its own figure, outside SS-Q2's 10 % (it *is* the source data). The study shows both.
 
 ## Memory
 
