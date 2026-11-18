@@ -1,6 +1,6 @@
 # Design note: a study saved as a SQLite file, with poor results kept in 3D
 
-**Status:** proposal, 2026-11-18; SS-Q1 to SS-Q6 decided the same day (below). Nothing is built. Extends `comparison-studies.md`: it is F12's "cached" and starts
+**Status:** proposal, 2026-11-18; SS-Q1 to SS-Q7 decided the same day (below). Nothing is built. Extends `comparison-studies.md`: it is F12's "cached" and starts
 F9 ("where it fails") and F13 (provenance).
 
 **crcrewso, 2026-11-18:**
@@ -283,7 +283,8 @@ He asked for E11V11 vs E15V11 and E15V15 Prod vs Equinox, ignoring the wedges, a
 
 - ~~**SS-Q6:**~~ *Decided above.* **SS-Q6 (as asked):** At the strict criteria every pair falls below 97.5 % (all 422 at 0.1 %/0 mm). Should the threshold
   apply per criterion, with some criteria exempt from saving, or should a pair be kept only by its loosest criterion?
-- **SS-Q7:** Units of the delta: dose (Gy) or percent of the normalisation the criterion used? The stored value can
+- **SS-Q7, decided 2026-11-18 (crcrewso): *"store the delta in Gy"*.** Percent of a criterion's normalisation
+  is derived when viewing; the DICOM RT Dose `ERROR` and `.mha` exports carry Gy. The question was: units of the delta: dose (Gy) or percent of the normalisation the criterion used? The stored value can
   be Gy, with percent derived when viewing; the export needs one choice.
 
 ## Order of work
