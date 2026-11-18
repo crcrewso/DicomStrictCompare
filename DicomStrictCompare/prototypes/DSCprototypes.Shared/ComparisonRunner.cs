@@ -205,7 +205,7 @@ public static class ComparisonRunner
         var engine = DoseComparers.Create(request.Comparer ?? new ComparerSettings());
         using var release = engine as IDisposable;
         progress?.Report($"Engine: {engine.Description}");
-        var comparer = new BatchComparer(LoadGrid, engine)
+        var comparer = new BatchComparer(DoseGridReader.ReadRented, engine)
         {
             PartialTargetReads = request.PartialTargetReads, Queue = request.Queue, Threads = request.Comparer?.Threads,
             PairDone = rowsSoFar is null ? null : done => rowsSoFar.Report(done.Select(o => ResultRow.From(o, request.Dtas[o.CriterionIndex])).ToArray()),

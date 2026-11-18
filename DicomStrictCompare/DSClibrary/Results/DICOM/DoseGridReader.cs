@@ -65,13 +65,17 @@ namespace DSClibrary.Results.DICOM
                 spacing[1], spacing[0], offsets.Count > 1 ? offsets[1] - offsets[0] : spacing[0]);
         }
 
-        public static DoseMatrixOptimal Read(string path)
+        public static DoseMatrixOptimal Read(string path) => ReadRented(path, null);
+
+        /// <summary><see cref="Read"/>, with the voxel array from <paramref name="rent"/> (a <see cref="Comparing.GridPool"/>);
+        /// every element is written, so a reused array needs no clearing.</summary>
+        public static DoseMatrixOptimal ReadRented(string path, Func<int, double[]>? rent)
         {
             CheckPath(path);
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 1, FileOptions.SequentialScan);
             var l = ReadLayout(stream, path);
             int dimX = l.DimX, dimY = l.DimY, dimZ = l.DimZ, count = l.Count, bytesPerVoxel = l.BytesPerVoxel;
-            var values = new double[count];
+            var values = rent?.Invoke(count) ?? new double[count];
             var buffer = new byte[ChunkBytes];
             var axX = AxisMaxima.NegativeInfinity(dimX);
             var axY = AxisMaxima.NegativeInfinity(dimY);
@@ -108,11 +112,11 @@ namespace DSClibrary.Results.DICOM
         /// Opens a grid for reading only some of its rows (<see cref="PartialDoseGrid"/>): the header now, voxels when
         /// asked. For a target, whose voxels the comparison reads only where the source is above threshold.
         /// </summary>
-        public static PartialDoseGrid Open(string path)
+        public static PartialDoseGrid Open(string path, Func<int, double[]>? rent = null)
         {
             CheckPath(path);
             var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 1, FileOptions.RandomAccess);
-            try { return new PartialDoseGrid(stream, ReadLayout(stream, path)); }
+            try { return new PartialDoseGrid(stream, ReadLayout(stream, path), rent); }
             catch { stream.Dispose(); throw; }
         }
 
@@ -145,12 +149,12 @@ namespace DSClibrary.Results.DICOM
             public long VoxelsRead { get; private set; }
             public double FractionRead => (double)VoxelsRead / _l.Count;
 
-            internal PartialDoseGrid(FileStream stream, Layout l)
+            internal PartialDoseGrid(FileStream stream, Layout l, Func<int, double[]>? rent = null)
             {
                 _stream = stream;
                 _l = l;
                 _rowRead = new bool[l.DimY * l.DimZ];
-                var values = new double[l.Count];
+                var values = rent?.Invoke(l.Count) ?? new double[l.Count];
                 Array.Fill(values, Unread);
                 Grid = new DoseMatrixOptimal(l.DimX, l.DimY, l.DimZ, l.X0, l.Y0, l.Z0, l.XRes, l.YRes, l.ZRes, l.Scaling, values,
                     new DoseValue(double.NaN, double.NaN, double.NaN, double.NaN));

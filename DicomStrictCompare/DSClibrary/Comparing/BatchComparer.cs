@@ -184,7 +184,11 @@ namespace DSClibrary.Comparing
     public sealed class BatchComparer
     {
         private readonly Func<string, DoseMatrixOptimal> _load;
+        private readonly PooledLoader? _pooledLoad;
         private readonly DoseComparer _mathematics;
+
+        /// <summary>A loader that takes its voxel array from a pool, such as <see cref="Results.DICOM.DoseGridReader.ReadRented"/>.</summary>
+        public delegate DoseMatrixOptimal PooledLoader(string path, Func<int, double[]> rent);
 
         /// <param name="load">
         /// Loads a grid from a path. Injected so a caller can choose its reader - this library's own
@@ -197,6 +201,19 @@ namespace DSClibrary.Comparing
             _load = load ?? throw new ArgumentNullException(nameof(load));
             _mathematics = mathematics ?? new HandWrittenComparer();
         }
+
+        /// <summary>
+        /// Loads through a pool: each pair's grids go back to a <see cref="GridPool"/> once it is compared, and later
+        /// pairs reuse them rather than allocating (WC2: the GC reclaims large grids too lazily for many pairs at once).
+        /// </summary>
+        public BatchComparer(PooledLoader load, DoseComparer? mathematics = null)
+            : this(path => (load ?? throw new ArgumentNullException(nameof(load)))(path, n => new double[n]), mathematics)
+        {
+            _pooledLoad = load;
+        }
+
+        /// <summary>The last batch's pool, when loading through one; for diagnostics.</summary>
+        public GridPool? Pool { get; private set; }
 
         /// <summary>
         /// Read only the target voxels the pair's criteria and the edge check use (<see cref="OpenTarget"/>), when
@@ -212,9 +229,9 @@ namespace DSClibrary.Comparing
         /// engine's rounding quirk) has the target read whole.
         /// </summary>
         public static DSClibrary.Results.DICOM.DoseGridReader.PartialDoseGrid OpenTarget(string path, DoseMatrixOptimal source,
-            IEnumerable<ComparisonRun> runs, Results.DICOM.RTPlanBeam? targetBeam)
+            IEnumerable<ComparisonRun> runs, Results.DICOM.RTPlanBeam? targetBeam, Func<int, double[]>? rent = null)
         {
-            var partial = Results.DICOM.DoseGridReader.Open(path);
+            var partial = Results.DICOM.DoseGridReader.Open(path, rent);
             try
             {
                 var g = partial.Grid;
@@ -343,6 +360,10 @@ namespace DSClibrary.Comparing
             int perGamma = Math.Max(1, threadBudget / parallelism);
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
+            // Room for every pair that can be loaded at once: workers, held pairs and readers.
+            long largestPair = work.Length == 0 ? 0 : work.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
+            var pool = Pool = _pooledLoad is null ? null
+                : new GridPool(largestPair * (parallelism + (Queue is { } shape ? shape.PairsHeld + shape.Readers : 0)));
 
             // Dedicated threads rather than the pool, so a worker can be pinned. A comparer that runs on one thread
             // gets one worker per core; pinned only if CpuTopology.PinByDefault says so (by default the OS places them).
@@ -380,6 +401,17 @@ namespace DSClibrary.Comparing
                 if (pair.Length > 0) PairDone?.Invoke(pair);
             }
 
+            void Finish(Loaded loaded)
+            {
+                try { Keep(Evaluate(loaded, criteria, perGamma, token)); }
+                finally
+                {
+                    // Nothing in a pair's outcomes refers to its grids, so they can be reused.
+                    pool?.Return(loaded.Source?.DoseValues);
+                    pool?.Return(loaded.Target?.DoseValues);
+                }
+            }
+
             int next = -1;
             int? readers = null;
             if (Queue is null)
@@ -392,7 +424,7 @@ namespace DSClibrary.Comparing
                     {
                         if (pin) CpuTopology.PinCurrentThread(cores[worker]);
                         for (int i; (i = Interlocked.Increment(ref next)) < work.Length && !token.IsCancellationRequested;)
-                            Keep(Evaluate(Load(work[i], criteria, maximum, token), criteria, perGamma, token));
+                            Finish(Load(work[i], criteria, maximum, pool, token));
                     });
                 }
             }
@@ -408,7 +440,7 @@ namespace DSClibrary.Comparing
                         try
                         {
                             for (int i; (i = Interlocked.Increment(ref next)) < work.Length && !token.IsCancellationRequested;)
-                                queue.Writer.WriteAsync(Load(work[i], criteria, maximum, token), token).AsTask().GetAwaiter().GetResult();
+                                queue.Writer.WriteAsync(Load(work[i], criteria, maximum, pool, token), token).AsTask().GetAwaiter().GetResult();
                         }
                         finally { if (Interlocked.Decrement(ref readersLeft) == 0) queue.Writer.TryComplete(); }
                     });
@@ -420,7 +452,7 @@ namespace DSClibrary.Comparing
                         if (pin) CpuTopology.PinCurrentThread(cores[worker]);
                         while (queue.Reader.WaitToReadAsync(token).AsTask().GetAwaiter().GetResult())
                             while (queue.Reader.TryRead(out var loaded))
-                                Keep(Evaluate(loaded, criteria, perGamma, token));
+                                Finish(loaded);
                     });
                 }
             }
@@ -490,16 +522,18 @@ namespace DSClibrary.Comparing
         private sealed record Loaded(MatchedDosePair Pair, int[] Applicable, DoseMatrixOptimal? Source, DoseMatrixOptimal? Target,
             ReferenceMaximum? Reference, ComparisonRun[] Runs, int[] Dta, double? FractionRead, TimeSpan Elapsed, string? Failure);
 
-        private Loaded Load(MatchedDosePair pair, IReadOnlyList<Criterion> criteria, MaximumKind maximum, CancellationToken cancellation)
+        private Loaded Load(MatchedDosePair pair, IReadOnlyList<Criterion> criteria, MaximumKind maximum, GridPool? pool, CancellationToken cancellation)
         {
             int[] applicable = Enumerable.Range(0, criteria.Count).Where(n => criteria[n].AppliesToBeam(pair.Source.Beam)).ToArray();
             int[] dta = applicable.Where(n => criteria[n].Gamma is null).ToArray();
             if (applicable.Length == 0) return new Loaded(pair, applicable, null, null, null, Array.Empty<ComparisonRun>(), dta, null, TimeSpan.Zero, null);
             var timer = Stopwatch.StartNew();
+            DoseMatrixOptimal? source = null;
             try
             {
                 cancellation.ThrowIfCancellationRequested();
-                DoseMatrixOptimal source = _load(pair.Source.Dose.SourcePath);
+                Func<string, DoseMatrixOptimal> load = pool is null ? _load : path => _pooledLoad!(path, pool.Rent);
+                source = load(pair.Source.Dose.SourcePath);
                 var reference = ReferenceMaximum.For(source, pair.Source.Beam, maximum);
                 var runs = dta.Select(n => new ComparisonRun(criteria[n].Dta, criteria[n].Global, reference.Dose)).ToArray();
 
@@ -508,16 +542,17 @@ namespace DSClibrary.Comparing
                 double? fractionRead = null;
                 if (PartialTargetReads && dta.Length == applicable.Length)
                 {
-                    using var partial = OpenTarget(pair.Target.Dose.SourcePath, source, runs, pair.Target.Beam);
+                    using var partial = OpenTarget(pair.Target.Dose.SourcePath, source, runs, pair.Target.Beam, pool is null ? null : pool.Rent);
                     target = partial.Grid;
                     fractionRead = partial.FractionRead;
                 }
-                else target = _load(pair.Target.Dose.SourcePath);
+                else target = load(pair.Target.Dose.SourcePath);
                 return new Loaded(pair, applicable, source, target, reference, runs, dta, fractionRead, timer.Elapsed, null);
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { throw; }
             catch (Exception ex)
             {
+                pool?.Return(source?.DoseValues);
                 return new Loaded(pair, applicable, null, null, null, Array.Empty<ComparisonRun>(), dta, null, timer.Elapsed, $"{ex.GetType().Name}: {ex.Message}");
             }
         }

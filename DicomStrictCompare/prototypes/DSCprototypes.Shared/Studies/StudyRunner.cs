@@ -241,7 +241,7 @@ public static class StudyRunner
                 o.Maximum,
                 o.EdgeCheck,
                 o.Candidates);
-            var comparer = new BatchComparer(ComparisonRunner.LoadGrid, engine)
+            var comparer = new BatchComparer(DoseGridReader.ReadRented, engine)
             {
                 PartialTargetReads = run.PartialTargetReads, Queue = run.Queue, Threads = run.ComparerOrDefault.Threads,
                 PairDone = rowsSoFar is null ? null : done => rowsSoFar.Report(done.Select(ToRow).ToArray()),
