@@ -36,12 +36,14 @@ y jaws, z = beam axis. Center of rotation is iso for dynamic gantry, center of p
 - **NiiVue 0.69.0** (BSD-2), vendored as `Viewer/assets/niivue.umd.js`, with its licence and sha512 check noted in
   `NIIVUE-LICENSE.txt`. It works offline, and needs WebGL2.
 - **Threshold** (crcrewso): values whose size is below it are transparent. At 1, gamma under 1 is hidden, and so is
-  every difference between −1 % and +1 %. Positive differences are drawn warm and negative ones cool.
+  every difference between −1 % and +1 %. Positive differences are drawn warm and negative ones cool, gamma yellow to
+  red, all opaque from the threshold up (NiiVue's own warm and winter stop at half opacity, which left 3D mostly grey).
 - **Views:** slices and 3D, 3D alone, or slices alone. In 3D, "Dose only" draws the phantom as a lit surface, with
-  low dose half-clear so a ray looks past the under-dosed edge voxel. "Cut" opens the dose through the origin; an
-  overlay is always drawn whole.
+  low dose half-clear so a ray looks past the under-dosed edge voxel. "Cut" (crcrewso: "it should follow the viewer crosshair in that axis and completely remove one side") removes everything on one
+  side of a plane through the crosshair, across x, y or z, dose and overlay alike (`isClipAllVolumes`), and moves as the
+  crosshair moves.
 - **Clicking** reads out x, y and z in the frame, the distance off axis, the dose, gamma and the difference.
-- **Settings from the address**, for links and captures: `?show=percent&threshold=1&top=10&view=render&cut=x&azimuth=120&elevation=25`.
+- **Settings from the address**, for links and captures: `?show=percent&threshold=1&top=10&view=render&cut=x&side=low&at=20,0,0&azimuth=120&elevation=25` (`at` places the crosshair, in mm in the frame).
 
 ## Checks (2026-11-18)
 
@@ -66,4 +68,3 @@ y jaws, z = beam axis. Center of rotation is iso for dynamic gantry, center of p
 - Gamma for one pair at 2.5 mm against a finer target took about 3 minutes, and nothing is cached between opens.
 - The point context of SS4 (depth from the surface, distance from the 50 % edge) is not shown: those wait on the surface
   and field-edge conventions being unified.
-- Overlays can't be cut; NiiVue clips only the background volume.

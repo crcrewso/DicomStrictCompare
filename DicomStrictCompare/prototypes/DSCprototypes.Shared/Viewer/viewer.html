@@ -40,10 +40,15 @@
     <option value="render">3D</option>
     <option value="slices">Slices</option>
   </select></label>
-  <label title="Cut the 3D dose through the origin, to see inside the phantom; an overlay is shown whole">Cut <select id="cut">
+  <label title="Cut the 3D view at the crosshair, removing one side completely (dose and overlay); it follows the crosshair">Cut <select id="cut">
     <option value="none">None</option>
-    <option value="x">Across the X jaws</option>
-    <option value="y">Across the Y jaws</option>
+    <option value="x">at x (X jaws)</option>
+    <option value="y">at y (Y jaws)</option>
+    <option value="z">at z (beam axis)</option>
+  </select></label>
+  <label title="Which side of the cut is removed">Remove <select id="side">
+    <option value="low">− side</option>
+    <option value="high">+ side</option>
   </select></label>
   <span class="muted" id="axes">x: X jaws (coll 0) · y: Y jaws, toward the gantry · z: beam axis, toward the source</span>
 </header>
@@ -65,18 +70,23 @@ async function main() {
   $("frame").textContent = "· origin: " + info.FrameNote;
 
   nv = new niivue.Niivue({
-    backColor: [0.08, 0.08, 0.1, 1], clipPlaneColor: [0, 0, 0, 0], crosshairColor: [0.3, 1, 0.3, 1], show3Dcrosshair: true,
+    backColor: [0.08, 0.08, 0.1, 1], clipPlaneColor: [0, 0, 0, 0], isClipAllVolumes: true, crosshairColor: [0.3, 1, 0.3, 1], show3Dcrosshair: true,
     isOrientationTextVisible: false, isOrientCube: false, isColorbar: true,
     multiplanarShowRender: niivue.SHOW_RENDER.ALWAYS, multiplanarLayout: niivue.MULTIPLANAR_TYPE.GRID,
   });
   await nv.attachTo("gl");
   // The phantom as a lit surface: zero (outside it) is clear, low dose half-clear so a ray reads a few voxels in past the
   // partial-volume edge, higher dose brighter and opaque, so the entrance field (or an arc's ring) shows on the surface.
+  // Overlays opaque from just above the threshold: NiiVue's warm and winter top out at half opacity and fade to clear
+  // at the low end, so in 3D small differences were a faint tint over the grey dose (crcrewso, 2026-11-18).
+  nv.addColormap("dscGamma", { R: [0, 255, 255, 215], G: [0, 235, 130, 0], B: [0, 0, 0, 0], A: [0, 215, 235, 255], I: [0, 1, 128, 255] });
+  nv.addColormap("dscHot", { R: [0, 255, 255, 255], G: [0, 140, 215, 255], B: [0, 0, 0, 190], A: [0, 215, 235, 255], I: [0, 1, 128, 255] });
+  nv.addColormap("dscCold", { R: [0, 0, 0, 140], G: [0, 225, 120, 70], B: [0, 255, 255, 255], A: [0, 215, 235, 255], I: [0, 1, 128, 255] });
   nv.addColormap("phantom", { R: [0, 60, 150, 255], G: [0, 66, 150, 250], B: [0, 80, 160, 235], A: [0, 40, 200, 255], I: [0, 1, 100, 255] });
   const max = info.SourceMaximumGy;
   const list = [{ url: "maps/dose.nii", name: "dose.nii", colormap: "gray", cal_min: 0, cal_max: max, trustCalMinMax: true }];
-  if (info.Volumes.includes("gamma.nii")) list.push({ url: "maps/gamma.nii", name: "gamma.nii", colormap: "warm", cal_min: 1, cal_max: 3, trustCalMinMax: true });
-  list.push({ url: "maps/percent.nii", name: "percent.nii", colormap: "warm", colormapNegative: "winter", cal_min: 1, cal_max: 10, trustCalMinMax: true });
+  if (info.Volumes.includes("gamma.nii")) list.push({ url: "maps/gamma.nii", name: "gamma.nii", colormap: "dscGamma", cal_min: 1, cal_max: 3, trustCalMinMax: true });
+  list.push({ url: "maps/percent.nii", name: "percent.nii", colormap: "dscHot", colormapNegative: "dscCold", cal_min: 1, cal_max: 10, trustCalMinMax: true });
   await nv.loadVolumes(list);
 
   // NaN marks points not evaluated: keep the values for the readout, show them as transparent (0 is under any threshold).
@@ -90,9 +100,10 @@ async function main() {
   // Settings from the address, so a view can be linked: ?show=percent&threshold=1&top=10&view=render
   const q = new URLSearchParams(location.search);
   if (q.has("show")) { $("overlay").value = q.get("show"); $("top").value = $("overlay").value === "percent" ? 10 : 3; }
-  for (const id of ["threshold", "top", "view", "cut"]) if (q.has(id)) $(id).value = q.get(id);
+  for (const id of ["threshold", "top", "view", "cut", "side"]) if (q.has(id)) $(id).value = q.get(id);
+  if (q.has("at")) nv.scene.crosshairPos = nv.mm2frac(q.get("at").split(",").map(Number));
   if (q.has("azimuth")) nv.setRenderAzimuthElevation(+q.get("azimuth"), +(q.get("elevation") ?? 15));
-  for (const id of ["overlay", "threshold", "top", "view", "cut"]) $(id).addEventListener("change", apply);
+  for (const id of ["overlay", "threshold", "top", "view", "cut", "side"]) $(id).addEventListener("change", apply);
   $("overlay").addEventListener("change", () => { $("top").value = $("overlay").value === "percent" ? 10 : 3; apply(); });
   apply();
   $("status").textContent = `Source max ${fmt(max, 3)} Gy, cutoff ${info.CutoffPercent} %, grid ${shape.join("×")} at ${info.GridSpacingMm.map(s => fmt(s, 1)).join("×")} mm.`;
@@ -116,18 +127,30 @@ function apply() {
   dose.colormap = show === "none" ? "phantom" : "gray";
   // The surface shows entrance dose, a few to tens of % of the maximum: the phantom ramp tops out at 30 %.
   dose.cal_max = (show === "none" ? 0.3 : 1) * info.SourceMaximumGy;
-  dose.opacity = show === "none" ? 1 : 0.35;
+  dose.opacity = show === "none" ? 1 : 0.25;
   // Less shading on the phantom surface, so voxel steps on a curved phantom don't read as dose contours.
   nv.setVolumeRenderIllumination(show === "none" ? 0.25 : 0.6);
-  const cut = $("cut").value;
-  nv.setClipPlane(cut === "x" ? [0, 270, 0] : cut === "y" ? [0, 180, 0] : [2, 0, 0]);
+  cutAtCrosshair();
   const view = $("view").value;
   if (view === "render") nv.setSliceType(nv.sliceTypeRender);
   else { nv.opts.multiplanarShowRender = view === "multi" ? niivue.SHOW_RENDER.ALWAYS : niivue.SHOW_RENDER.NEVER; nv.setSliceType(nv.sliceTypeMultiplanar); }
   nv.updateGLVolume();
 }
 
+// NiiVue keeps the side where dot(n, p - 0.5) + depth > 0, p the volume fraction on its (beam-frame) axes. With normal
+// +axis and depth 0.5 - f everything below the crosshair's fraction f goes; the negated pair removes the side above.
+// [azimuth, elevation] giving normal +x, +y, +z: [270, 0], [0, 0], [0, -90].
+function cutAtCrosshair() {
+  const axis = { x: 0, y: 1, z: 2 }[$("cut").value];
+  if (axis === undefined) { nv.setClipPlane([2, 0, 0]); return; }
+  const f = nv.scene.crosshairPos[axis], low = $("side").value === "low";
+  const plus = [[270, 0], [0, 0], [0, -90]][axis], minus = [[90, 0], [180, 0], [0, 90]][axis];
+  const [azimuth, elevation] = low ? plus : minus;
+  nv.setClipPlane([low ? 0.5 - f : f - 0.5, azimuth, elevation]);
+}
+
 function where(data) {
+  if ($("cut").value !== "none") cutAtCrosshair();
   if (!data || !data.vox) return;
   const [i, j, k] = data.vox.map(Math.round), [x, y, z] = data.mm;
   const at = i + shape[0] * (j + shape[1] * k);
