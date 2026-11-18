@@ -1,6 +1,6 @@
 # Design note: a study saved as a SQLite file, with poor results kept in 3D
 
-**Status:** proposal, 2026-11-18. Nothing is built. Extends `comparison-studies.md`: it is F12's "cached" and starts
+**Status:** proposal, 2026-11-18; SS-Q1 to SS-Q5 decided the same day (below). Nothing is built. Extends `comparison-studies.md`: it is F12's "cached" and starts
 F9 ("where it fails") and F13 (provenance).
 
 **crcrewso, 2026-11-18:**
@@ -72,6 +72,9 @@ F9 ("where it fails") and F13 (provenance).
   window can read rows while a run writes them.
 
 ### SS4: poor results kept in 3D
+
+*Revised by crcrewso's answers the same day: see "SS4, revised" under Decided. The stored form there replaces the
+exact-points list below.*
 
 The aim is to see **where** a pair fails and **why**: in-field or penumbra, high or low dose, build-up, near an
 edge.
@@ -150,6 +153,64 @@ edge.
   point cloud in an external viewer (an exported `.ply`/`.vtk`) enough at first?
 - **SS-Q5:** Is the Study tab Avalonia-only for now (Eto has none; review parity gap), or does this wait for a
   shared view model both GUIs use?
+
+## Decided, 2026-11-18 (crcrewso)
+
+- **SS-Q1:** a percent pass threshold, *"defaulting to 97.5 % (3D) or 95 % (2D) that's beside the 'Save to Study'
+  feature"*. A pair below it at a criterion is kept (SS4). "2D" is a single-plane dose such as the repository's
+  `P4 E 2D` file.
+  - **Measured on E15V11 vs E15V15** (the WC2 run, 422 pairs): below 97.5 %, 40 pairs at 3 %/2 mm, 163 at 1 %/1 mm,
+    and all 422 at 0.1 %/0 mm. So the strict criteria keep everything; SS-Q6 asks whether that is wanted.
+- **SS-Q2:** *"I wouldn't worry about any study that's < 10% of the source data"*. The budget is 10 % of the study's
+  DICOM bytes. For E15V11 (20 GB) and E15V15 Prod (129 GB) that's about 15 GB.
+  - A dense float32 delta for one 1 mm pair is about 0.4 GB, about the size of the target dose file. So deltas for
+    every pair would pass the budget; deltas for the kept pairs, sparse, would not (SS4, revised).
+- **SS-Q3:** *"assume replaces, pre-populates with previous comparison settings"*. "Run all again" replaces the
+  stored results, and the run form starts from the last run's settings. The `run` table keeps only the latest run's
+  provenance per comparison.
+- **SS-Q4:** *"Profiles and a single 'Delta' 3D volume for each comparison, probably as some form of sparse array
+  floats to save space"*. Revised SS4 below.
+- **SS-Q5:** *"keep it Avalonia-only, once I'm happy with it then we can port it to Eto and show both implementation
+  to other users"*.
+
+### SS4, revised: profiles and one delta volume per kept pair
+
+- **Profiles:** the source, target and delta lines at the study's depths and the PDD, from the `curve` table. Small,
+  so they are kept for **every** pair, not only kept ones.
+- **The delta volume:** target minus source, on the comparison lattice, for each kept pair and criterion. One per
+  pair rather than per criterion, because the delta doesn't depend on the criterion.
+  - **Sparse:** only the points the comparison evaluated, those above the dose threshold. Stored as a bit mask over
+    the lattice (1 bit a point) and float32 values for the set bits, compressed. A 1 mm pair of about 100 million
+    points is a 12 MB mask (which compresses well) plus 4 bytes per evaluated point.
+  - **Which points failed** is a second bit mask per criterion, so "where it fails" and "by how much" come from one
+    stored volume.
+  - The coarse failure-fraction blocks stay, for a quick overview of every kept pair.
+- **The second pass on the reference engine** (unchanged) captures the delta and the masks.
+
+### SS-Q4, existing formats to borrow
+
+- **Nothing in common use is sparse.** The sparse dose formats in radiotherapy are dose-influence matrices (matRad's
+  MATLAB sparse `dij`, column by column), which hold beamlets rather than a viewable volume. So the stored form is
+  the study's own (mask plus values, above). The formats below are for **export**, so the delta opens in tools
+  physicists already use.
+- **DICOM RT Dose with Dose Type `ERROR`** is the standard's own form for a dose difference. *From memory, to be
+  checked against PS3.3:* the RT Dose module defines `ERROR` as a difference dose and requires signed pixel data
+  (Pixel Representation 1) for it.
+  - It opens in DICOM-RT tools (3D Slicer with SlicerRT, dicompyler; TPS support varies).
+  - It's dense, but the points outside the mask are zero, so a zipped export is small.
+  - The library's `DoseGridReader` already honours signed pixel data. `RTDoseResult` doesn't (review RV10).
+- **MetaImage (`.mha`, compressed)** is what Plastimatch, a radiotherapy toolkit, writes for its dose-difference
+  and gamma maps. 3D Slicer and ITK read it. Writing it is a short text header plus zlib, with no dependency.
+- **NRRD (`.nrrd`, gzip)** is 3D Slicer's native volume format; a similar size and effort.
+- **Proposed:** keep the sparse form in the study; export a kept pair's delta as DICOM RT Dose `ERROR` (DICOM tools,
+  and a check on the DICOM claim above) and as `.mha` (Slicer and Plastimatch), both on the dose grid's geometry.
+
+### New questions
+
+- **SS-Q6:** At the strict criteria every pair falls below 97.5 % (all 422 at 0.1 %/0 mm). Should the threshold
+  apply per criterion, with some criteria exempt from saving, or should a pair be kept only by its loosest criterion?
+- **SS-Q7:** Units of the delta: dose (Gy) or percent of the normalisation the criterion used? The stored value can
+  be Gy, with percent derived when viewing; the export needs one choice.
 
 ## Order of work
 
