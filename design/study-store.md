@@ -1,6 +1,6 @@
 # Design note: a study saved as a SQLite file, with poor results kept in 3D
 
-**Status:** proposal, 2026-11-18; SS-Q1 to SS-Q5 decided the same day (below). Nothing is built. Extends `comparison-studies.md`: it is F12's "cached" and starts
+**Status:** proposal, 2026-11-18; SS-Q1 to SS-Q6 decided the same day (below). Nothing is built. Extends `comparison-studies.md`: it is F12's "cached" and starts
 F9 ("where it fails") and F13 (provenance).
 
 **crcrewso, 2026-11-18:**
@@ -205,9 +205,25 @@ edge.
 - **Proposed:** keep the sparse form in the study; export a kept pair's delta as DICOM RT Dose `ERROR` (DICOM tools,
   and a check on the DICOM claim above) and as `.mha` (Slicer and Plastimatch), both on the dose grid's geometry.
 
+### SS-Q6, decided 2026-11-18
+
+crcrewso: E11V11 against E15V15 failing everywhere at the strict criteria is expected, from the surface-dose bug.
+He asked for E11V11 vs E15V11 and E15V15 Prod vs Equinox, ignoring the wedges, and then agreed the rule below.
+
+- **Measured:**
+  - Pairing was by patient, plan label and field name, at 3 %/2 mm, 1 %/1 mm and 0.1 %/0 mm, with an 8 % threshold.
+  - "Equinox" is `EquinoxCommissioning/DICOM/PRD-After`.
+  - Pairs below 97.5 %, without wedges:
+    - E11V11 vs E15V11: 2, 107 and 107 of 329;
+    - E15V15 Prod vs Equinox: 12, 22 and 34 of 40.
+  - In E11V11 vs E15V11, 222 of 329 pass 100 % even at 0.1 %/0 mm. At 1 %/1 mm, 80 of the 107 are the electron
+    flat-field plans (`STBflatE`, `AiXflatE`, `SiXflatE`).
+- **Decided:** the threshold applies to each criterion separately. A pair is kept when any criterion falls below it,
+  and it keeps one delta volume (SS4, revised) with a failed-points mask for each criterion it fell below.
+
 ### New questions
 
-- **SS-Q6:** At the strict criteria every pair falls below 97.5 % (all 422 at 0.1 %/0 mm). Should the threshold
+- ~~**SS-Q6:**~~ *Decided above.* **SS-Q6 (as asked):** At the strict criteria every pair falls below 97.5 % (all 422 at 0.1 %/0 mm). Should the threshold
   apply per criterion, with some criteria exempt from saving, or should a pair be kept only by its loosest criterion?
 - **SS-Q7:** Units of the delta: dose (Gy) or percent of the normalisation the criterion used? The stored value can
   be Gy, with percent derived when viewing; the export needs one choice.
