@@ -103,12 +103,13 @@ public sealed partial class ScanComparisonViewModel : ObservableObject
         DosesFolder = _offeredDoses;
     }
 
-    /// <summary>The command line's choices: <c>--doses</c> and <c>--scans</c>; with both, the tab runs.</summary>
+    /// <summary>The command line's choices: <c>--doses</c>, <c>--scans</c> and <c>--exclude</c>; with both folders, the tab runs.</summary>
     public async Task ApplyAsync(LaunchOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
         if (options.DosesFolder is { } doses) DosesFolder = doses;
         if (options.ScanFolder is { } scans) ScansFolder = scans;
+        if (options.ExcludeFolders is { } exclude) ExcludeFolders = exclude;
         if (options.ScanFolder is not null && Directory.Exists(DosesFolder)) await RunCommand.ExecuteAsync(null);
     }
 
