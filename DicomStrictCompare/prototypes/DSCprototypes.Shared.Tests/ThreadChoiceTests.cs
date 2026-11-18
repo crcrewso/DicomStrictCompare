@@ -75,6 +75,8 @@ public class ThreadChoiceTests
         var options = LaunchOptions.Parse(new[] { "--viewer", "/a/RD.1.dcm", "/b/RD.2.dcm" });
         Assert.AreEqual("/a/RD.1.dcm", options.ViewerSource);
         Assert.AreEqual("/b/RD.2.dcm", options.ViewerTarget);
+        Assert.IsFalse(options.GpuFloat);
+        Assert.IsTrue(LaunchOptions.Parse(new[] { "--gpu-float" }).GpuFloat);
         var vm = NewMain(Path.Combine(_dir, "settings.json"));
         var row = new ResultRow("k", "RD.1.dcm", "RD.2.dcm", DtaSpec.Defaults[0], 0, 0, 0, null, null, null, 0, null);
         Assert.IsFalse(vm.ViewDifference(row), "no session yet, so no pair to open");

@@ -13,7 +13,7 @@ namespace DSCprototypes.Shared;
 /// <c>--depth</c> pick the dose-versus-dose curve, so each of crcrewso's five plots can be captured;
 /// <c>--gamma</c> adds a 3 %/3 mm gamma criterion to the default three, so a scripted run exercises
 /// the gamma path too.
-/// <c>--viewer SOURCE TARGET</c> opens that pair in the difference viewer.
+/// <c>--viewer SOURCE TARGET</c> opens that pair in the difference viewer; <c>--gpu-float</c> ticks GPU float.
 /// </summary>
 public sealed record LaunchOptions(
     string? SourceFolder,
@@ -30,7 +30,8 @@ public sealed record LaunchOptions(
     string? DosesFolder = null,
     string? ExcludeFolders = null,
     string? ViewerSource = null,
-    string? ViewerTarget = null)
+    string? ViewerTarget = null,
+    bool GpuFloat = false)
 {
     public static LaunchOptions None { get; } = new(null, null, null, null, null, false);
 
@@ -42,7 +43,7 @@ public sealed record LaunchOptions(
     public static LaunchOptions Parse(IEnumerable<string> args)
     {
         string? source = null, target = null, sourceAlias = null, targetAlias = null, export = null, scans = null, curve = null, depth = null, doses = null, exclude = null, viewerSource = null, viewerTarget = null;
-        bool run = false, showGraphs = false, gamma = false;
+        bool run = false, showGraphs = false, gamma = false, gpuFloat = false;
         var list = args.ToList();
         for (int i = 0; i < list.Count; i++)
         {
@@ -64,9 +65,10 @@ public sealed record LaunchOptions(
                 case "--depth": depth = Next(); break;
                 case "--gamma": gamma = true; break;
                 case "--viewer": viewerSource = Next(); viewerTarget = Next(); break;
+                case "--gpu-float": gpuFloat = true; break;
             }
         }
         return new LaunchOptions(source, target, sourceAlias, targetAlias, export, run, showGraphs, scans, curve, depth, gamma, doses, exclude,
-            viewerSource, viewerTarget);
+            viewerSource, viewerTarget, gpuFloat);
     }
 }

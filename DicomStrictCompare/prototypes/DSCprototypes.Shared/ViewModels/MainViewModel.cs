@@ -301,6 +301,7 @@ public sealed partial class MainViewModel : ObservableObject
         if (options.SourceAlias is not null) SourceAlias = options.SourceAlias;
         if (options.TargetAlias is not null) TargetAlias = options.TargetAlias;
         if (options.AddGamma) Criteria.Add(new CriterionViewModel(DtaSpec.DefaultGamma));
+        if (options.GpuFloat) GpuFloat = true;
     }
 
     /// <summary>

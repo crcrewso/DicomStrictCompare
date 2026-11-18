@@ -233,6 +233,7 @@ public sealed class MainForm : Form
         if (options.SourceAlias is not null) _sourceAlias.Text = options.SourceAlias;
         if (options.TargetAlias is not null) _targetAlias.Text = options.TargetAlias;
         if (options.AddGamma) _criteria.Add(CriterionRow.From(DtaSpec.DefaultGamma));
+        if (options.GpuFloat) _gpuFloat.Checked = true;
         if (options.CanAutoRun)
         {
             Shown += async (_, _) =>
