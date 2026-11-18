@@ -106,7 +106,8 @@ Float on the GPU engines is a user's choice and may differ from the reference on
 
 ```mermaid
 flowchart TD
-    scans["Scans folder: every *.mcc, recursive<br/>MCCParser, MCCMeasurementMapper: a Profile per scan"] --> pair
+    scans["Scans folder: every *.mcc, recursive<br/>MCCParser, MCCMeasurementMapper: a Profile per scan"] --> check
+    check["ScanHeaderCheck: the curve against its own header<br/>(field between the penumbrae within 15 %; a photon field called open<br/>level within 3 %); a flag carried on the scan's rows, nothing else changes"] --> pair
     doses["Doses folder: RTFolderReader, headers only<br/>optional plan-label filter"] --> pair
     pair["ScanDoseMatching.Match<br/>field on the tank axes (jaws turned by the collimator, or the applicator),<br/>energy, FFF, EDW angle and IN/OUT, SSD if the plan has one"] --> unpaired["Unpaired scans, with the closest miss"]
     pair --> group["Pairs grouped by dose; doses at once:<br/>physical cores, capped by half the free memory"]
@@ -134,4 +135,9 @@ The windows' Doses vs scans tab (`ScanRows`, `ScanComparisonViewModel`, Eto `Sca
 `DSCprofiles` does. It writes the same files through the same `ProfileBatchReport` and `ProfilePlotExport`, so a row on
 screen, its plot file and its CSV line share a number. What the tab shows and what it saves are one figure, drawn by
 `ProfilePlot`. After a run, the tab hands the freed grids back to the system (`ScanRows.ReleaseGrids`).
+
+Pairing trusts the scan's header, so `ScanHeaderCheck` checks the header against the curve first (2026-11-17, after the
+Equinox "low res wedges" scans, whose headers all say open 10 x 10). A scan that disagrees is still paired and compared
+as its header says; the disagreement goes into the results' `header_check` column, the unpaired file, the tab's Header
+column and its "Header disagrees" filter.
 Core selection: [core-selection.md](core-selection.md).

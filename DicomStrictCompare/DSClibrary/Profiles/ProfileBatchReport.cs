@@ -67,6 +67,7 @@ namespace DSClibrary.Profiles
         {
             "row", "scan_file", "scan_folder", "scan_number", "curve", "depth_mm", "offaxis_crossplane_mm", "offaxis_inplane_mm",
             "beam", "detector", "dose_file", "plan_label", "beam_name", "algorithm", "grid_mm", "surface", "pairing_notes",
+            "header_check", "header_field_mm", "scan_field_mm", "scan_slope_percent",
             "normalisation", "points", "outside_grid", "analysed", "passed", "pass_rate", "mean_gamma", "max_gamma",
             "depth_shift_mm", "constancy_percent",
             "field_size_measured_mm", "field_size_calculated_mm", "cax_offset_measured_mm", "cax_offset_calculated_mm",
@@ -108,6 +109,8 @@ namespace DSClibrary.Profiles
                     grid,
                     r.Frame?.Describe(),
                     string.Join("; ", r.PairingNotes),
+                    r.HeaderCheck.Summary,
+                    N(r.HeaderCheck.HeaderFieldMm, "0.#"), N(r.HeaderCheck.MeasuredFieldMm, "0.0"), N(r.HeaderCheck.SlopePercent, "0.00"),
                     x?.Normalization.ToString(),
                     x?.Measured.Points.Count.ToString(Ci),
                     x?.PointsOutsideGrid.ToString(Ci),
@@ -138,17 +141,18 @@ namespace DSClibrary.Profiles
         private static void WriteUnpaired(string path, string scans, ProfileBatchResult result)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("scan_file,scan_number,curve,depth_mm,beam,reason");
+            sb.AppendLine("scan_file,scan_number,curve,depth_mm,beam,reason,header_check");
             foreach (var u in result.Unmatched)
                 sb.AppendLine(string.Join(",", new[]
                 {
                     Path.GetRelativePath(scans, u.Scan.File), u.Scan.ScanNumber.ToString(Ci), u.Scan.Profile.Scan.CurveType.ToString(),
-                    N(u.Scan.Profile.Scan.Depth?.Millimetres), ScanDoseMatching.FromScan(u.Scan.Profile).Setup?.ToString(), u.Reason
+                    N(u.Scan.Profile.Scan.Depth?.Millimetres), ScanDoseMatching.FromScan(u.Scan.Profile).Setup?.ToString(), u.Reason,
+                    u.HeaderCheck.Summary
                 }.Select(Csv)));
             foreach (var (p, reason) in result.UnreadableScans)
-                sb.AppendLine(string.Join(",", new[] { p, "", "", "", "", "unreadable: " + reason }.Select(Csv)));
+                sb.AppendLine(string.Join(",", new[] { p, "", "", "", "", "unreadable: " + reason, "" }.Select(Csv)));
             foreach (var (p, reason) in result.UnreadableDoses)
-                sb.AppendLine(string.Join(",", new[] { p, "", "", "", "", "unreadable dose: " + reason }.Select(Csv)));
+                sb.AppendLine(string.Join(",", new[] { p, "", "", "", "", "unreadable dose: " + reason, "" }.Select(Csv)));
             File.WriteAllText(path, sb.ToString(), new UTF8Encoding(false));
         }
 

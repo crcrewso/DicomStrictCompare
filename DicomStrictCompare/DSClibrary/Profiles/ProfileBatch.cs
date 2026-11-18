@@ -40,10 +40,18 @@ namespace DSClibrary.Profiles
         IReadOnlyList<string> PairingNotes,
         PhantomFrame? Frame,
         ProfileComparisonResult? Result,
-        string? Failure);
+        string? Failure)
+    {
+        /// <summary>The scan checked against its own header (<see cref="ScanHeaderCheck"/>); a flag, never a change to the result.</summary>
+        public ScanHeaderCheckResult HeaderCheck { get; init; } = ScanHeaderCheckResult.NotChecked;
+    }
 
     /// <summary>A scan that no dose pairs with, and the reason.</summary>
-    public sealed record UnmatchedScan(ScanRef Scan, string Reason);
+    public sealed record UnmatchedScan(ScanRef Scan, string Reason)
+    {
+        /// <summary>The scan checked against its own header: a wrong header is often why nothing pairs.</summary>
+        public ScanHeaderCheckResult HeaderCheck { get; init; } = ScanHeaderCheckResult.NotChecked;
+    }
 
     /// <summary>What a batch found.</summary>
     public sealed class ProfileBatchResult
@@ -88,15 +96,17 @@ namespace DSClibrary.Profiles
             // Pair, then group by dose so each grid is loaded once.
             var pairs = new List<(ScanRef Scan, ScanDoseCandidate Candidate)>();
             var unmatched = new List<UnmatchedScan>();
+            var checks = new Dictionary<ScanRef, ScanHeaderCheckResult>(ReferenceEqualityComparer.Instance);
             foreach (var scan in scans)
             {
+                var check = checks[scan] = ScanHeaderCheck.Check(scan.Profile);
                 if (scan.Profile.Scan.CurveType is not (CurveType.Pdd or CurveType.Crossplane or CurveType.Inplane))
                 {
-                    unmatched.Add(new UnmatchedScan(scan, $"{scan.Profile.Scan.CurveType} scans aren't compared yet"));
+                    unmatched.Add(new UnmatchedScan(scan, $"{scan.Profile.Scan.CurveType} scans aren't compared yet") { HeaderCheck = check });
                     continue;
                 }
                 var (candidates, reason) = ScanDoseMatching.Match(scan.Profile, doses);
-                if (candidates.Count == 0) unmatched.Add(new UnmatchedScan(scan, reason ?? "no dose pairs with it"));
+                if (candidates.Count == 0) unmatched.Add(new UnmatchedScan(scan, reason ?? "no dose pairs with it") { HeaderCheck = check });
                 foreach (var c in candidates) pairs.Add((scan, c));
             }
             var byDose = pairs.GroupBy(p => p.Candidate.Dose.Dose.SourcePath, StringComparer.Ordinal).ToArray();
@@ -145,7 +155,8 @@ namespace DSClibrary.Profiles
             return new ProfileBatchResult
             {
                 Rows = rows.OrderBy(r => r.Scan.File, StringComparer.Ordinal).ThenBy(r => r.Scan.ScanNumber)
-                    .ThenBy(r => r.Dose.Dose.SourcePath, StringComparer.Ordinal).ToArray(),
+                    .ThenBy(r => r.Dose.Dose.SourcePath, StringComparer.Ordinal)
+                    .Select(r => r with { HeaderCheck = checks[r.Scan] }).ToArray(),
                 Unmatched = unmatched,
                 UnreadableScans = unreadableScans,
                 UnreadableDoses = folder.Unreadable,
