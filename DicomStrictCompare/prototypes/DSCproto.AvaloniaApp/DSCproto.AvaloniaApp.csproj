@@ -16,7 +16,13 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <RootNamespace>DSCproto.AvaloniaApp</RootNamespace>
+    <!-- The stand-in icon (2026-11-17), shared with the Eto window; prototypes\Assets\Make-Icon.ps1 draws it. -->
+    <ApplicationIcon>..\Assets\dsc.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="..\Assets\dsc.ico" Link="Assets\dsc.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.5" />

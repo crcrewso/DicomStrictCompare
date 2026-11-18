@@ -15,7 +15,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DSCproto.EtoApp</RootNamespace>
+    <!-- The stand-in icon (2026-11-17), shared with the Avalonia window; prototypes\Assets\Make-Icon.ps1 draws it. -->
+    <ApplicationIcon>..\Assets\dsc.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\Assets\dsc.ico" LogicalName="DSCproto.EtoApp.dsc.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.13.0" />

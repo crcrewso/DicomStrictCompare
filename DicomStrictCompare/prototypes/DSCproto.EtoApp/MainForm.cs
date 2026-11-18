@@ -98,6 +98,7 @@ public sealed class MainForm : Form
         // The source folder is offered to the Doses vs scans tab until a doses folder is chosen there.
         _sourceFolder.TextChanged += (_, _) => _scans.OfferDosesFolder(_sourceFolder.Text);
         Title = "DicomStrictCompare - Eto.Forms prototype";
+        Icon = Icon.FromResource("DSCproto.EtoApp.dsc.ico", typeof(MainForm).Assembly);
         ClientSize = new Size(1280, 820);
         MinimumSize = new Size(900, 600);
 

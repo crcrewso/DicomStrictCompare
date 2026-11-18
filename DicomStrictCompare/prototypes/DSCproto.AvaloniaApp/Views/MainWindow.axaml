@@ -9,6 +9,7 @@
         x:Class="DSCproto.AvaloniaApp.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="DicomStrictCompare - Avalonia prototype"
+        Icon="/Assets/dsc.ico"
         Width="1280" Height="820" MinWidth="900" MinHeight="600">
 
   <!-- Compiled bindings throughout: a typo in a binding path is a build error, not a blank control. -->
