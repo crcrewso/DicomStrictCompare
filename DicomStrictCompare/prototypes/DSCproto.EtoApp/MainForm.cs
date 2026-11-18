@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using DSClibrary.Comparing;
 using DSClibrary.Matching;
+using DSClibrary.Studies;
 using DSCprototypes.Shared;
 using DSCprototypes.Shared.ViewModels;
 using Eto.Drawing;
@@ -12,7 +14,8 @@ namespace DSCproto.EtoApp;
 /// The window, written the way Eto is meant to be written: controls are fields, layout is built in
 /// code with DynamicLayout, and the form itself handles its events. There is no separate view model;
 /// the state the window needs (the last session, the criteria) is held here and the shared runner does
-/// the work on a background thread.
+/// the work on a background thread. The one exception is the Study tab, which binds to the shared
+/// <see cref="StudyViewModel"/> so that it behaves exactly as the Avalonia tab does (<see cref="StudyPage"/>).
 /// </summary>
 public sealed class MainForm : Form
 {
@@ -30,6 +33,27 @@ public sealed class MainForm : Form
             get => AppliesTo.ToString();
             set => AppliesTo = Enum.TryParse<BeamsCompared>(value, out var b) ? b : BeamsCompared.Both;
         }
+        // The grid edits text: invariant culture, and a number that doesn't parse keeps the old value (RV25).
+        public string ToleranceText { get => Say(TolerancePercent); set => TolerancePercent = Read(value, TolerancePercent, "Tol %"); }
+        public string DistanceText { get => Say(DistanceMm); set => DistanceMm = Read(value, DistanceMm, "DTA mm"); }
+        public string ThresholdText { get => Say(ThresholdPercent); set => ThresholdPercent = Read(value, ThresholdPercent, "Thr %"); }
+
+        /// <summary>Why the last edit was refused, for the status line; null when it was taken.</summary>
+        public string? Rejected { get; set; }
+
+        private double Read(string? text, double kept, string what)
+        {
+            if (double.TryParse(text?.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v))
+            {
+                Rejected = null;
+                return v;
+            }
+            Rejected = $"{what}: '{text}' is not a number (a point for decimals, as in 2.5); kept {Say(kept)}.";
+            return kept;
+        }
+
+        private static string Say(double d) => d.ToString("R", CultureInfo.InvariantCulture);
+
         public DtaSpec ToSpec() => new(TolerancePercent, DistanceMm, ThresholdPercent, Global, Gamma, AppliesTo);
         public static CriterionRow From(DtaSpec s) => new()
         {
@@ -43,8 +67,9 @@ public sealed class MainForm : Form
     private readonly TextBox _sourceAlias = new() { Text = "Reference", Width = 160 };
     private readonly TextBox _targetAlias = new() { Text = "Target", Width = 160 };
     // Each folder's algorithm, for doses whose plan label and beam name name none (crcrewso, 2026-11-16).
-    private readonly TextBox _sourceAlgorithm = new() { PlaceholderText = "if names lack it", Width = 140 };
-    private readonly TextBox _targetAlgorithm = new() { PlaceholderText = "if names lack it", Width = 140 };
+    private const string AlgorithmTip = "For doses whose plan label and beam name name no algorithm (Settings, Algorithm names). AAA pairs only with AAA; unknown only with unknown.";
+    private readonly TextBox _sourceAlgorithm = new() { PlaceholderText = "if names lack it", Width = 140, ToolTip = AlgorithmTip };
+    private readonly TextBox _targetAlgorithm = new() { PlaceholderText = "if names lack it", Width = 140, ToolTip = AlgorithmTip };
     private readonly TextBox _algorithmNames = new() { Text = AlgorithmTokens.Default.ToString(), Width = 420,
         ToolTip = "Algorithm = token, token; ... Tokens are matched anywhere in a name, ignoring case." };
     private readonly RadioButtonList _strategy = new()
@@ -55,7 +80,8 @@ public sealed class MainForm : Form
     };
 
     private readonly ObservableCollection<CriterionRow> _criteria = new();
-    private readonly GridView _criteriaGrid = new() { Height = 200 };
+    // One criteria list, shown beside both Doses vs doses and Study: a grid and a Max dropdown in each, kept in step.
+    private readonly List<GridView> _criteriaGrids = new();
     private readonly ObservableCollection<ResultRow> _rows = new();
     private readonly GridView _resultsGrid = new();
     private readonly ListBox _unmatched = new();
@@ -71,12 +97,17 @@ public sealed class MainForm : Form
     private CancellationTokenSource? _cancelSource;
     private readonly GraphPage _graphs;
     private readonly ScanPage _scans;
+    // The Study tab binds to the shared view model, so it behaves as Avalonia's does; criteria and settings come from here.
+    private readonly StudyViewModel _study;
+    private readonly StudyPage _studyPage;
+    private TabPage? _scansTab;
     private readonly TabControl _tabs = new();
     // Two comparisons with nothing in common but the doses (crcrewso, 2026-11-17): each tab its own inputs, run and results.
     private readonly TabControl _workflows = new();
 
     // Kept with a comparison, because they can change results: Max and GPU float.
     private readonly DropDown _maximum = new() { ToolTip = HelpText.Maximum };
+    private readonly DropDown _studyMaximum = new() { ToolTip = HelpText.Maximum };
     private readonly CheckBox _gpuFloat = new() { Text = HelpText.GpuFloatLabel, ToolTip = HelpText.GpuFloat };
 
     // This machine's settings (MachineSettings, kept in its file and saved as they change). None changes a count.
@@ -95,17 +126,22 @@ public sealed class MainForm : Form
     {
         _graphs = new GraphPage(ComparisonRunner.LoadGrid, () => (_sourceAlias.Text, _targetAlias.Text));
         _scans = new ScanPage(PickFolder);
+        _study = new StudyViewModel((title, start) => Task.FromResult(PickFolder(title, start)),
+            () => _criteria.Select(c => c.ToSpec()).ToList(), runSettings: RunSettings, applyRunSettings: ApplyRunSettings,
+            algorithms: ParsedAlgorithmNames);
+        _studyPage = new StudyPage(_study);
         // The source folder is offered to the Doses vs scans tab until a doses folder is chosen there.
         _sourceFolder.TextChanged += (_, _) => _scans.OfferDosesFolder(_sourceFolder.Text);
         Title = "DicomStrictCompare - Eto.Forms prototype";
-        Icon = Icon.FromResource("DSCproto.EtoApp.dsc.ico", typeof(MainForm).Assembly);
+        // GTK's pixbuf loader refuses the icon's PNG-compressed sizes ("Compressed icons are not supported"), which ended
+        // the app at start on Linux; without the icon the window still opens.
+        try { Icon = Icon.FromResource("DSCproto.EtoApp.dsc.ico", typeof(MainForm).Assembly); }
+        catch (Exception) { }
         ClientSize = new Size(1280, 820);
         MinimumSize = new Size(900, 600);
 
         foreach (var d in DtaSpec.Defaults) _criteria.Add(CriterionRow.From(d));
-        BuildCriteriaGrid();
         BuildResultsGrid();
-        GridCopy.Attach(_criteriaGrid);
         GridCopy.Attach(_resultsGrid);
         WireEvents();
         BuildSettings();
@@ -139,16 +175,7 @@ public sealed class MainForm : Form
         layout.EndHorizontal();
         layout.EndVertical();
 
-        var criteriaPanel = new DynamicLayout { DefaultSpacing = new Size(8, 6) };
-        criteriaPanel.AddRow(new Label { Text = "Criteria", Font = SystemFonts.Bold() });
-        criteriaPanel.AddRow(_criteriaGrid);
-        var add = new Button { Text = "Add" };
-        var remove = new Button { Text = "Remove" };
-        add.Click += (_, _) => _criteria.Add(new CriterionRow());
-        remove.Click += (_, _) => { if (_criteriaGrid.SelectedItem is CriterionRow r) _criteria.Remove(r); };
-        criteriaPanel.AddRow(new TableLayout(add, remove, null));
-        criteriaPanel.AddRow(new TableLayout(new TableRow(new Label { Text = "Max", VerticalAlignment = VerticalAlignment.Center }, _maximum, null)));
-        criteriaPanel.Add(null, yscale: true);
+        var criteriaPanel = CriteriaPanel("Criteria (the Study tab uses this list too)", _maximum, line => _status.Text = line);
 
         var tabs = _tabs;
         tabs.Pages.Add(new TabPage(_resultsGrid) { Text = "Results" });
@@ -187,7 +214,9 @@ public sealed class MainForm : Form
         layout.EndVertical();
 
         _workflows.Pages.Add(new TabPage(layout) { Text = "Doses vs doses" });
-        _workflows.Pages.Add(new TabPage(_scans) { Text = "Doses vs scans" });
+        _workflows.Pages.Add(StudyTab());
+        _scansTab = new TabPage(_scans) { Text = "Doses vs scans" };
+        _workflows.Pages.Add(_scansTab);
         // This machine's settings serve every tab that compares doses, so they have a top tab of their own (2026-11-17).
         _workflows.Pages.Add(SettingsPage());
         Content = _workflows;
@@ -229,7 +258,7 @@ public sealed class MainForm : Form
     private async Task ApplyScansAsync(LaunchOptions options)
     {
         if (options.ScanFolder is null) return;
-        _workflows.SelectedIndex = 1;
+        _workflows.SelectedPage = _scansTab;
         await _scans.ApplyAsync(options);
     }
 
@@ -269,35 +298,86 @@ public sealed class MainForm : Form
         return button;
     }
 
-    private void BuildCriteriaGrid()
+    /// <summary>The Study tab: the criteria list on the left, as on Doses vs doses, and the study's own tabs on the right.</summary>
+    private TabPage StudyTab()
     {
-        _criteriaGrid.DataStore = _criteria;
-        _criteriaGrid.Columns.Add(new GridColumn
+        var splitter = new Splitter
+        {
+            Orientation = Orientation.Horizontal,
+            Position = 340,
+            FixedPanel = SplitterFixedPanel.Panel1,
+            Panel1 = CriteriaPanel("Criteria (the Doses vs doses tab uses this list too)", _studyMaximum, line => _study.Status = line),
+            Panel2 = _studyPage,
+        };
+        return new TabPage(splitter) { Text = "Study", Padding = new Padding(12) };
+    }
+
+    /// <summary>
+    /// The criteria list with Add, Remove and Max, for one tab. Both tabs' grids show the one list; an edit in either is
+    /// redrawn in the other, and the two Max dropdowns follow each other.
+    /// </summary>
+    private Control CriteriaPanel(string title, DropDown maximum, Action<string> say)
+    {
+        var grid = new GridView { Height = 200 };
+        BuildCriteriaGrid(grid);
+        GridCopy.Attach(grid);
+        _criteriaGrids.Add(grid);
+        grid.CellEdited += (_, e) =>
+        {
+            if (e.Item is CriterionRow { Rejected: { } why } row)
+            {
+                row.Rejected = null;
+                say(why);
+            }
+            // Redrawn after the edit closes, so a refused number shows the value kept.
+            Application.Instance.AsyncInvoke(() =>
+            {
+                foreach (var g in _criteriaGrids) if (e.Row >= 0 && e.Row < _criteria.Count) g.ReloadData(e.Row);
+            });
+        };
+
+        var panel = new DynamicLayout { DefaultSpacing = new Size(8, 6) };
+        panel.AddRow(new Label { Text = title, Font = SystemFonts.Bold(), Wrap = WrapMode.Word });
+        panel.AddRow(grid);
+        var add = new Button { Text = "Add" };
+        var remove = new Button { Text = "Remove" };
+        add.Click += (_, _) => _criteria.Add(new CriterionRow());
+        remove.Click += (_, _) => { if (grid.SelectedItem is CriterionRow r) _criteria.Remove(r); };
+        panel.AddRow(new TableLayout(add, remove, null));
+        panel.AddRow(new TableLayout(new TableRow(new Label { Text = "Max", VerticalAlignment = VerticalAlignment.Center, ToolTip = HelpText.Maximum }, maximum, null)));
+        panel.Add(null, yscale: true);
+        return panel;
+    }
+
+    private void BuildCriteriaGrid(GridView grid)
+    {
+        grid.DataStore = _criteria;
+        grid.Columns.Add(new GridColumn
         {
             HeaderText = "Tol %", HeaderToolTip = HelpText.Tolerance, Editable = true, Width = 70,
-            DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, double>(r => r.TolerancePercent).Convert(d => d.ToString("0.##"), s => double.TryParse(s, out var v) ? v : 0) },
+            DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, string>(r => r.ToleranceText) },
         });
-        _criteriaGrid.Columns.Add(new GridColumn
+        grid.Columns.Add(new GridColumn
         {
             HeaderText = "DTA mm", HeaderToolTip = HelpText.Distance, Editable = true, Width = 70,
-            DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, double>(r => r.DistanceMm).Convert(d => d.ToString("0.##"), s => double.TryParse(s, out var v) ? v : 0) },
+            DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, string>(r => r.DistanceText) },
         });
-        _criteriaGrid.Columns.Add(new GridColumn
+        grid.Columns.Add(new GridColumn
         {
             HeaderText = "Thr %", HeaderToolTip = HelpText.Threshold, Editable = true, Width = 70,
-            DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, double>(r => r.ThresholdPercent).Convert(d => d.ToString("0.##"), s => double.TryParse(s, out var v) ? v : 0) },
+            DataCell = new TextBoxCell { Binding = Binding.Property<CriterionRow, string>(r => r.ThresholdText) },
         });
-        _criteriaGrid.Columns.Add(new GridColumn
+        grid.Columns.Add(new GridColumn
         {
             HeaderText = "Global", HeaderToolTip = HelpText.Global, Editable = true, Width = 60,
             DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Global) },
         });
-        _criteriaGrid.Columns.Add(new GridColumn
+        grid.Columns.Add(new GridColumn
         {
             HeaderText = "Gamma", HeaderToolTip = HelpText.Gamma, Editable = true, Width = 60,
             DataCell = new CheckBoxCell { Binding = Binding.Property<CriterionRow, bool?>(r => r.Gamma) },
         });
-        _criteriaGrid.Columns.Add(new GridColumn
+        grid.Columns.Add(new GridColumn
         {
             HeaderText = "Applies to", HeaderToolTip = HelpText.AppliesTo, Editable = true, Width = 90,
             DataCell = new ComboBoxCell
@@ -319,6 +399,8 @@ public sealed class MainForm : Form
         _resultsGrid.Columns.Add(Col("Key", HelpText.Key, r => r.Key, 320));
         _resultsGrid.Columns.Add(Col("Criterion", HelpText.Criterion, r => r.Criterion.Label, 180));
         _resultsGrid.Columns.Add(Col("Ambiguous", HelpText.Ambiguous, r => r.WorstOf, 90));
+        _resultsGrid.Columns.Add(Col("Max used", HelpText.MaximumUsed, r => r.MaximumUsed ?? "", 140));
+        _resultsGrid.Columns.Add(Col("Edge check", HelpText.EdgeCheck, r => r.EdgeCheck, 120));
         _resultsGrid.Columns.Add(Col("Compared", HelpText.Compared, r => r.Compared.ToString("N0")));
         _resultsGrid.Columns.Add(Col("Failed", HelpText.Failed, r => r.Failed.ToString("N0")));
         _resultsGrid.Columns.Add(Col("% failed", HelpText.PercentFailed, r => r.PercentFailed is { } p ? p.ToString("0.000") : ""));
@@ -340,8 +422,10 @@ public sealed class MainForm : Form
 
     private void BuildSettings()
     {
-        foreach (var m in Enum.GetValues<MaximumKind>()) _maximum.Items.Add(m.ToString());
-        _maximum.SelectedIndex = 0;
+        foreach (var m in Enum.GetValues<MaximumKind>()) { _maximum.Items.Add(m.ToString()); _studyMaximum.Items.Add(m.ToString()); }
+        _maximum.SelectedIndex = _studyMaximum.SelectedIndex = 0;
+        _maximum.SelectedIndexChanged += (_, _) => { if (_studyMaximum.SelectedIndex != _maximum.SelectedIndex) _studyMaximum.SelectedIndex = _maximum.SelectedIndex; };
+        _studyMaximum.SelectedIndexChanged += (_, _) => { if (_maximum.SelectedIndex != _studyMaximum.SelectedIndex) _maximum.SelectedIndex = _studyMaximum.SelectedIndex; };
         foreach (var e in EngineChoice.All) _engine.Items.Add(e.Label);
         foreach (int n in _threadCounts) _threads.Items.Add(n == CpuTopology.PhysicalCores ? $"{n} (recommended)" : n.ToString());
 
@@ -391,6 +475,17 @@ public sealed class MainForm : Form
             PairsHeld = Math.Max(1, (int)_pairsHeld.Value),
             AlgorithmTokens = _algorithmNames.Text == AlgorithmTokens.Default.ToString() ? null : _algorithmNames.Text,
         };
+    }
+
+    /// <summary>The machine settings with the comparison's Max and GPU precision; what both runs and a saved study use.</summary>
+    private StudyRunSettings RunSettings() => CurrentSettings().ToRun(Enum.GetValues<MaximumKind>()[Math.Max(0, _maximum.SelectedIndex)],
+        _gpuFloat.Checked == true ? GpuPrecision.Float : GpuPrecision.Double);
+
+    /// <summary>What an opened study decides: Max and GPU precision. The machine settings stay this machine's.</summary>
+    private void ApplyRunSettings(StudyRunSettings run)
+    {
+        _maximum.SelectedIndex = Array.IndexOf(Enum.GetValues<MaximumKind>(), run.Maximum);
+        _gpuFloat.Checked = run.ComparerOrDefault.Precision == GpuPrecision.Float;
     }
 
     private void SaveSettings()
@@ -448,8 +543,7 @@ public sealed class MainForm : Form
         _cancelSource = new CancellationTokenSource();
 
         var strategy = MatchModes.Window[Math.Max(0, _strategy.SelectedIndex)].Strategy;
-        var run = CurrentSettings().ToRun(Enum.GetValues<MaximumKind>()[Math.Max(0, _maximum.SelectedIndex)],
-            _gpuFloat.Checked == true ? GpuPrecision.Float : GpuPrecision.Double);
+        var run = RunSettings();
         var request = new ComparisonRequest(
             _sourceFolder.Text, _targetFolder.Text, _sourceAlias.Text, _targetAlias.Text,
             _criteria.Select(c => c.ToSpec()).ToList(), strategy,

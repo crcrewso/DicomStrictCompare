@@ -1,7 +1,9 @@
 # Notes for an Eto version of the Study screens
 
-**Status:** notes kept while the Avalonia Study tab is built (crcrewso, 2026-11-14: "Avalonia is fine, carry on, but
-keep notes to aide a possible Eto solution"). Nothing here is built. Companion to `comparison-studies.md`.
+**Status:** built 2026-11-18. The Eto window has a Study tab (`DSCproto.EtoApp/StudyPage.cs`) bound to
+`StudyViewModel` (approach 2 below), and the other gaps listed here are closed; see the log. The notes were kept while
+the Avalonia Study tab was built (crcrewso, 2026-11-14: "Avalonia is fine, carry on, but keep notes to aide a possible
+Eto solution"). Companion to `comparison-studies.md`.
 
 ## What an Eto Study page can reuse unchanged
 
@@ -37,6 +39,17 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
    *Inferred, not tried:* Eto's binding needs each property wired by hand, `Binding.Property(…)` per control, so
    the saving is in behaviour rather than in lines.
 
+   **Chosen (2026-11-18): 2.** The Study tab is the one place the Eto window binds to a view model. Sharing
+   `StudyViewModel` keeps the coordination (index rebuilds, curve load sequence, preview versus run) in one tested
+   place, so the two windows can't drift. What it took in Eto:
+   - Buttons take the view model's commands (`Button.Command`), which also enables and disables them.
+   - Text boxes and labels: `TextBinding.Bind(Binding.Property(vm, v => v.X))`.
+   - Dropdowns: a small two-way helper (`StudyPage.Choice`), because the lists change under them.
+   - A `GridView` doesn't watch its items' `PropertyChanged`, so `StudyPage.Follow` redraws a row when its view model
+     changes (Browse, the AAA / AXB rule).
+   - The criteria list and Max are the form's: each tab has its own grid and Max dropdown over the one list, an edit
+     in one grid is redrawn in the other, and the two dropdowns follow each other.
+
 ## Mapping the Avalonia tab to Eto controls
 
 | Avalonia (MainWindow.axaml, Study tab) | Eto equivalent | Notes |
@@ -59,10 +72,9 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
   and marshal progress the way `MainForm.cs` does: `new Progress<string>(line => Application.Instance.Invoke(...))`.
 - **The Eto Windows target** (`net10.0-windows`, WPF) only builds on Windows. The `net10.0` target (Gtk) builds
   on Linux, and was checked to build after the study work (2026-11-14).
-- **The Graphs tab's depths are now a setting.** `GraphViewModel.DepthsText`, with `DepthChoices` an
-  `ObservableCollection` rebuilt from it. The Eto `GraphPage` still uses `BeamLines.FixedDepths` directly. To
-  match, give it a text box and call `BeamLines.ProfilesAtAllDepths(lp, kind, depths)`, the overload that takes a
-  depth list.
+- **The Graphs tab's depths are a setting.** `GraphViewModel.DepthsText`, with `DepthChoices` an
+  `ObservableCollection` rebuilt from it. The Eto `GraphPage` has the same "Depths offered" box (2026-11-18) and calls
+  `BeamLines.ProfilesAtAllDepths(lp, kind, depths)`, the overload that takes a depth list.
 
 ## The Max setting and the comparers (2026-11-15)
 
@@ -94,3 +106,12 @@ without the view model: rules as `pattern -> replacement; …`, overrides as `so
 - 2026-11-15: "Applies to" added to both criteria grids. The runners now load each pair once for all criteria
   (`BatchComparer.CompareMany`); rows still come out criterion by criterion.
 - 2026-11-15: the reading settings (target box only, readers, held) added to the Avalonia window. Eto needs them.
+- 2026-11-18: built in the Eto window. A Study tab (Setup, Pairing, Results, Index tables, Curves, Log) bound to
+  `StudyViewModel`, with the criteria list beside it as in Avalonia; checked under Xvfb on the unit-test doses (two sets
+  in one folder, by plan filter): pairing, 6 result rows, an index table and the curves. Also: "Max used" and "Edge
+  check" on the Doses vs doses results; the Graphs tab's "Depths offered" box; the algorithm boxes' hover text. Max,
+  engine, GPU float, threads, pairs at once, target box only, readers, held and algorithm names were already there.
+  Neither window has a GPU device control (`MachineSettings.Device` is file-only). Criterion numbers are now read in
+  the invariant culture, and one that doesn't parse keeps the old value and says so on the status line (RV25; it used
+  to become 0, and "2,5" became 25 on en-US). The window icon failed to load under GTK ("Compressed icons are not
+  supported") and ended the app at start on Linux; it is now skipped when it can't be loaded.

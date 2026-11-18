@@ -1,4 +1,5 @@
 using DSClibrary;
+using DSClibrary.Studies;
 using DSCprototypes.Shared;
 using DSCprototypes.Shared.Graphs;
 using DSCprototypes.Shared.ViewModels;
@@ -11,9 +12,9 @@ namespace DSCproto.EtoApp;
 /// <summary>
 /// The Graphs tab, Eto style: controls are fields, state lives in the panel, and the shared catalogue
 /// and beam-line helpers do the thinking. Dose versus dose over the run's matched pairs (crcrewso,
-/// 2026-11-09): depth dose, or a crossplane or inplane profile at dmax, 5, 10 or 20 cm or all four on one
-/// plot. Grids load on a worker and the last pair is kept. Water-tank scans have their own tab since
-/// 2026-11-17 (<see cref="ScanPage"/>).
+/// 2026-11-09): depth dose, or a crossplane or inplane profile at one of the depths offered (a setting, as on the
+/// Avalonia tab) or all of them on one plot. Grids load on a worker and the last pair is kept. Water-tank scans
+/// have their own tab since 2026-11-17 (<see cref="ScanPage"/>).
 /// </summary>
 public sealed class GraphPage : Panel
 {
@@ -27,6 +28,8 @@ public sealed class GraphPage : Panel
     private readonly DropDown _kind = new() { Width = 150 };
     private readonly DropDown _depth = new() { Width = 130, Enabled = false };
     private readonly Label _depthText = new() { Width = 160, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBox _depthsOffered = new() { Text = DepthSettings.Default.ToString(), Width = 220,
+        ToolTip = "For example: dmax, 15, 50, 100, 200, 300 mm (cm also accepted)" };
 
     private readonly ScottPlot.Eto.EtoPlot _plot = new();
     private readonly Label _status = new() { Text = "Run a comparison, then choose a beam.", Wrap = WrapMode.Word };
@@ -37,8 +40,9 @@ public sealed class GraphPage : Panel
     private int _loadSequence;
     private bool _refilling;
 
-    private static readonly DepthChoice[] DepthChoices = BeamLines.FixedDepths.Select(d => new DepthChoice(d.Label, d.Mm))
-        .Append(new DepthChoice("All depths", null, All: true)).ToArray();
+    // Built from the depths offered, as GraphViewModel builds them: dmax first when it is on, then each depth, then all.
+    private DepthChoice[] _depthChoices = Array.Empty<DepthChoice>();
+    private IReadOnlyList<(string Label, double? Mm)> _depthList = BeamLines.FixedDepths;
 
     public GraphPage(Func<string, DoseMatrixOptimal> loader, Func<(string Source, string Target)> aliases)
     {
@@ -47,8 +51,8 @@ public sealed class GraphPage : Panel
 
         _kind.DataStore = new object[] { CurveKind.DepthDose, CurveKind.Crossplane, CurveKind.Inplane };
         _kind.SelectedIndex = 0;
-        _depth.DataStore = DepthChoices;
-        _depth.SelectedIndex = 0;   // dmax is the default (crcrewso, 2026-11-09)
+        RebuildDepthChoices();   // dmax is the default (crcrewso, 2026-11-09)
+        _depthsOffered.TextChanged += (_, _) => RebuildDepthChoices();
         _beam.ItemTextBinding = Binding.Property((BeamDescriptor b) => b.Label);
 
         _energy.SelectedIndexChanged += (_, _) => Refilter();
@@ -64,7 +68,7 @@ public sealed class GraphPage : Panel
         layout.AddRow(Caption("Energy"), _energy, Caption("Field size"), _fieldSize, Caption("Beam"), _beam, _busy, null);
         layout.EndVertical();
         layout.BeginVertical();
-        layout.AddRow(Caption("Curve"), _kind, Caption("Depth"), _depth, _depthText, null);
+        layout.AddRow(Caption("Curve"), _kind, Caption("Depth"), _depth, _depthText, Caption("Depths offered"), _depthsOffered, null);
         layout.EndVertical();
         layout.BeginVertical(yscale: true);
         layout.Add(_plot, xscale: true, yscale: true);
@@ -88,13 +92,33 @@ public sealed class GraphPage : Panel
             _kind.SelectedIndex = Array.IndexOf(new[] { CurveKind.DepthDose, CurveKind.Crossplane, CurveKind.Inplane }, kind);
         if (options.Depth is { } d)
         {
-            int i = Array.FindIndex(DepthChoices, x => x.Label.StartsWith(d.Trim(), StringComparison.OrdinalIgnoreCase));
+            int i = Array.FindIndex(_depthChoices, x => x.Label.StartsWith(d.Trim(), StringComparison.OrdinalIgnoreCase));
             if (i >= 0) _depth.SelectedIndex = i;
         }
     }
 
     private CurveKind Kind => _kind.SelectedValue is CurveKind k ? k : CurveKind.DepthDose;
-    private DepthChoice Depth => _depth.SelectedValue as DepthChoice ?? DepthChoices[0];
+    private DepthChoice Depth => _depth.SelectedValue as DepthChoice ?? _depthChoices[0];
+
+    /// <summary>The depth list from the text, keeping the chosen depth by its label; text that doesn't parse says why.</summary>
+    private void RebuildDepthChoices()
+    {
+        DepthSettings settings;
+        try { settings = DepthSettings.Parse(_depthsOffered.Text); }
+        catch (FormatException ex) { _status.Text = ex.Message; return; }
+
+        var list = new List<(string Label, double? Mm)>();
+        if (settings.IncludeDmax) list.Add(("Dmax", null));
+        // Whole centimetres keep the labels the tab has always shown ("10 cm"); anything else is in mm.
+        list.AddRange(settings.DepthsMm.Select(d => (d % 10 == 0 ? $"{d / 10:0} cm" : $"{d:0.#} mm", (double?)d)));
+        _depthList = list;
+
+        string? previous = (_depth.SelectedValue as DepthChoice)?.Label;
+        _depthChoices = list.Select(d => new DepthChoice(d.Label, d.Mm)).Append(new DepthChoice("All depths", null, All: true)).ToArray();
+        _depth.DataStore = _depthChoices;
+        _depth.SelectedIndex = Math.Max(0, Array.FindIndex(_depthChoices, c => c.Label == previous));
+        Redraw();
+    }
 
     /// <summary>Rebuilds the filters from a finished run, or empties them for null.</summary>
     public void SetSession(ComparisonSession? session)
@@ -185,9 +209,9 @@ public sealed class GraphPage : Panel
         if (_loaded is null) { Draw(null); return; }
         double dmax = BeamLines.DepthOfMaximum(_loaded);
         double depth = Depth.Mm ?? dmax;
-        _depthText.Text = Kind == CurveKind.DepthDose ? "" : Depth.All ? $"dmax {dmax:0.#}, 50, 100, 200 mm" : Depth.Mm is null ? $"dmax = {depth:0.#} mm" : $"{depth:0.#} mm";
+        _depthText.Text = Kind == CurveKind.DepthDose ? "" : Depth.All ? _depthsOffered.Text : Depth.Mm is null ? $"dmax = {depth:0.#} mm" : $"{depth:0.#} mm";
         Draw(Depth.All && Kind != CurveKind.DepthDose
-            ? BeamLines.ProfilesAtAllDepths(_loaded, Kind)
+            ? BeamLines.ProfilesAtAllDepths(_loaded, Kind, _depthList)
             : new[] { BeamLines.ProfileAt(_loaded, Kind, depth) });
     }
 
