@@ -163,6 +163,27 @@ point whose search can't reach any evaluation point is not analysed, as in pymed
 
 Click the introduction text in the app for the same definitions.
 
+**The windows start with** 0.1 %/0 mm global, 3 %/2 mm local, and 3 %/2 mm global gamma, all with a 10 % threshold,
+and **Max** set to CAX Max (crcrewso, 2026-11-18). CAX Max falls back to the global maximum where the jaws aren't on
+the axis. A study file that doesn't state its run settings still opens as Global Max.
+
+### The difference viewer (prototype)
+
+Shows where two doses disagree, in 3D. It's in both windows: the **Viewer** tab, **View difference** on a result
+row's right-click menu (that pair at the row's criterion), or `--viewer SOURCE TARGET` on the command line.
+
+- **The maps:** gamma (capped at 3) and the signed difference (target minus source, % of the source maximum), on
+  the source grid, with the source dose underneath. Written as NIfTI, a format most medical imaging tools read.
+- **The frame is the beam's:** x along the collimator-0 X jaws, y along the Y jaws, z along the beam axis toward
+  the source. The origin is the isocentre for an arc and the phantom's centre for a static gantry. Head first
+  supine at couch 0 only; anything else is refused.
+- **Shown by [NiiVue](https://github.com/niivue/niivue)** (BSD-2, bundled) in the window's web view: linked slices
+  and a 3D render. **Threshold** hides values whose size is below it (at 1: gamma under 1, and differences between
+  −1 % and +1 %). **Cut** removes everything on one side of a plane through the crosshair. A click reads out the
+  position, dose, gamma and difference. **Open in browser** shows the same page in the system browser.
+- The page is served from this computer only (127.0.0.1); nothing leaves it.
+- Details and checks: `design/difference-viewer.md`.
+
 ### Water-tank scans against a calculated dose (prototype)
 
 `tools/DSCprofiles` compares PTW water-tank scans (`.mcc`) with RT Doses, so commissioning measurements can be
@@ -271,13 +292,14 @@ dotnet run --project DicomStrictCompare/tools/DSCprofiles -- <scansDir> <dosesDi
 
 ## Requirements
 
-- The comparison library (`DSClibrary`) and its tests run on Windows, Linux and macOS.
-- The current GUI is Windows Forms, so it needs Windows 10 or later. It is due to be replaced by a
-  cross-platform front end.
-- [.NET 8 SDK](https://dotnet.microsoft.com/) to build, or Visual Studio 2022.
+- The comparison library (`DSClibrary`), its tests and both windows run on Windows, Linux and macOS.
+- [.NET 10 SDK](https://dotnet.microsoft.com/) to build.
 - NuGet packages restored automatically on build, including
-  [EvilDICOM](http://rexcardan.github.io/Evil-DICOM/) for reading DICOM, MathNet.Numerics, ScottPlot
-  for the plots, and [ILGPU](https://ilgpu.net/) and Silk.NET.OpenCL for the GPU engines.
+  [EvilDICOM](http://rexcardan.github.io/Evil-DICOM/) (dose grids and headers are now read by the library's own
+  reader), MathNet.Numerics, ScottPlot for the plots, [ILGPU](https://ilgpu.net/) and Silk.NET.OpenCL for the GPU
+  engines, and Avalonia 12 or Eto.Forms 2.13 for the windows.
+- **For the difference viewer:** a web view with WebGL2. Windows has WebView2. On Linux, WebKitGTK
+  (`libwebkit2gtk-4.0` for Eto; the Avalonia window sets `GDK_BACKEND=x11` so GTK can embed it).
 - **For the GPU engines only:** an OpenCL driver for the GPU. On Windows it comes with the graphics driver. On
   Linux the vendor's OpenCL package is needed (for example `intel-opencl-icd`).
 
@@ -289,16 +311,21 @@ From the repository root:
 # Library tests (any OS)
 dotnet test DicomStrictCompare/DSClibraryTests/DSClibraryTests.csproj
 
-# The front-end prototypes (any OS); Avalonia is the one in use
+# The two windows (any OS), at parity since 2026-11-18
 dotnet run --project DicomStrictCompare/prototypes/DSCproto.AvaloniaApp
+dotnet run --project DicomStrictCompare/prototypes/DSCproto.EtoApp -f net10.0   # net10.0-windows for WPF on Windows
 ```
+
+Both take the same command line, so a run can be repeated from a script: `--source DIR --target DIR`, `--run`,
+`--export DIR`, `--gamma`, `--gpu-float`, `--scans DIR`, `--viewer SOURCE TARGET` and others
+(`prototypes/DSCprototypes.Shared/LaunchOptions.cs` lists them).
 
 `DSClibraryTests/ComparisonRulesTests.cs` checks each comparison rule above on small synthetic grids.
 Several older tests are still placeholders that call `Assert.Fail()`, and three tests that compare
 against Sun Nuclear results do not pass yet.
 
-The projects are configured for the x64 platform. `DicomStrictCompare/prototypes/Prototypes.slnx` holds every
-project in use. The old Windows Forms GUI, `DSCcore`, is no longer built or maintained.
+`DicomStrictCompare/prototypes/Prototypes.slnx` holds every project in use. The old Windows Forms GUI, `DSCcore`, is
+no longer built or maintained.
 
 The tests use real RT Dose and RT Plan files of a test phantom, stored in
 `DSClibraryTests/Resources/` and `DSCcoreTest/Resources/` and embedded into the test assemblies. These
@@ -306,20 +333,15 @@ make the repository large (around 1.5 GB as a clone).
 
 ## Using it
 
-1. Click **Source** and **Target** to choose the two folders. The app shows how many dose files it
-   found in each.
-2. Optionally change the **Source Label** and **Target Label** used in the output, and choose a
-   **Save Location** and **Save Name**.
-3. Add one or more rows of criteria (Tolerance, DTA, Threshold, Global?, Trim) with **Add**.
-4. Tick **Produce Dose Comparison table** and/or **Produce PDD comparison Plots**.
-5. Click **Run**. Progress appears in the status line.
+The Avalonia and Eto windows have the same tabs:
 
-### Output
-
-- `<Save Name>.csv` in the save location: one row per matched dose pair, with columns for each set of
-  criteria.
-- `<Save Name>-errors.txt`: target dose files that had no matching source dose.
-- PNG plots of the source and target depth-dose curves, if requested.
+- **Doses vs doses:** choose the **Source** and **Target** folders, edit the criteria, and **Run**. Results,
+  unmatched doses, a log and graphs appear in the tabs beside them. **Export** writes the results as CSV.
+- **Study:** several dose sets and the comparisons between them, saved as a study file; pairing preview, results,
+  index tables and curves.
+- **Doses vs scans:** calculated doses against water-tank scans (above).
+- **Viewer:** the difference viewer (above).
+- **Settings:** this machine's engine, threads and reading, kept per machine rather than in a study.
 
 ## Repository layout
 
@@ -333,6 +355,8 @@ DicomStrictCompare/
   DSClibraryTests/  MSTest tests for the library (with test DICOM data and a PTW water tank scan)
   tools/            command-line tools: DSCresample (resampling), DSCprofiles (water-tank scans against doses)
   DSCplots/         figures of the library's results (ScottPlot 5), shared by the windows and the tools
+  prototypes/       the two windows (DSCproto.AvaloniaApp, DSCproto.EtoApp), their shared view models and runners
+                    (DSCprototypes.Shared, including Viewer/ with the bundled NiiVue), and their tests
 design/             Design notes, and the data-flow diagrams (data-flow.md)
 docs/               Generated DocFX API documentation (HTML)
 ```
@@ -347,4 +371,5 @@ The most recent change was in October 2024. A Python, cross-platform reimplement
 
 DicomStrictCompare is distributed under the GNU Lesser General Public License v3.0; see
 [`LICENSE`](LICENSE). It uses [EvilDICOM](https://github.com/rexcardan/Evil-DICOM), which has its own
-licence.
+licence. The difference viewer bundles NiiVue 0.69.0 (BSD 2-Clause;
+`prototypes/DSCprototypes.Shared/Viewer/assets/NIIVUE-LICENSE.txt`).
