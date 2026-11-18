@@ -14,6 +14,11 @@
   <!-- Compiled bindings throughout: a typo in a binding path is a build error, not a blank control. -->
 
   <Window.Styles>
+    <!-- Every table's columns can be widened or narrowed by dragging a heading's edge (crcrewso, 2026-11-17); the
+         DataGrid default is fixed. -->
+    <Style Selector="DataGrid">
+      <Setter Property="CanUserResizeColumns" Value="True"/>
+    </Style>
     <!-- The splitters between panels. Avalonia's default template is transparent, so the grab area was an invisible
          8 px gap (crcrewso, 2026-11-09: "is there a way to make the part one can grab visible"). A light bar with a
          grip in the middle, the usual sash look. -->
@@ -517,6 +522,10 @@
         <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding PairsHeld}" Width="60" HorizontalAlignment="Left"
                  ToolTip.Tip="{x:Static shared:HelpText.Held}"/>
       </Grid>
+      <!-- GPU float, moved here from beside Max (crcrewso, 2026-11-17). Still a study setting: it can change counts. -->
+      <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="Graphics-card precision"/>
+      <TextBlock TextWrapping="Wrap" Text="{x:Static shared:HelpText.GpuFloatSection}"/>
+      <CheckBox Content="{x:Static shared:HelpText.GpuFloatLabel}" IsChecked="{Binding GpuFloat}" ToolTip.Tip="{x:Static shared:HelpText.GpuFloat}"/>
       <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="Pairing"/>
       <TextBlock TextWrapping="Wrap" Text="Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none."/>
       <Grid ColumnDefinitions="160,*" ColumnSpacing="0">

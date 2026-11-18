@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        GridCopy.Attach(this);
         DataContextChanged += (_, _) => AttachGraph();
     }
 

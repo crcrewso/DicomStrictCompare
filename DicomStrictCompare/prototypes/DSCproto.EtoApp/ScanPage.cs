@@ -172,6 +172,7 @@ public sealed class ScanPage : Panel
             HeaderText = header, HeaderToolTip = tip, Width = width,
             DataCell = new TextBoxCell { Binding = Binding.Delegate(get) },
         };
+        GridCopy.Attach(_grid);
         _grid.Columns.Add(Col("Row", r => r.Row.ToString(System.Globalization.CultureInfo.InvariantCulture), 50));
         _grid.Columns.Add(Col("Scan", r => r.Scan, 260));
         _grid.Columns.Add(Col("Curve", r => r.Curve, 80));

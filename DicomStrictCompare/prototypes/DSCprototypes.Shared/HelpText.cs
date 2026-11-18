@@ -62,9 +62,15 @@ public static class HelpText
         + "voxels; used only when the source plan's jaws put the central axis inside a roughly centred field, at gantry and "
         + "couch 0, otherwise GlobalMax. Each result row says which was used.";
     public const string GpuFloat =
-        "For the graphics-card engines only (Settings, Engine). Many graphics cards run double precision far slower than "
+        "For the graphics-card engines only (Engine, above). Many graphics cards run double precision far slower than "
         + "float, for example NVIDIA GeForce RTX 20 and 30 series. Float may differ from the reference on a few points in "
         + "millions; double matches it exactly.";
+    /// <summary>The check box's text on the Settings tab, where GPU float has been since 2026-11-17.</summary>
+    public const string GpuFloatLabel = "Float on the graphics card (unticked: double)";
+    /// <summary>The Settings tab's note above it: unlike the machine settings, it can change counts and goes with a study.</summary>
+    public const string GpuFloatSection =
+        "For the graphics-card engines only. Float is much faster on many cards but may differ from the reference on a "
+        + "few points in millions, so it can change counts: it is kept with a study, like Max, not on this machine.";
 
     // ---- dose versus dose results ----
     public const string Key = "The source and target doses this row compares, by the key they were matched on.";

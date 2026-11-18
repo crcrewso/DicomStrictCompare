@@ -77,7 +77,7 @@ public sealed class MainForm : Form
 
     // Kept with a comparison, because they can change results: Max and GPU float.
     private readonly DropDown _maximum = new() { ToolTip = HelpText.Maximum };
-    private readonly CheckBox _gpuFloat = new() { Text = "GPU float", ToolTip = HelpText.GpuFloat };
+    private readonly CheckBox _gpuFloat = new() { Text = HelpText.GpuFloatLabel, ToolTip = HelpText.GpuFloat };
 
     // This machine's settings (MachineSettings, kept in its file and saved as they change). None changes a count.
     // Engines by plain name, with what the chosen one does underneath (crcrewso, 2026-11-17); hover text is HelpText's.
@@ -104,6 +104,8 @@ public sealed class MainForm : Form
         foreach (var d in DtaSpec.Defaults) _criteria.Add(CriterionRow.From(d));
         BuildCriteriaGrid();
         BuildResultsGrid();
+        GridCopy.Attach(_criteriaGrid);
+        GridCopy.Attach(_resultsGrid);
         WireEvents();
         BuildSettings();
 
@@ -144,7 +146,7 @@ public sealed class MainForm : Form
         add.Click += (_, _) => _criteria.Add(new CriterionRow());
         remove.Click += (_, _) => { if (_criteriaGrid.SelectedItem is CriterionRow r) _criteria.Remove(r); };
         criteriaPanel.AddRow(new TableLayout(add, remove, null));
-        criteriaPanel.AddRow(new TableLayout(new TableRow(new Label { Text = "Max", VerticalAlignment = VerticalAlignment.Center }, _maximum, _gpuFloat, null)));
+        criteriaPanel.AddRow(new TableLayout(new TableRow(new Label { Text = "Max", VerticalAlignment = VerticalAlignment.Center }, _maximum, null)));
         criteriaPanel.Add(null, yscale: true);
 
         var tabs = _tabs;
@@ -411,6 +413,10 @@ public sealed class MainForm : Form
         var layout = new DynamicLayout { Padding = new Padding(12), DefaultSpacing = new Size(8, 10) };
         layout.AddRow(new Label { Text = "Settings for this machine. They change how fast a comparison runs, never its counts, and are kept for this user on this machine, not in a study.", Wrap = WrapMode.Word });
         layout.AddRow(table);
+        // GPU float moved here from beside Max (crcrewso, 2026-11-17); it stays a study setting, as the label says.
+        layout.AddRow(new Label { Text = "Graphics-card precision", Font = SystemFonts.Bold() });
+        layout.AddRow(new Label { Text = HelpText.GpuFloatSection, Wrap = WrapMode.Word });
+        layout.AddRow(new TableLayout(new TableRow(_gpuFloat, null)));
         layout.AddRow(new Label { Text = "Pairing", Font = SystemFonts.Bold() });
         layout.AddRow(new Label { Text = "Algorithm names change which doses pair, so they can change counts. A dose's algorithm is read from its plan label and beam name, else from its folder's Algorithm box; AAA pairs only with AAA, and a dose with none only with others that have none.", Wrap = WrapMode.Word });
         layout.AddRow(new TableLayout(new TableRow(L("Algorithm names"), _algorithmNames, null)) { Spacing = new Size(12, 8) });

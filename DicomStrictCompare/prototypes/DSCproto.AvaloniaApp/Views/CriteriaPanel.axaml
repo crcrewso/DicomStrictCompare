@@ -6,7 +6,7 @@
              x:Class="DSCproto.AvaloniaApp.Views.CriteriaPanel"
              x:DataType="vm:MainViewModel">
 
-  <!-- The criteria list, Max and GPU float: one list, shown beside both Doses vs doses and Study, which compare at it
+  <!-- The criteria list and Max: one list, shown beside both Doses vs doses and Study, which compare at it
        (crane, 2026-11-17, when Study became a tab of its own). Editing it in either tab changes it in both. Hover text
        comes from HelpText, which the Eto window shares. -->
   <DockPanel>
@@ -15,8 +15,7 @@
       <TextBlock Text="Max" VerticalAlignment="Center" ToolTip.Tip="{x:Static shared:HelpText.Maximum}"/>
       <ComboBox ItemsSource="{Binding MaximumChoices}" SelectedItem="{Binding Maximum}" MinWidth="130"
                 ToolTip.Tip="{x:Static shared:HelpText.Maximum}"/>
-      <!-- Kept with a study, like Max, because it can change counts. Engine, threads and reading are on the Settings tab. -->
-      <CheckBox Content="GPU float" IsChecked="{Binding GpuFloat}" ToolTip.Tip="{x:Static shared:HelpText.GpuFloat}"/>
+      <!-- GPU float, also kept with a study, is on the Settings tab since 2026-11-17, beside the engine it applies to. -->
     </StackPanel>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
       <Button Content="Add" Command="{Binding AddCriterionCommand}"/>
