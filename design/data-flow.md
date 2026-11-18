@@ -30,10 +30,10 @@ Each pair is read once for every criterion. With no read queue, each worker read
 ```mermaid
 flowchart TD
     pairs["Pairs and criteria"] --> budget["Thread budget: BatchComparer.Threads<br/>or CpuTopology.PhysicalCores"]
-    budget --> atonce["Pairs at once: as many as half the free memory holds,<br/>up to the budget (2 for MultiThread and GPU)"]
+    budget --> atonce["Pairs at once: as many as half the free memory holds,<br/>less one reader and the held pairs with a read queue,<br/>up to the budget (2 for MultiThread and GPU).<br/>A pair is its two grids, plus 13 bytes a source voxel with gamma"]
     atonce --> mode{"Read queue set?"}
     mode -- no --> workers["Workers, each reads then compares<br/>scheduled by the OS"]
-    mode -- yes --> readers["K readers, fewer if readers + held + workers<br/>wouldn't fit half the free memory"] --> channel["Bounded queue, M pairs held"] --> workers
+    mode -- yes --> readers["QueueThatFits: readers + held + workers within half the free memory;<br/>held trimmed before readers, no queue if fewer than 2 fit beside the workers"] --> channel["Bounded queue, M pairs held"] --> workers
     workers --> load
     subgraph load["Load, once per pair"]
         applies["Criteria that apply to the beam<br/>(AppliesTo: Photon, Electron, Both)"] --> src["Source grid: DoseGridReader<br/>array from the batch's GridPool"]
@@ -45,7 +45,7 @@ flowchart TD
     load --> evaluate
     subgraph evaluate["Evaluate"]
         edges["JawEdgeCheck, source and target"] --> dta["DTA criteria together:<br/>comparer.CompareAll (one GPU upload)"]
-        dta --> gamma["Each gamma criterion: GammaShell.Compare<br/>points that can't reach the evaluation grid: not analysed, as pymedphys"]
+        dta --> gamma["Each gamma criterion: GammaShell.Compare<br/>points that can't reach the evaluation grid: not analysed, as pymedphys<br/>outcome keeps counts and maximum, values only with KeepGammaValues"]
     end
     evaluate --> pool["Both grids back to the GridPool (WC2)<br/>reused by a later pair of the same size;<br/>kept and lent together stay within pairs at once"]
     pool --> worst{"Pairing of an ambiguous key?"}

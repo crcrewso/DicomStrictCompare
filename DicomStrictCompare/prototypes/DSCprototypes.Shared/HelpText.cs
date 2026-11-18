@@ -107,15 +107,16 @@ public static class HelpText
         "CPU threads. The CPU, several threads engine splits each pair across them; the other engines compare that many "
         + "pairs at once. The recommended count is one per full-speed core, leaving out hyper-threads (SMT) and low-power E-cores.";
     public const string PairsAtOnce =
-        "Pairs compared at the same time. 0 chooses from free memory: as many as half of it holds, up to the thread count "
-        + "(2 for the CPU, several threads engine and the graphics-card engines).";
+        "Pairs compared at the same time. 0 chooses from free memory: as many as half of it holds, leaving room for one reader "
+        + "and the held pairs, up to the thread count (2 for the CPU, several threads engine and the graphics-card engines).";
     public const string TargetBoxOnly =
         "Read each target dose only where the comparison and the field-edge check look, not the whole grid. A pair with a "
         + "gamma criterion is read whole. The counts are the same either way; it saves memory and time.";
     public const string Readers =
         "Dose files read ahead, at once, while others are being compared; fewer if memory is short. 0 has each comparison read its own pair.";
     public const string Held =
-        "Pairs read ahead and waiting to be compared, when Readers is above 0. Each waiting pair holds two grids in memory.";
+        "Pairs read ahead and waiting to be compared, when Readers is above 0. Each waiting pair holds two grids in memory, "
+        + "so fewer are held if memory is short.";
 
     // ---- doses versus scans ----
     public const string ScanTest =

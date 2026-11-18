@@ -56,6 +56,27 @@ namespace DSClibraryTests
             Assert.AreEqual(grid.MaxPointDose.Dose, global.Gamma!.GlobalNormalisation, 1e-12);
         }
 
+        [TestMethod]
+        public void GammaOutcomesKeepTheCountsNotTheValues()
+        {
+            // RV1: a grid of gamma per outcome, held for the session, ran 26 pairs at 1 mm to about 21 GB.
+            var folder = RTFolderReader.Read(TestData.ResourcesDirectory!, headersOnly: true);
+            var pair = DoseMatcher.Match(folder.Doses, folder.Doses, DoseMatchStrategy.Identifier).Pairs
+                .Single(p => Path.GetFileName(p.Source.Dose.SourcePath) == "RD.UnitTest.P1Ref.X-100A-10.0-1.dcm");
+            var options = new GammaOptions(3, 3, LowerPercentDoseCutoff: 10, MaxGamma: 1.1, SkipOncePassed: true, RandomSubset: 2000, RandomSeed: 1);
+            var lean = new BatchComparer(DoseGridReader.Read).CompareGamma(new[] { pair }, options).Outcomes.Single().Gamma!;
+            var full = new BatchComparer(DoseGridReader.Read) { KeepGammaValues = true }.CompareGamma(new[] { pair }, options).Outcomes.Single().Gamma!;
+            Assert.IsFalse(lean.HasValues);
+            Assert.AreEqual(0, lean.Gamma.Length);
+            Assert.IsTrue(full.HasValues);
+            Assert.AreEqual(full.Shape.Aggregate(1, (a, b) => a * b), full.Gamma.Length);
+            Assert.AreEqual(full.Analysed, lean.Analysed);
+            Assert.AreEqual(full.Passed, lean.Passed);
+            Assert.AreEqual(full.MaxGammaFound, lean.MaxGammaFound);
+            Assert.AreEqual(full.NotReached, lean.NotReached);
+            Assert.AreEqual(full.ToString(), lean.ToString());
+        }
+
         /// <summary>Free memory, not the machine's total, sizes pairs at once and readers (crane, 2026-11-15).</summary>
         [TestMethod]
         public void FreeMemoryIsWhatIsAvailableNotTheTotal()
@@ -86,11 +107,29 @@ namespace DSClibraryTests
                 .CompareMany(pairs.Take(3), new[] { new Criterion(new Dta(true, 0.10, 0.03, 3, relative: true), true) });
             Assert.AreEqual(1, one.DegreeOfParallelism);
 
-            // The read queue's readers each hold a pair, so readers + held + workers must fit; never fewer than 1.
+            // The read queue's readers and held pairs each hold a pair, so readers + held + workers must fit (RV2).
             var queue = new BatchComparer.ReadQueue(4, 2);
-            Assert.AreEqual(4, BatchComparer.ReadersThatFit(pairs, queue, workers: 2, availableBytes: 40 * pairBytes));   // 20 fit
-            Assert.AreEqual(2, BatchComparer.ReadersThatFit(pairs, queue, workers: 2, availableBytes: 12 * pairBytes));   // 6 fit
-            Assert.AreEqual(1, BatchComparer.ReadersThatFit(pairs, queue, workers: 2, availableBytes: 2 * pairBytes));    // 1 fits
+            Assert.AreEqual(queue, BatchComparer.QueueThatFits(pairs, queue, workers: 2, availableBytes: 40 * pairBytes));   // 20 fit
+            Assert.AreEqual(new BatchComparer.ReadQueue(2, 2), BatchComparer.QueueThatFits(pairs, queue, workers: 2, availableBytes: 12 * pairBytes));   // 6 fit
+            Assert.AreEqual(new BatchComparer.ReadQueue(1, 1), BatchComparer.QueueThatFits(pairs, queue, workers: 2, availableBytes: 8 * pairBytes));    // 4 fit
+            Assert.IsNull(BatchComparer.QueueThatFits(pairs, queue, workers: 2, availableBytes: 6 * pairBytes));   // 3 fit: no room for a queue
+            // Workers chosen from memory leave room for one reader and the held pairs.
+            int fit = 6, workers = BatchComparer.PairsAtOnce(pairs, new SingleThreadComparer(), 2 * fit * pairBytes, threads: 64, queue: queue);
+            Assert.AreEqual(Math.Min(fit - 3, pairs.Length), workers);
+            var used = BatchComparer.QueueThatFits(pairs, queue, workers, 2 * fit * pairBytes)!;
+            Assert.IsTrue(workers + used.Readers + used.PairsHeld <= fit, $"{workers} workers, {used}");
+        }
+
+        [TestMethod]
+        public void GammaCountsItsWorkingMemory()
+        {
+            var folder = RTFolderReader.Read(TestData.ResourcesDirectory!, headersOnly: true);
+            var pairs = DoseMatcher.Match(folder.Doses, folder.Doses, DoseMatchStrategy.Identifier).Pairs.ToArray();
+            var largest = pairs.MaxBy(p => BatchComparer.PairBytes(p, gamma: true))!;
+            long grids = BatchComparer.PairBytes(largest, gamma: false), withGamma = BatchComparer.PairBytes(largest, gamma: true);
+            Assert.AreEqual(grids + (largest.Source.Dose.DeclaredVoxelCount ?? 0) * BatchComparer.GammaBytesPerVoxel, withGamma);
+            Assert.AreEqual(10, BatchComparer.PairsThatFit(pairs, 20 * withGamma, gamma: true));
+            Assert.IsTrue(BatchComparer.PairsThatFit(pairs, 20 * withGamma)! > 10);
         }
 
         [TestMethod]

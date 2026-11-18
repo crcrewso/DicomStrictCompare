@@ -211,19 +211,19 @@ namespace DSClibrary.Gamma
                 });
             }
 
-            var output = new double[n];
+            // In place, so a pair's gamma needs one grid of doubles, not two (BatchComparer.GammaBytesPerVoxel).
             int notReached = 0;
             for (int i = 0; i < n; i++)
             {
-                if (!toCalc[i]) { output[i] = double.NaN; continue; }
+                if (!toCalc[i]) { gamma[i] = double.NaN; continue; }
                 double g = gamma[i];
-                if (double.IsPositiveInfinity(g)) { output[i] = double.NaN; notReached++; continue; }   // no evaluation point in reach
+                if (double.IsPositiveInfinity(g)) { gamma[i] = double.NaN; notReached++; continue; }   // no evaluation point in reach
                 if (!double.IsFinite(g))
                     throw new InvalidOperationException($"Gamma was not found for analysed reference point {i}");
-                output[i] = g > options.MaxGamma ? options.MaxGamma : g;
+                gamma[i] = g > options.MaxGamma ? options.MaxGamma : g;
             }
 
-            return new GammaResult(output, (int[])reference.Shape.Clone(), options, normalisation, lowerDoseCutoff, outsideGrid, notReached);
+            return new GammaResult(gamma, (int[])reference.Shape.Clone(), options, normalisation, lowerDoseCutoff, outsideGrid, notReached);
         }
 
         /// <summary>

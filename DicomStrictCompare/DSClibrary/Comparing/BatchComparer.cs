@@ -40,7 +40,10 @@ namespace DSClibrary.Comparing
         /// </summary>
         public SingleComparison? Comparison { get; }
 
-        /// <summary>The full gamma result when the comparison was a gamma one; null for the strict engine.</summary>
+        /// <summary>
+        /// The gamma result when the comparison was a gamma one; null for the strict engine. Its per-point values are
+        /// dropped unless <see cref="BatchComparer.KeepGammaValues"/> is set.
+        /// </summary>
         public GammaResult? Gamma { get; }
 
         /// <summary>Why this pair produced no comparison, when it did not. Null on success.</summary>
@@ -143,16 +146,19 @@ namespace DSClibrary.Comparing
         public TimeSpan Elapsed { get; }
         public int DegreeOfParallelism { get; }
 
-        /// <summary>Readers the read queue ran with, after the memory cap; null without a queue.</summary>
-        public int? Readers { get; }
+        /// <summary>The read queue the batch ran with, after the memory cap (<see cref="BatchComparer.QueueThatFits"/>); null without one.</summary>
+        public BatchComparer.ReadQueue? Queue { get; }
+
+        /// <summary>Readers the read queue ran with; null without a queue.</summary>
+        public int? Readers => Queue?.Readers;
 
         internal BatchComparisonResult(
-            IReadOnlyList<ComparisonOutcome> outcomes, TimeSpan elapsed, int degreeOfParallelism, int? readers = null)
+            IReadOnlyList<ComparisonOutcome> outcomes, TimeSpan elapsed, int degreeOfParallelism, BatchComparer.ReadQueue? queue = null)
         {
             Outcomes = outcomes;
             Elapsed = elapsed;
             DegreeOfParallelism = degreeOfParallelism;
-            Readers = readers;
+            Queue = queue;
         }
 
         public IEnumerable<ComparisonOutcome> Succeeded => Outcomes.Where(o => o.Succeeded);
@@ -160,7 +166,8 @@ namespace DSClibrary.Comparing
 
         public override string ToString() =>
             $"{Succeeded.Count()} of {Outcomes.Count} compared in {Elapsed.TotalSeconds:0.0}s "
-            + $"at parallelism {DegreeOfParallelism}";
+            + $"at parallelism {DegreeOfParallelism}"
+            + (Queue is { } q ? $", {q.Readers} reader(s), {q.PairsHeld} pair(s) held" : "");
     }
 
     /// <summary>
@@ -265,41 +272,68 @@ namespace DSClibrary.Comparing
         /// <summary>
         /// How many pairs to run at once when none is set: as many as half the free memory holds, the largest pair's
         /// two grids at 8 bytes a voxel (from the headers), up to the thread budget (by default the physical core count, SMT siblings ignored). Comparers that already use the cores
-        /// within a pair (multi-thread, GPU) get at most 2, so one pair loads while another compares.
+        /// within a pair (multi-thread, GPU) get at most 2, so one pair loads while another compares. With a gamma
+        /// criterion a pair counts gamma's working memory too, and with a read queue the workers leave room for one
+        /// reader and the held pairs.
         /// <para>
         /// Measured 2026-11-14 to 15: a fixed 4 ran a 31 GB machine out of memory on 1 mm grids, and with the box a
         /// single pair needs little beyond its two grids.
         /// </para>
         /// </summary>
-        public static int PairsAtOnce(IReadOnlyCollection<MatchedDosePair> pairs, DoseComparer comparer, long? availableBytes = null, int? threads = null)
+        public static int PairsAtOnce(IReadOnlyCollection<MatchedDosePair> pairs, DoseComparer comparer, long? availableBytes = null, int? threads = null,
+            bool gamma = false, ReadQueue? queue = null)
         {
             int cores = Math.Max(1, threads ?? CpuTopology.PhysicalCores);
             if (pairs.Count == 0) return 1;
-            int byMemory = PairsThatFit(pairs, availableBytes) ?? cores;
+            int? fit = PairsThatFit(pairs, availableBytes, gamma);
+            // A read queue needs at least one reader and its held pairs beside the workers (QueueThatFits).
+            int reserve = queue is not null && fit >= 3 ? 1 + Math.Max(1, queue.PairsHeld) : 0;
+            int byMemory = fit is int f ? f - reserve : cores;
             int cap = comparer is HandWrittenComparer or SingleThreadComparer ? cores : Math.Min(2, cores);
             return Math.Max(1, Math.Min(Math.Min(byMemory, cap), pairs.Count));
         }
 
         /// <summary>
-        /// How many loaded pairs half the free memory holds, at the largest pair's two grids in doubles (from the
+        /// What gamma allocates per reference voxel beyond the pair's grids: the working gamma (8 bytes), the analysed
+        /// indices (up to 4) and flags (1). Not counted: a 1D or 2D evaluation's perpendicular distances (8) and a
+        /// copy of an evaluation grid whose axis descends, which Eclipse's 3D doses don't need.
+        /// </summary>
+        public const int GammaBytesPerVoxel = 13;
+
+        /// <summary>A loaded pair's bytes: both grids in doubles, plus gamma's working memory when there's a gamma criterion.</summary>
+        public static long PairBytes(MatchedDosePair pair, bool gamma)
+        {
+            long source = pair.Source.Dose.DeclaredVoxelCount ?? 0, target = pair.Target.Dose.DeclaredVoxelCount ?? 0;
+            return (source + target) * sizeof(double) + (gamma ? source * GammaBytesPerVoxel : 0);
+        }
+
+        /// <summary>
+        /// How many loaded pairs half the free memory holds, at the largest pair (<see cref="PairBytes"/>, from the
         /// headers); null when the headers don't say.
         /// </summary>
-        public static int? PairsThatFit(IReadOnlyCollection<MatchedDosePair> pairs, long? availableBytes = null)
+        public static int? PairsThatFit(IReadOnlyCollection<MatchedDosePair> pairs, long? availableBytes = null, bool gamma = false)
         {
             if (pairs.Count == 0) return null;
-            long largest = pairs.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
+            long largest = pairs.Max(p => PairBytes(p, gamma));
             long budget = (availableBytes ?? FreeMemory.Bytes()) / 2;
             return largest > 0 ? (int)Math.Clamp(budget / largest, 1, int.MaxValue) : null;
         }
 
         /// <summary>
-        /// Readers for the read queue: as asked, but each reader can hold a loaded pair, so readers, held pairs and
-        /// workers together must fit <see cref="PairsThatFit"/>. Never fewer than 1.
+        /// The read queue that fits beside the workers: readers, held pairs and workers each hold a loaded pair, so
+        /// together they stay within <see cref="PairsThatFit"/>. One reader and the held pairs come first, then more
+        /// readers, up to what was asked. Null when fewer than two pairs fit beside the workers: each worker then reads
+        /// its own pair. As asked when the headers don't say.
         /// </summary>
-        public static int ReadersThatFit(IReadOnlyCollection<MatchedDosePair> pairs, ReadQueue queue, int workers, long? availableBytes = null)
+        public static ReadQueue? QueueThatFits(IReadOnlyCollection<MatchedDosePair> pairs, ReadQueue queue, int workers,
+            long? availableBytes = null, bool gamma = false)
         {
-            int asked = Math.Max(1, queue.Readers);
-            return PairsThatFit(pairs, availableBytes) is int fit ? Math.Clamp(fit - Math.Max(1, queue.PairsHeld) - workers, 1, asked) : asked;
+            var asked = new ReadQueue(Math.Max(1, queue.Readers), Math.Max(1, queue.PairsHeld));
+            if (PairsThatFit(pairs, availableBytes, gamma) is not int fit) return asked;
+            int room = fit - workers;
+            if (room < 2) return null;
+            int held = Math.Min(asked.PairsHeld, room - 1);
+            return new ReadQueue(Math.Clamp(room - held, 1, asked.Readers), held);
         }
 
         /// <summary>One criterion over the batch; see <see cref="CompareMany"/>.</summary>
@@ -321,7 +355,8 @@ namespace DSClibrary.Comparing
         /// Each pair's gamma already runs its reference points in parallel, so the pairs run with the
         /// given degree and each gamma gets the remaining cores; the default is still memory-led. The
         /// outcome's counts are reference points analysed and points with gamma above 1, so the row
-        /// reads like a DTA row; the whole <see cref="GammaResult"/> is kept on the outcome.
+        /// reads like a DTA row; the outcome keeps the <see cref="GammaResult"/>, without its values unless
+        /// <see cref="KeepGammaValues"/> is set.
         /// </para>
         /// </summary>
         public BatchComparisonResult CompareGamma(
@@ -354,16 +389,19 @@ namespace DSClibrary.Comparing
             foreach (var c in criteria) c.Gamma?.Validate();
 
             var work = pairs.ToArray();
-            bool anyDta = criteria.Any(c => c.Gamma is null);
+            bool anyDta = criteria.Any(c => c.Gamma is null), anyGamma = !criteria.All(c => c.Gamma is null);
             int threadBudget = Math.Max(1, Threads ?? CpuTopology.PhysicalCores);
-            int parallelism = Math.Max(1, degreeOfParallelism ?? PairsAtOnce(work, anyDta ? _mathematics : new HandWrittenComparer(), threads: threadBudget));
+            long free = FreeMemory.Bytes();
+            int parallelism = Math.Max(1, degreeOfParallelism
+                ?? PairsAtOnce(work, anyDta ? _mathematics : new HandWrittenComparer(), free, threadBudget, anyGamma, Queue));
+            var queueUsed = Queue is null ? null : QueueThatFits(work, Queue, parallelism, free, anyGamma);
             int perGamma = Math.Max(1, threadBudget / parallelism);
             var outcomes = new ConcurrentBag<ComparisonOutcome>();
             var batch = Stopwatch.StartNew();
             // Room for every pair that can be loaded at once: workers, held pairs and readers.
-            long largestPair = work.Length == 0 ? 0 : work.Max(p => (long)(p.Source.Dose.DeclaredVoxelCount ?? 0) + (p.Target.Dose.DeclaredVoxelCount ?? 0)) * sizeof(double);
+            long largestPair = work.Length == 0 ? 0 : work.Max(p => PairBytes(p, gamma: false));
             var pool = Pool = _pooledLoad is null ? null
-                : new GridPool(largestPair * (parallelism + (Queue is { } shape ? shape.PairsHeld + shape.Readers : 0)));
+                : new GridPool(largestPair * (parallelism + (queueUsed is { } shape ? shape.PairsHeld + shape.Readers : 0)));
 
             // Dedicated threads rather than the pool, so a worker can be pinned. A comparer that runs on one thread
             // gets one worker per core; pinned only if CpuTopology.PinByDefault says so (by default the OS places them).
@@ -413,8 +451,7 @@ namespace DSClibrary.Comparing
             }
 
             int next = -1;
-            int? readers = null;
-            if (Queue is null)
+            if (queueUsed is null)
             {
                 // Each worker reads a pair, then compares it.
                 for (int w = 0; w < parallelism; w++)
@@ -431,10 +468,9 @@ namespace DSClibrary.Comparing
             else
             {
                 // Readers fill a bounded queue of loaded pairs; workers compare them (crane's read queue, 2026-11-15).
-                var queue = Channel.CreateBounded<Loaded>(new BoundedChannelOptions(Math.Max(1, Queue.PairsHeld)) { FullMode = BoundedChannelFullMode.Wait });
-                readers = ReadersThatFit(work, Queue, parallelism);
-                int readersLeft = readers.Value;
-                for (int r = 0; r < readers.Value; r++)
+                var queue = Channel.CreateBounded<Loaded>(new BoundedChannelOptions(queueUsed.PairsHeld) { FullMode = BoundedChannelFullMode.Wait });
+                int readersLeft = queueUsed.Readers;
+                for (int r = 0; r < queueUsed.Readers; r++)
                     Start($"DSC reader {r}", () =>
                     {
                         try
@@ -467,7 +503,7 @@ namespace DSClibrary.Comparing
                 .OrderBy(o => o.Key.ToString(), StringComparer.Ordinal)
                 .ThenBy(o => o.CriterionIndex)
                 .ToArray();
-            return new BatchComparisonResult(ordered, batch.Elapsed, parallelism, readers);
+            return new BatchComparisonResult(ordered, batch.Elapsed, parallelism, queueUsed);
         }
 
         /// <summary>
@@ -490,12 +526,19 @@ namespace DSClibrary.Comparing
 
         /// <summary>
         /// Reading ahead: <see cref="Readers"/> threads read pairs into a queue that holds up to <see cref="PairsHeld"/>
-        /// loaded pairs, while the workers compare. Up to Readers + PairsHeld + workers pairs are in memory at once.
+        /// loaded pairs, while the workers compare. Up to Readers + PairsHeld + workers pairs are in memory at once,
+        /// so a batch trims them to fit (<see cref="QueueThatFits"/>).
         /// </summary>
         public sealed record ReadQueue(int Readers, int PairsHeld);
 
         /// <summary>Read ahead with a queue; null (the default) has each worker read its own pair, then compare it.</summary>
         public ReadQueue? Queue { get; init; }
+
+        /// <summary>
+        /// Keep each gamma result's per-point values (one double per reference voxel) on its outcome. Off by default,
+        /// since outcomes last the session and the GUIs read only the counts and maximum.
+        /// </summary>
+        public bool KeepGammaValues { get; init; }
 
         /// <summary>
         /// The CPU thread budget: the most pairs at once for the single-thread engines, and the threads each gamma
@@ -596,7 +639,7 @@ namespace DSClibrary.Comparing
                     if (reference.Used == MaximumKind.CaxMax && options.GlobalNormalisation is null)
                         run = run with { GlobalNormalisation = reference.Dose };
                     var gamma = GammaShell.Compare(source, target, run, cancellation);
-                    gammas[n] = gamma;
+                    gammas[n] = KeepGammaValues ? gamma : gamma.WithoutValues();
                     counts[n] = new SingleComparison(criteria[n].Dta, source.DoseValues.Length, gamma.Analysed, gamma.Analysed - gamma.Passed);
                 }
 

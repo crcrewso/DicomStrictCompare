@@ -66,8 +66,12 @@ namespace DSClibrary.Gamma
         /// One gamma per reference point, in the reference grid's C order. NaN marks the points that
         /// were not analysed (below the cutoff, outside the random subset, or NaN reference dose);
         /// every analysed point has a finite value, capped at <see cref="GammaOptions.MaxGamma"/>.
+        /// Empty after <see cref="WithoutValues"/>; see <see cref="HasValues"/>.
         /// </summary>
         public double[] Gamma { get; }
+
+        /// <summary>Whether <see cref="Gamma"/> holds the values, rather than only the counts and maximum.</summary>
+        public bool HasValues { get; }
         public int[] Shape { get; }
         public GammaOptions Options { get; }
 
@@ -98,6 +102,7 @@ namespace DSClibrary.Gamma
         {
             NotReached = notReached;
             Gamma = gamma;
+            HasValues = true;
             Shape = shape;
             Options = options;
             GlobalNormalisation = normalisation;
@@ -116,6 +121,23 @@ namespace DSClibrary.Gamma
             Passed = passed;
             MaxGammaFound = max;
         }
+
+        private GammaResult(GammaResult r)
+        {
+            Gamma = Array.Empty<double>();
+            Shape = r.Shape;
+            Options = r.Options;
+            GlobalNormalisation = r.GlobalNormalisation;
+            LowerDoseCutoff = r.LowerDoseCutoff;
+            OutsideEvaluationGrid = r.OutsideEvaluationGrid;
+            NotReached = r.NotReached;
+            Analysed = r.Analysed;
+            Passed = r.Passed;
+            MaxGammaFound = r.MaxGammaFound;
+        }
+
+        /// <summary>The same result without the per-point values (one double per reference voxel), so it can be kept cheaply.</summary>
+        public GammaResult WithoutValues() => HasValues ? new GammaResult(this) : this;
 
         public override string ToString() =>
             $"{Options}: {Passed} of {Analysed} analysed points pass ({PassRate:0.0}%), max gamma {MaxGammaFound:0.00}";
