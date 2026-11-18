@@ -32,6 +32,11 @@ public partial class App : Application
                     window.ShowScans();
                     await viewModel.Scans.ApplyAsync(options);
                 }
+                if (options.ViewerSource is { } source && options.ViewerTarget is { } target)
+                {
+                    window.ShowViewer();
+                    await viewModel.Viewer.ShowAsync(source, target);
+                }
             };
             desktop.MainWindow = window;
         }

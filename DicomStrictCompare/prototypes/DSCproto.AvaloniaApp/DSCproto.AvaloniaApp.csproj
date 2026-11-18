@@ -32,6 +32,8 @@
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
     <!-- Graphs tab (crcrewso, 2026-11-09). ScottPlot 5.1.59 (June 2026) is the first line to depend on Avalonia 12. -->
     <PackageReference Include="ScottPlot.Avalonia" Version="5.1.59" />
+    <!-- The difference viewer's page (2026-11-18): Avalonia's own web view, MIT; WebKitGTK on Linux, WebView2 on Windows. -->
+    <PackageReference Include="Avalonia.Controls.WebView" Version="12.1.1" />
   </ItemGroup>
 
   <ItemGroup>

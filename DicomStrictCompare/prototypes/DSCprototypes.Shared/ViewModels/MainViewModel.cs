@@ -76,6 +76,19 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>The Doses vs scans tab: its own folders, criterion and results (crcrewso, 2026-11-17).</summary>
     public ScanComparisonViewModel Scans { get; }
 
+    /// <summary>The difference viewer (2026-11-18): a result row's pair as gamma and % difference maps in NiiVue.</summary>
+    public ViewerViewModel Viewer { get; } = new();
+
+    /// <summary>Opens a result row's pair in the viewer at the row's criterion; false when the row's pair isn't in the session.</summary>
+    public bool ViewDifference(ResultRow row)
+    {
+        var o = Session?.Outcomes.FirstOrDefault(o => o.Key.ToString() == row.Key
+            && Path.GetFileName(o.SourcePath) == row.SourceFile && Path.GetFileName(o.TargetPath) == row.TargetFile);
+        if (o is null) return false;
+        _ = Viewer.ShowAsync(o.SourcePath, o.TargetPath, row.Criterion.TolerancePercent, row.Criterion.DistanceMm, row.Criterion.ThresholdPercent);
+        return true;
+    }
+
     /// <summary>
     /// Where a Browse dialog should open: the parent of this field's previous choice (crcrewso,
     /// 2026-11-08), else the parent of the other folder, else the last folder picked anywhere.

@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Avalonia.Interactivity;
+using DSCprototypes.Shared;
 using DSCprototypes.Shared.Graphs;
 using DSCprototypes.Shared.ViewModels;
 using ScottPlot;
@@ -18,9 +20,18 @@ public partial class MainWindow : Window
         DataContextChanged += (_, _) => AttachGraph();
     }
 
-    /// <summary>The scans table's own right-click item: fix the clicked scan's header.</summary>
+    /// <summary>
+    /// A row's own right-click items: a result row's "View difference" (its pair in the Viewer tab), a scan's
+    /// "Fix this scan's header".
+    /// </summary>
     private IEnumerable<MenuItem> ScanRowMenu(object? item)
     {
+        if (item is ResultRow result && DataContext is MainViewModel vm)
+        {
+            var view = new MenuItem { Header = new TextBlock { Text = "View difference" } };
+            view.Click += (_, _) => { if (vm.ViewDifference(result)) ShowViewer(); };
+            yield return view;
+        }
         if (item is not ScanPairRow row || _scans is null) yield break;
         var fix = new MenuItem { Header = new TextBlock { Text = "Fix this scan's header..." } };
         fix.Click += (_, _) => { if (_scans.FixHeaderCommand.CanExecute(row)) _scans.FixHeaderCommand.Execute(row); };
@@ -57,6 +68,34 @@ public partial class MainWindow : Window
 
     /// <summary>Switches to the Doses vs scans tab; used when the command line names a scans folder.</summary>
     public void ShowScans() => Workflows.SelectedItem = ScansTab;
+
+    /// <summary>Switches to the Viewer tab.</summary>
+    public void ShowViewer() => Workflows.SelectedItem = ViewerTab;
+
+    // The difference viewer's two Browse buttons, and the system browser.
+    private async void OnBrowseViewerSource(object? sender, RoutedEventArgs e) => await BrowseDoseAsync(true);
+    private async void OnBrowseViewerTarget(object? sender, RoutedEventArgs e) => await BrowseDoseAsync(false);
+
+    private async Task BrowseDoseAsync(bool source)
+    {
+        if (DataContext is not MainViewModel { Viewer: var viewer }) return;
+        string current = source ? viewer.SourcePath : viewer.TargetPath;
+        IStorageFolder? start = Path.GetDirectoryName(current) is { Length: > 0 } dir ? await StorageProvider.TryGetFolderFromPathAsync(dir) : null;
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = source ? "Source (reference) RT Dose" : "Target RT Dose",
+            AllowMultiple = false,
+            SuggestedStartLocation = start,
+            FileTypeFilter = new[] { new FilePickerFileType("DICOM") { Patterns = new[] { "*.dcm", "*.DCM" } }, FilePickerFileTypes.All },
+        });
+        if (files.Count != 1 || files[0].TryGetLocalPath() is not { } path) return;
+        if (source) viewer.SourcePath = path; else viewer.TargetPath = path;
+    }
+
+    private async void OnOpenViewerInBrowser(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel { Viewer.Url: { } url }) await Launcher.LaunchUriAsync(url);
+    }
 
     // The view model exposes the curve as data; drawing it is the view's job, and ScottPlot's
     // AvaPlot is a control, so the hand-over happens here rather than through a binding.

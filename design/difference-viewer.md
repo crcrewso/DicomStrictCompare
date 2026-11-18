@@ -1,8 +1,8 @@
 # The difference viewer (prototype, 2026-11-18)
 
 crcrewso, 2026-11-18: NIfTI and NiiVue, *"since [they] are common components for other medical projects"*. This builds
-step 1 of SS8 (`study-store.md`), and much of step 2, with NiiVue in place of ScottPlot heatmaps. It's in the Eto app
-for now (a Viewer tab, and "View difference" on a result row); Avalonia can host the same page.
+step 1 of SS8 (`study-store.md`), and much of step 2, with NiiVue in place of ScottPlot heatmaps. Both windows have it: a Viewer tab,
+"View difference" on a result row, and `--viewer SOURCE TARGET`.
 
 ## The frame: the axis relative to the beam
 
@@ -58,13 +58,14 @@ y jaws, z = beam axis. Center of rotation is iso for dynamic gantry, center of p
     target penetrates further: a depth-dose difference, not a scale factor.
   - The study's Energy column reads 6 MV for this "15x" field; the plan itself isn't checked.
 - **Hosts:**
+  - Avalonia's `NativeWebView` (Avalonia.Controls.WebView 12.1.1, MIT) runs it, also on WebKitGTK. GTK must use its X11
+    backend to embed, so the app sets `GDK_BACKEND=x11` on Linux at start; Avalonia itself runs on X11.
   - Eto's GTK WebView (WebKitGTK 2.52) runs it, including on Xvfb's software renderer.
   - Headless Chrome runs it with SwiftShader.
   - The Claude desktop app's browser pane has no WebGL2.
 
 ## Not done
 
-- Avalonia doesn't host the page yet (step 2 of SS8 was Avalonia-only).
 - Gamma for one pair at 2.5 mm against a finer target took about 3 minutes, and nothing is cached between opens.
 - The point context of SS4 (depth from the surface, distance from the 50 % edge) is not shown: those wait on the surface
   and field-edge conventions being unified.

@@ -500,6 +500,37 @@
     </Grid>
   </TabItem>
 
+  <!-- The difference viewer (2026-11-18): two doses as gamma and % difference maps in NiiVue, in the beam frame, served
+       from this machine only. "View difference" on a result row opens that pair here. -->
+  <TabItem Header="Viewer" x:Name="ViewerTab">
+    <Grid DataContext="{Binding Viewer}" x:DataType="vm:ViewerViewModel" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="6" Margin="6,12,6,6">
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+        <TextBlock Text="Source" VerticalAlignment="Center" Width="50"/>
+        <TextBox Grid.Column="1" Text="{Binding SourcePath}" Watermark="Source (reference) RT Dose"/>
+        <Button Grid.Column="2" Content="Browse..." Click="OnBrowseViewerSource"/>
+      </Grid>
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+        <TextBlock Text="Target" VerticalAlignment="Center" Width="50"/>
+        <TextBox Grid.Column="1" Text="{Binding TargetPath}" Watermark="Target RT Dose"/>
+        <Button Grid.Column="2" Content="Browse..." Click="OnBrowseViewerTarget"/>
+      </Grid>
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Gamma" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding DoseText}" Width="60" ToolTip.Tip="Gamma dose criterion, % of the source maximum (global)"/>
+        <TextBlock Text="% /" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding DistanceText}" Width="60" ToolTip.Tip="Gamma distance criterion, mm"/>
+        <TextBlock Text="mm, cutoff" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding CutoffText}" Width="60" ToolTip.Tip="Points below this % of the source maximum are not evaluated"/>
+        <TextBlock Text="%" VerticalAlignment="Center"/>
+        <Button Content="Compute and view" Command="{Binding ComputeCommand}"/>
+        <Button Content="Open in browser" Click="OnOpenViewerInBrowser" IsEnabled="{Binding Url, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Width="120" VerticalAlignment="Center"/>
+      </StackPanel>
+      <NativeWebView Grid.Row="3" Source="{Binding Url}"/>
+      <TextBlock Grid.Row="4" Text="{Binding Status}" TextWrapping="Wrap"/>
+    </Grid>
+  </TabItem>
+
   <!-- Its own tab since 2026-11-17 (crcrewso: "move it"): these settings serve every tab that compares doses. -->
   <!-- This machine's settings (MachineSettings, saved as they change). None changes a count. -->
   <TabItem Header="Settings">

@@ -70,6 +70,18 @@ public class ThreadChoiceTests
     }
 
     [TestMethod]
+    public void TheViewerOpensFromTheCommandLineAndNotWithoutARun()
+    {
+        var options = LaunchOptions.Parse(new[] { "--viewer", "/a/RD.1.dcm", "/b/RD.2.dcm" });
+        Assert.AreEqual("/a/RD.1.dcm", options.ViewerSource);
+        Assert.AreEqual("/b/RD.2.dcm", options.ViewerTarget);
+        var vm = NewMain(Path.Combine(_dir, "settings.json"));
+        var row = new ResultRow("k", "RD.1.dcm", "RD.2.dcm", DtaSpec.Defaults[0], 0, 0, 0, null, null, null, 0, null);
+        Assert.IsFalse(vm.ViewDifference(row), "no session yet, so no pair to open");
+        Assert.IsNull(vm.Viewer.Url);
+    }
+
+    [TestMethod]
     public void SettingsAreKeptInTheirFileAndNotTakenFromAStudy()
     {
         string path = Path.Combine(_dir, "settings.json");
