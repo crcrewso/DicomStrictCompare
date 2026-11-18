@@ -191,6 +191,32 @@ the study folders for future recall. This is mostly so that if data is stored on
   - A per-set switch picks either one.
 - **Budget:** the copy is its own figure, outside SS-Q2's 10 % (it *is* the source data). The study shows both.
 
+### SS8: a 3D viewer for any difference map
+
+crcrewso, 2026-11-18: *"can we have a 3D viewer for any difference map?"*
+
+- **What it opens ("any"):**
+  - a stored result volume (SS4: gamma capped at 3, or percent difference);
+  - a pair with nothing stored, computed when opened by one reference-engine pass on that pair (SS4's second pass);
+  - an `.mha` file from disk, including this tool's own exports.
+- **Step 1, linked slices and projections, in both GUIs:**
+  - axial, coronal and sagittal slices of the map over the target dose, with crosshairs that move all three
+    together;
+  - a maximum-intensity projection along each axis, showing where the worst points are at a glance;
+  - clicking a point gives its context (SS4: dose level, gradient, depth, distance from the axis and the 50 % edge);
+  - drawn with ScottPlot heatmaps, which both GUIs already use, so it ports to Eto unchanged.
+- **Step 2, true 3D, Avalonia only for now (SS-Q5):**
+  - Avalonia's OpenGL host control, with Silk.NET's OpenGL bindings, from the same family as the shipped
+    `Silk.NET.OpenCL` 2.23.0;
+  - **a point cloud first:** the stored maps are sparse, so only the points the comparison evaluated are drawn,
+    coloured by value, with an orbiting camera, a value threshold (for example gamma above 1.5) and a clip plane;
+  - **volume rendering later, if wanted:** a semi-transparent rendering of the whole volume is more work and slower
+    on integrated graphics.
+  - *Not yet checked:* the OpenGL control in Avalonia 12, and under COSMIC's Wayland session, where the app runs as
+    an X11 client through XWayland.
+- **Always available:** the `.mha` export opens in 3D Slicer, which renders volumes in 3D. That covers anything the
+  in-app viewer doesn't yet do.
+
 ## Memory
 
 - **Rows, headers and curves stay on disk,** and the window pages them. A study of 8,000 doses no longer holds every
@@ -302,4 +328,4 @@ He asked for E11V11 vs E15V11 and E15V15 Prod vs Equinox, ignoring the wedges, a
 
 1. SS1–SS3: the file, the tables, resume. With RV1's fix, and the curve table replacing RV21's held grids.
 2. SS4: the coarse map for every kept pair; then the exact points.
-3. SS5: slices and summaries; then 3D.
+3. SS5 and SS8: slices, projections and summaries; then the 3D point cloud; volume rendering if wanted.
